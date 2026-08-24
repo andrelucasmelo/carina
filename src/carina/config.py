@@ -24,6 +24,24 @@ def package_data_dir() -> Path:
     return Path(__file__).resolve().parents[2] / "data" / "processed"
 
 
+def package_ephemeris_dir() -> Path:
+    """Diretório da efeméride embarcada no build (ADR-012)."""
+    if hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS) / "data" / "ephemeris"
+    return Path(__file__).resolve().parents[2] / "data" / "ephemeris"
+
+
+def ephemeris_dir() -> Path:
+    """Onde carregar a efeméride: a embarcada se existir; senão o diretório do
+    usuário (com download automático pelo Skyfield como contingência)."""
+    from .core.engine import EPHEMERIS
+
+    bundled = package_ephemeris_dir()
+    if (bundled / EPHEMERIS).exists():
+        return bundled
+    return user_data_path()
+
+
 def user_data_path() -> Path:
     p = Path(user_data_dir(APP_NAME, ORG_NAME))
     p.mkdir(parents=True, exist_ok=True)

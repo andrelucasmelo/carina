@@ -8,9 +8,11 @@ from PySide6.QtWidgets import QDockWidget, QMainWindow, QMessageBox
 
 from .. import __version__
 from ..catalogs import skygeometry
+from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
-from ..config import Settings, package_data_dir, user_data_path
+from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
 from ..core.engine import SkyEngine
+from .dso_manager import DsoManagerDialog
 from .infopanel import InfoPanel, build_info_html
 from .location_dialog import LocationDialog
 from .skywidget import SkyWidget
@@ -20,6 +22,7 @@ from .time_dialog import TimeDialog
 _LAYER_ACTIONS = [
     ("stars", "Estrelas", None, True),
     ("planets", "Planetas, Sol e Lua", "P", True),
+    ("dso", "Objetos de céu profundo", "D", True),
     ("const_lines", "Linhas das constelações", "C", True),
     ("const_bounds", "Fronteiras das constelações", "B", False),
     ("grid_altaz", "Grade horizontal (Alt-Az)", "Z", True),
@@ -29,6 +32,7 @@ _LAYER_ACTIONS = [
     ("cardinals", "Pontos cardeais", "Q", True),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
+    ("dso_names", "Rótulos do céu profundo", None, True),
     ("atmosphere", "Atmosfera", "A", True),
 ]
 
@@ -42,15 +46,20 @@ class MainWindow(QMainWindow):
         self.settings = Settings()
         data_dir = package_data_dir()
 
-        self.engine = SkyEngine(user_data_path())
+        self.engine = SkyEngine(ephemeris_dir())
         loc = self.settings.location()
         self.engine.set_location(loc)
 
         self.star_catalog = StarCatalog(data_dir)
+        self.dso_catalog = DsoCatalog(
+            data_dir / "dso.sqlite", user_data_path() / "dso.sqlite"
+        )
         self.const_names = {
             c["id"]: c for c in skygeometry.load_constellation_info(data_dir)
         }
-        self.sky = SkyWidget(self.engine, self.star_catalog, data_dir, self)
+        self.sky = SkyWidget(
+            self.engine, self.star_catalog, self.dso_catalog, data_dir, self
+        )
         self.sky.location_name = loc.name
         self.setCentralWidget(self.sky)
         self.sky.statusUpdated.connect(self._on_status)
@@ -108,8 +117,8 @@ class MainWindow(QMainWindow):
 
         m_view.addSeparator()
         name_group = QActionGroup(self)
-        self.act_proper = QAction(self.tr("Rotular por nome próprio"), self)
-        self.act_bayer = QAction(self.tr("Rotular por designação de Bayer (genitivo)"), self)
+        self.act_proper = QAction(self.tr("Rotular estrelas por nome próprio"), self)
+        self.act_bayer = QAction(self.tr("Rotular estrelas por Bayer (genitivo)"), self)
         for act, mode in ((self.act_proper, "proper"), (self.act_bayer, "bayer")):
             act.setCheckable(True)
             act.setActionGroup(name_group)
@@ -118,7 +127,32 @@ class MainWindow(QMainWindow):
         self.act_proper.setChecked(True)
 
         m_view.addSeparator()
+        dso_group = QActionGroup(self)
+        self.act_dso_number = QAction(
+            self.tr("Rotular céu profundo por número de catálogo"), self
+        )
+        self.act_dso_name = QAction(
+            self.tr("Rotular céu profundo por nome"), self
+        )
+        for act, mode in (
+            (self.act_dso_number, "number"), (self.act_dso_name, "name")
+        ):
+            act.setCheckable(True)
+            act.setActionGroup(dso_group)
+            act.triggered.connect(
+                lambda _=False, m=mode: self.sky.set_dso_name_mode(m)
+            )
+            m_view.addAction(act)
+        self.act_dso_number.setChecked(True)
+
+        m_view.addSeparator()
         m_view.addAction(self.info_dock.toggleViewAction())
+
+        m_dso = bar.addMenu(self.tr("&Céu profundo"))
+        act_manage = QAction(self.tr("Gerenciar objetos e catálogos…"), self)
+        act_manage.setShortcut("Ctrl+D")
+        act_manage.triggered.connect(self._manage_dso)
+        m_dso.addAction(act_manage)
 
         m_obs = bar.addMenu(self.tr("&Observador"))
         act_loc = QAction(self.tr("Localização…"), self)
@@ -186,9 +220,16 @@ class MainWindow(QMainWindow):
             self.info_panel.show_html(
                 build_info_html(
                     self.sky.selection, self.engine, self.star_catalog,
-                    self.const_names,
+                    self.const_names, self.dso_catalog,
                 )
             )
+
+    def _manage_dso(self) -> None:
+        dlg = DsoManagerDialog(self.dso_catalog, self)
+        dlg.exec()
+        self.dso_catalog.reload()
+        self.sky.update()
+        self._refresh_info()
 
     def _on_status(self, text: str) -> None:
         self.statusBar().showMessage(text)

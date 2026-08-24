@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "carina"
-version = "0.2.0"
+version = "0.3.0"
 description = "Carina — planetário desktop estilo Stellarium em Python (PySide6 + OpenGL + Skyfield)"
 readme = "README.md"
 requires-python = ">=3.12"

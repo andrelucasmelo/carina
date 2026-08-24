@@ -10,6 +10,7 @@ from PySide6.QtGui import QFont, QPainter, QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
 from ..catalogs import skygeometry
+from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..core.engine import SkyEngine
 from ..core.projection import Camera
@@ -36,7 +37,66 @@ DEFAULT_LAYERS = {
     "star_names": True,
     "planet_names": True,
     "atmosphere": True,
+    "dso": True,
+    "dso_names": True,
 }
+
+# Cores dos símbolos de céu profundo por classe (índices de KLASS_CODES)
+DSO_COLORS = [
+    (0.88, 0.58, 0.58),  # GAL
+    (0.55, 0.75, 0.95),  # OC
+    (0.95, 0.85, 0.55),  # GC
+    (0.55, 0.88, 0.65),  # NEB
+    (0.55, 0.95, 0.88),  # PN
+    (0.52, 0.50, 0.60),  # DARK
+    (0.72, 0.72, 0.72),  # OTHER
+]
+
+
+def _circle_pts(n: int) -> np.ndarray:
+    a = np.linspace(0.0, 2.0 * math.pi, n + 1)
+    return np.column_stack([np.cos(a), np.sin(a)])
+
+
+def _polyline_segs(pts: np.ndarray, dashed: bool = False) -> np.ndarray:
+    seg = np.stack([pts[:-1], pts[1:]], axis=1)  # (S,2,2)
+    if dashed:
+        seg = seg[::2]
+    return seg
+
+
+def _make_templates() -> dict[int, np.ndarray]:
+    circle = _polyline_segs(_circle_pts(16))
+    circle_dash = _polyline_segs(_circle_pts(20), dashed=True)
+    sq = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]], float) * 0.85
+    square = _polyline_segs(sq)
+    square_dash = np.concatenate(
+        [_polyline_segs(np.linspace(sq[i], sq[i + 1], 5), dashed=True)
+         for i in range(4)]
+    )
+    cross = np.array(
+        [[[-0.9, 0], [0.9, 0]], [[0, -0.9], [0, 0.9]]], float
+    )
+    ticks = np.array(
+        [[[1.0, 0], [1.6, 0]], [[-1.0, 0], [-1.6, 0]],
+         [[0, 1.0], [0, 1.6]], [[0, -1.0], [0, -1.6]]], float
+    )
+    ell = _circle_pts(16) * np.array([1.0, 0.5])
+    diamond = _polyline_segs(
+        np.array([[0, -1], [1, 0], [0, 1], [-1, 0], [0, -1]], float) * 0.8
+    )
+    return {
+        0: _polyline_segs(ell),                       # GAL: elipse
+        1: circle_dash,                               # OC: círculo tracejado
+        2: np.concatenate([circle, cross]),           # GC: círculo + cruz
+        3: square,                                    # NEB: quadrado
+        4: np.concatenate([_polyline_segs(_circle_pts(12)) * 0.7, ticks * 0.7]),  # PN
+        5: square_dash,                               # DARK: quadrado tracejado
+        6: diamond,                                   # OTHER: losango
+    }
+
+
+DSO_TEMPLATES = _make_templates()
 
 
 def _wrap_pi(a: float) -> float:
@@ -47,14 +107,17 @@ class SkyWidget(QOpenGLWidget):
     statusUpdated = Signal(str)
     selectionChanged = Signal(object)  # None | ("star", idx) | ("body", nome)
 
-    def __init__(self, engine: SkyEngine, stars: StarCatalog, data_dir, parent=None):
+    def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
+                 data_dir, parent=None):
         super().__init__(parent)
         self.engine = engine
         self.stars = stars
+        self.dso = dso
         self.camera = Camera()
         self.renderer = GLRenderer()
         self.layers = dict(DEFAULT_LAYERS)
-        self.name_mode = "proper"  # 'proper' | 'bayer'
+        self.name_mode = "proper"    # 'proper' | 'bayer'
+        self.dso_name_mode = "number"  # 'number' | 'name' (item 10)
         self.location_name = ""
 
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
@@ -70,6 +133,7 @@ class SkyWidget(QOpenGLWidget):
         self.selection: tuple[str, object] | None = None
         self._pick_stars = None    # (idx, x, y) do último quadro
         self._pick_bodies = []     # [(BodyState, x, y, size)] do último quadro
+        self._pick_dso = None      # (idx, x, y) do último quadro
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -93,6 +157,10 @@ class SkyWidget(QOpenGLWidget):
 
     def set_name_mode(self, mode: str) -> None:
         self.name_mode = mode
+        self.update()
+
+    def set_dso_name_mode(self, mode: str) -> None:
+        self.dso_name_mode = mode
         self.update()
 
     # ------------------------------------------------------------------
@@ -176,6 +244,11 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["horizon"]:
             r.draw_lines(self._segments(self.horizon, None, COL_HORIZON))
 
+        # --- céu profundo (símbolos e contornos) ---
+        dso_px = None
+        if self.layers["dso"]:
+            dso_px = self._draw_dso(m, star_fade)
+
         # --- estrelas ---
         star_px = None
         if self.layers["stars"]:
@@ -189,6 +262,7 @@ class SkyWidget(QOpenGLWidget):
         # cache para o picking por clique
         self._pick_stars = star_px[:3] if star_px is not None else None
         self._pick_bodies = bodies_px
+        self._pick_dso = dso_px[:3] if dso_px is not None else None
 
         # --- marcador da seleção ---
         self._draw_selection_marker(m)
@@ -197,7 +271,7 @@ class SkyWidget(QOpenGLWidget):
         painter.endNativePainting()
 
         # --- rótulos (QPainter em pixels lógicos) ---
-        self._draw_labels(painter, dpr, star_px, bodies_px)
+        self._draw_labels(painter, dpr, star_px, bodies_px, dso_px)
         painter.end()
 
         self._emit_status(t)
@@ -256,6 +330,82 @@ class SkyWidget(QOpenGLWidget):
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
         return idx, x, y, below_map
 
+    def _dso_size_px(self) -> np.ndarray:
+        """Eixo maior de cada objeto em pixels na escala atual."""
+        return self.dso.maj * (math.radians(1.0 / 60.0) * self.camera.pixel_scale)
+
+    def _draw_dso(self, m: np.ndarray, fade: float):
+        dso = self.dso
+        if len(dso) == 0:
+            return None
+        cam = self.camera
+        vecs = dso.xyz @ m.T
+        x, y, vis = cam.project(vecs, margin=48.0)
+        maj_px = self._dso_size_px()
+        dso_lim = self._mag_limit() - 0.3
+        show = vis & ((dso.mag <= dso_lim) | (maj_px >= 14.0))
+        idx = np.nonzero(show)[0]
+        if len(idx) == 0:
+            return None
+        idx = idx[:400]  # arrays em ordem de magnitude: mantém os brilhantes
+
+        pole = np.array([0.0, 0.0, 1.0], dtype=np.float32)
+        segs: list[np.ndarray] = []
+        cols: list[np.ndarray] = []
+        for i in idx:
+            code = int(dso.klass[i])
+            below = vecs[i, 2] < 0.0
+            alpha = 0.85 * fade * (0.25 if below else 1.0)
+            color = np.array([*DSO_COLORS[code], alpha], dtype=np.float32)
+            cx, cy = x[i], y[i]
+            big = maj_px[i] > 26.0
+            if big:
+                # contorno elíptico orientado pelo ângulo de posição (PA)
+                u = dso.xyz[i].astype(np.float64)
+                n_t = pole - np.dot(pole, u) * u
+                norm = np.linalg.norm(n_t)
+                if norm < 1e-6:
+                    n_t = np.array([1.0, 0.0, 0.0])
+                else:
+                    n_t = n_t / norm
+                e_t = np.cross(pole, u)
+                e_t = e_t / max(np.linalg.norm(e_t), 1e-9)
+                pts3 = np.stack([u + 1e-4 * n_t, u + 1e-4 * e_t])
+                pts3 /= np.linalg.norm(pts3, axis=1, keepdims=True)
+                px2, py2, _ = cam.project((pts3 @ m.T.astype(np.float64)), margin=1e9)
+                n_scr = np.array([px2[0] - cx, py2[0] - cy])
+                e_scr = np.array([px2[1] - cx, py2[1] - cy])
+                n_scr /= max(np.linalg.norm(n_scr), 1e-9)
+                e_scr /= max(np.linalg.norm(e_scr), 1e-9)
+                pa = math.radians(float(dso.pa[i]))
+                dir_a = math.cos(pa) * n_scr + math.sin(pa) * e_scr
+                dir_b = -math.sin(pa) * n_scr + math.cos(pa) * e_scr
+                a_px = maj_px[i] / 2.0
+                b_px = max(
+                    dso.minor[i] * math.radians(1 / 60.0) * cam.pixel_scale / 2.0,
+                    a_px * 0.35,
+                )
+                ang = np.linspace(0.0, 2.0 * math.pi, 25)
+                ring = (
+                    np.array([cx, cy])
+                    + np.outer(a_px * np.cos(ang), dir_a)
+                    + np.outer(b_px * np.sin(ang), dir_b)
+                )
+                seg = np.stack([ring[:-1], ring[1:]], axis=1)
+            else:
+                r = float(np.clip(maj_px[i] * 0.5, 6.0, 13.0))
+                seg = DSO_TEMPLATES[code] * r + np.array([cx, cy])
+            segs.append(seg.astype(np.float32))
+            cols.append(np.repeat(color[np.newaxis, :], 2 * len(seg), axis=0))
+
+        if segs:
+            all_seg = np.concatenate(segs).reshape(-1, 2)
+            out = np.empty((len(all_seg), 6), dtype=np.float32)
+            out[:, :2] = all_seg
+            out[:, 2:] = np.concatenate(cols)
+            self.renderer.draw_lines(out)
+        return idx, x, y, maj_px
+
     def _draw_bodies(self, t):
         cam = self.camera
         out = []
@@ -277,8 +427,29 @@ class SkyWidget(QOpenGLWidget):
         return out
 
     # ------------------------------------------------------------------
-    def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px):
+    def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px,
+                     dso_px=None):
         painter.setRenderHint(QPainter.TextAntialiasing)
+
+        # rótulos de céu profundo (item 10: número de catálogo ou nome)
+        if self.layers["dso_names"] and dso_px is not None:
+            idx, x, y, maj_px = dso_px
+            dso = self.dso
+            label_lim = self._mag_limit() - 1.8
+            painter.setFont(QFont("Segoe UI", 8))
+            painter.setPen(QColor(150, 168, 190))
+            shown = 0
+            for i in idx:
+                if not (dso.mag[i] <= label_lim or maj_px[i] > 30.0):
+                    continue
+                off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
+                painter.drawText(
+                    int(x[i] / dpr) + off, int(y[i] / dpr) - off + 4,
+                    dso.label(int(i), self.dso_name_mode),
+                )
+                shown += 1
+                if shown >= 30:
+                    break
 
         # pontos cardeais
         if self.layers["cardinals"]:
@@ -341,6 +512,13 @@ class SkyWidget(QOpenGLWidget):
             vec = (self.stars.xyz[int(key)] @ m.T)[np.newaxis, :]
             x, y, vis = self.camera.project(vec)
             return (float(x[0]), float(y[0])) if vis[0] else None
+        if kind == "dso":
+            row = self.dso.row_of(int(key))
+            if row is None:
+                return None
+            vec = (self.dso.xyz[row] @ m.T)[np.newaxis, :]
+            x, y, vis = self.camera.project(vec)
+            return (float(x[0]), float(y[0])) if vis[0] else None
         for b, x, y, _size in self._pick_bodies:
             if b.name == key:
                 return (x, y)
@@ -378,12 +556,24 @@ class SkyWidget(QOpenGLWidget):
             d2 = (x - px) ** 2 + (y - py) ** 2
             if d2 <= r * r and (best is None or d2 < best[0]):
                 best = (d2, ("body", b.name))
-        if best is None and self._pick_stars is not None:
-            idx, x, y = self._pick_stars
-            d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
-            k = int(np.argmin(d2))
-            if d2[k] <= 14.0 ** 2:
-                best = (float(d2[k]), ("star", int(idx[k])))
+        if best is None:
+            candidates: list[tuple[float, tuple]] = []
+            if self._pick_stars is not None:
+                idx, x, y = self._pick_stars
+                d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
+                k = int(np.argmin(d2))
+                if d2[k] <= 14.0 ** 2:
+                    candidates.append((float(d2[k]), ("star", int(idx[k]))))
+            if self._pick_dso is not None:
+                idx, x, y = self._pick_dso
+                d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
+                k = int(np.argmin(d2))
+                if d2[k] <= 16.0 ** 2:
+                    candidates.append(
+                        (float(d2[k]), ("dso", int(self.dso.ids[idx[k]])))
+                    )
+            if candidates:
+                best = min(candidates, key=lambda c: c[0])
         new = best[1] if best else None
         if new != self.selection:
             self.selection = new

@@ -2,7 +2,12 @@
 from PyInstaller.utils.hooks import collect_data_files
 from PyInstaller.utils.hooks import collect_submodules
 
-datas = [('data/processed', 'data/processed')]
+# ADR-012: tudo local após a instalação — dados processados (catálogos,
+# banco de céu profundo, imagens M/C) e a efeméride JPL embarcados.
+datas = [
+    ('data/processed', 'data/processed'),
+    ('data/ephemeris', 'data/ephemeris'),
+]
 hiddenimports = []
 datas += collect_data_files('skyfield')
 hiddenimports += collect_submodules('OpenGL')
