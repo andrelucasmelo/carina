@@ -1,7 +1,10 @@
-# AstroPlanetary
+# Carina
 
-Planetário desktop estilo Stellarium, escrito em Python com **PySide6 + OpenGL** para
-renderização e **Skyfield** (efemérides JPL) para os cálculos astronômicos.
+Planetário desktop estilo Stellarium, escrito em Python com **PySide6 + OpenGL**
+para renderização e **Skyfield** (efemérides JPL) para os cálculos astronômicos.
+
+> O repositório mantém o nome original `AstroPlanetary`; o aplicativo chama-se
+> **Carina** (decisão do usuário, ADR-010).
 
 ## Requisitos
 
@@ -30,8 +33,19 @@ para o diretório de dados do usuário.
 ## Executar
 
 ```powershell
-.venv\Scripts\python -m astroplanetary
+.venv\Scripts\python -m carina
 ```
+
+Opções úteis para testes: `--screenshot arquivo.png`, `--at "2026-08-24T22:00"`,
+`--look az,alt`, `--fov graus`, `--size 1280x800`.
+
+## Build desktop (Windows)
+
+```powershell
+.venv\Scripts\python -m PyInstaller Carina.spec --noconfirm
+```
+
+O aplicativo final fica em `dist/Carina/Carina.exe`.
 
 ## Documentação
 

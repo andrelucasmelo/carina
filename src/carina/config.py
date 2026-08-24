@@ -9,8 +9,8 @@ from pathlib import Path
 from platformdirs import user_cache_dir, user_data_dir
 from PySide6.QtCore import QSettings
 
-APP_NAME = "AstroPlanetary"
-ORG_NAME = "AstroPlanetary"
+APP_NAME = "Carina"
+ORG_NAME = "Carina"
 
 
 def package_data_dir() -> Path:
@@ -38,10 +38,10 @@ def user_cache_path() -> Path:
 
 @dataclass
 class ObserverLocation:
-    name: str = "São Paulo, Brasil"
-    latitude: float = -23.5505   # graus, sul negativo
-    longitude: float = -46.6333  # graus, oeste negativo
-    elevation: float = 760.0     # metros
+    name: str = "Rio de Janeiro, Brasil"
+    latitude: float = -22.9068   # graus, sul negativo
+    longitude: float = -43.1729  # graus, oeste negativo
+    elevation: float = 15.0      # metros
 
 
 class Settings:

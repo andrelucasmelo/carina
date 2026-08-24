@@ -32,7 +32,7 @@ _LAYER_ACTIONS = [
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle(f"AstroPlanetary {__version__}")
+        self.setWindowTitle(f"Carina {__version__}")
         self.resize(1280, 800)
 
         self.settings = Settings()
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         m_obs.addAction(act_loc)
 
         m_help = bar.addMenu(self.tr("A&juda"))
-        act_about = QAction(self.tr("Sobre o AstroPlanetary"), self)
+        act_about = QAction(self.tr("Sobre o Carina"), self)
         act_about.triggered.connect(self._about)
         m_help.addAction(act_about)
 
@@ -123,9 +123,9 @@ class MainWindow(QMainWindow):
     def _about(self) -> None:
         QMessageBox.about(
             self,
-            self.tr("Sobre o AstroPlanetary"),
+            self.tr("Sobre o Carina"),
             self.tr(
-                "<b>AstroPlanetary {v}</b><br>"
+                "<b>Carina {v}</b><br>"
                 "Planetário desktop em Python — PySide6 + OpenGL + Skyfield.<br><br>"
                 "Dados: HYG v4.1 (CC BY-SA), d3-celestial (BSD-3), "
                 "efemérides JPL DE440s."

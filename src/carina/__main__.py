@@ -1,4 +1,4 @@
-"""Ponto de entrada: ``python -m astroplanetary``.
+"""Ponto de entrada: ``python -m carina``.
 
 Opções úteis para testes automatizados:
   --screenshot CAMINHO   renderiza um quadro, salva PNG e sai
@@ -20,7 +20,7 @@ from .config import APP_NAME, ORG_NAME
 
 
 def _parse_args(argv):
-    parser = argparse.ArgumentParser(prog="astroplanetary")
+    parser = argparse.ArgumentParser(prog="carina")
     parser.add_argument("--screenshot", metavar="CAMINHO", default=None)
     parser.add_argument("--at", metavar="ISO", default=None)
     parser.add_argument("--size", metavar="LARGxALT", default=None)
