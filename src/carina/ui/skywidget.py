@@ -45,6 +45,7 @@ def _wrap_pi(a: float) -> float:
 
 class SkyWidget(QOpenGLWidget):
     statusUpdated = Signal(str)
+    selectionChanged = Signal(object)  # None | ("star", idx) | ("body", nome)
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, data_dir, parent=None):
         super().__init__(parent)
@@ -65,6 +66,10 @@ class SkyWidget(QOpenGLWidget):
 
         self._drag_anchor: tuple[float, float] | None = None
         self._cursor_altaz: tuple[float, float] | None = None
+        self._press_pos: tuple[float, float] | None = None
+        self.selection: tuple[str, object] | None = None
+        self._pick_stars = None    # (idx, x, y) do último quadro
+        self._pick_bodies = []     # [(BodyState, x, y, size)] do último quadro
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -72,6 +77,14 @@ class SkyWidget(QOpenGLWidget):
         self._clock.setInterval(1000)
         self._clock.timeout.connect(self.update)
         self._clock.start()
+
+    def sync_clock(self) -> None:
+        """Ajusta a cadência de repintura à velocidade da simulação."""
+        speed = self.engine.time.speed
+        interval = 1000 if speed in (0.0, 1.0) else 150
+        if self._clock.interval() != interval:
+            self._clock.setInterval(interval)
+        self.update()
 
     # ------------------------------------------------------------------
     def set_layer(self, key: str, value: bool) -> None:
@@ -172,6 +185,13 @@ class SkyWidget(QOpenGLWidget):
         bodies_px = []
         if self.layers["planets"]:
             bodies_px = self._draw_bodies(t)
+
+        # cache para o picking por clique
+        self._pick_stars = star_px[:3] if star_px is not None else None
+        self._pick_bodies = bodies_px
+
+        # --- marcador da seleção ---
+        self._draw_selection_marker(m)
 
         r.end_frame()
         painter.endNativePainting()
@@ -312,12 +332,74 @@ class SkyWidget(QOpenGLWidget):
                 )
 
     # ------------------------------------------------------------------
+    def _selection_screen_pos(self, m: np.ndarray):
+        """Posição em pixels (device) da seleção atual, ou None se invisível."""
+        if self.selection is None:
+            return None
+        kind, key = self.selection
+        if kind == "star":
+            vec = (self.stars.xyz[int(key)] @ m.T)[np.newaxis, :]
+            x, y, vis = self.camera.project(vec)
+            return (float(x[0]), float(y[0])) if vis[0] else None
+        for b, x, y, _size in self._pick_bodies:
+            if b.name == key:
+                return (x, y)
+        return None
+
+    def _draw_selection_marker(self, m: np.ndarray) -> None:
+        pos = self._selection_screen_pos(m)
+        if pos is None:
+            return
+        cx, cy = pos
+        radius = 15.0
+        n = 28
+        ang = np.linspace(0.0, 2.0 * math.pi, n + 1)
+        px = cx + radius * np.cos(ang)
+        py = cy + radius * np.sin(ang)
+        out = np.empty((2 * n, 6), dtype=np.float32)
+        out[0::2, 0] = px[:-1]
+        out[0::2, 1] = py[:-1]
+        out[1::2, 0] = px[1:]
+        out[1::2, 1] = py[1:]
+        out[:, 2:] = (0.95, 0.65, 0.25, 0.9)
+        self.renderer.draw_lines(out)
+
+    def clear_selection(self) -> None:
+        if self.selection is not None:
+            self.selection = None
+            self.selectionChanged.emit(None)
+            self.update()
+
+    def _pick_at(self, px: float, py: float) -> None:
+        """Seleciona o objeto mais próximo do clique (corpos têm prioridade)."""
+        best = None
+        for b, x, y, size in self._pick_bodies:
+            r = max(14.0, size / 2.0 + 8.0)
+            d2 = (x - px) ** 2 + (y - py) ** 2
+            if d2 <= r * r and (best is None or d2 < best[0]):
+                best = (d2, ("body", b.name))
+        if best is None and self._pick_stars is not None:
+            idx, x, y = self._pick_stars
+            d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
+            k = int(np.argmin(d2))
+            if d2[k] <= 14.0 ** 2:
+                best = (float(d2[k]), ("star", int(idx[k])))
+        new = best[1] if best else None
+        if new != self.selection:
+            self.selection = new
+            self.selectionChanged.emit(new)
+        self.update()
+
+    # ------------------------------------------------------------------
     def _emit_status(self, t) -> None:
+        from ..core.formats import speed_label
+
         local = self.engine.time.current_datetime().astimezone()
         fov = math.degrees(self.camera.fov)
         parts = [
             self.location_name,
             local.strftime("%d/%m/%Y %H:%M:%S"),
+            speed_label(self.engine.time.speed),
             f"FOV {fov:.2f}°" if fov < 10 else f"FOV {fov:.0f}°",
         ]
         if self._cursor_altaz:
@@ -338,6 +420,7 @@ class SkyWidget(QOpenGLWidget):
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
             x, y = self._device_pos(event)
+            self._press_pos = (x, y)
             self._drag_anchor = self.camera.screen_to_altaz(x, y)
             self.setCursor(Qt.ClosedHandCursor)
 
@@ -360,6 +443,19 @@ class SkyWidget(QOpenGLWidget):
         if event.button() == Qt.LeftButton:
             self._drag_anchor = None
             self.setCursor(Qt.ArrowCursor)
+            x, y = self._device_pos(event)
+            if self._press_pos is not None:
+                dx = x - self._press_pos[0]
+                dy = y - self._press_pos[1]
+                if dx * dx + dy * dy <= 36.0:  # clique, não arrasto
+                    self._pick_at(x, y)
+            self._press_pos = None
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key_Escape:
+            self.clear_selection()
+        else:
+            super().keyPressEvent(event)
 
     def wheelEvent(self, event) -> None:
         delta = event.angleDelta().y()

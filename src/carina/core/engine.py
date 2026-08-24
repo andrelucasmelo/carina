@@ -52,28 +52,102 @@ class BodyState:
 
 
 class TimeController:
-    """Relógio da simulação: tempo real, tempo fixo ou acelerado."""
+    """Relógio da simulação: tempo real, acelerado, pausado ou em outra época.
+
+    Modelo: instante_sim = base_sim + (real_agora - base_real) × velocidade.
+    A simulação é mantida dentro da cobertura da efeméride DE440s (1849–2150);
+    ao atingir a borda, o relógio pausa.
+    """
+
+    SPEED_MAX = 1_000_000.0
+    SIM_MIN = dt.datetime(1850, 1, 1, tzinfo=dt.timezone.utc)
+    SIM_MAX = dt.datetime(2149, 12, 31, tzinfo=dt.timezone.utc)
 
     def __init__(self, ts) -> None:
         self.ts = ts
-        self._fixed: dt.datetime | None = None
-        self._offset = dt.timedelta(0)   # deslocamento em relação ao relógio real
-        self.speed = 1.0                 # reservado para acelerar o tempo
+        now = dt.datetime.now(dt.timezone.utc)
+        self._base_real = now
+        self._base_sim = now
+        self._speed = 1.0
+        self._resume_speed = 1.0
 
-    def set_fixed(self, when: dt.datetime | None) -> None:
-        """Congela a simulação num instante (UTC). None volta ao tempo real."""
-        if when is not None and when.tzinfo is None:
-            when = when.replace(tzinfo=dt.timezone.utc)
-        self._fixed = when
+    # -- leitura ---------------------------------------------------------
+    @property
+    def speed(self) -> float:
+        return self._speed
 
     def current_datetime(self) -> dt.datetime:
-        if self._fixed is not None:
-            return self._fixed
-        return dt.datetime.now(dt.timezone.utc) + self._offset
+        real = dt.datetime.now(dt.timezone.utc)
+        try:
+            sim = self._base_sim + (real - self._base_real) * self._speed
+        except OverflowError:
+            sim = self.SIM_MAX if self._speed > 0 else self.SIM_MIN
+        if sim < self.SIM_MIN or sim > self.SIM_MAX:
+            sim = max(self.SIM_MIN, min(self.SIM_MAX, sim))
+            self._base_sim = sim
+            self._base_real = real
+            self._speed = 0.0
+        return sim
 
     def current(self):
         """Instante atual como skyfield.Time."""
         return self.ts.from_datetime(self.current_datetime())
+
+    # -- controle --------------------------------------------------------
+    def _rebase(self) -> None:
+        sim = self.current_datetime()
+        self._base_real = dt.datetime.now(dt.timezone.utc)
+        self._base_sim = sim
+
+    def set_speed(self, speed: float) -> None:
+        self._rebase()
+        self._speed = max(-self.SPEED_MAX, min(self.SPEED_MAX, speed))
+
+    def faster(self) -> None:
+        s = self._speed
+        if s == 0.0:
+            new = 1.0
+        elif s > 0:
+            new = min(s * 10.0, self.SPEED_MAX)
+        else:
+            new = s / 10.0 if abs(s) > 1.0 else 1.0
+        self.set_speed(new)
+
+    def slower(self) -> None:
+        s = self._speed
+        if s == 0.0:
+            new = -1.0
+        elif s < 0:
+            new = max(s * 10.0, -self.SPEED_MAX)
+        else:
+            new = s / 10.0 if s > 1.0 else -1.0
+        self.set_speed(new)
+
+    def toggle_pause(self) -> None:
+        if self._speed == 0.0:
+            self.set_speed(self._resume_speed or 1.0)
+        else:
+            self._resume_speed = self._speed
+            self.set_speed(0.0)
+
+    def set_datetime(self, when: dt.datetime) -> None:
+        """Salta para um instante (mantém a velocidade atual)."""
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=dt.timezone.utc)
+        self._base_sim = max(self.SIM_MIN, min(self.SIM_MAX, when))
+        self._base_real = dt.datetime.now(dt.timezone.utc)
+
+    def to_now(self) -> None:
+        self.set_datetime(dt.datetime.now(dt.timezone.utc))
+        self._speed = 1.0
+
+    def set_fixed(self, when: dt.datetime | None) -> None:
+        """Congela a simulação num instante (UTC). None volta ao tempo real."""
+        if when is None:
+            self.to_now()
+        else:
+            self.set_datetime(when)
+            self._speed = 0.0
 
 
 class SkyEngine:
@@ -160,3 +234,9 @@ class SkyEngine:
             if b.name == "Sol":
                 return b.alt
         return -1.0
+
+    def moon_illumination(self, t) -> float:
+        """Fração iluminada da Lua (0..1)."""
+        from skyfield import almanac
+
+        return float(almanac.fraction_illuminated(self.eph, "moon", t))

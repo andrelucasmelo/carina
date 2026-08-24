@@ -27,6 +27,8 @@ def _parse_args(argv):
     parser.add_argument("--look", metavar="AZ,ALT", default=None,
                         help="direção inicial da câmera em graus")
     parser.add_argument("--fov", metavar="GRAUS", type=float, default=None)
+    parser.add_argument("--select", metavar="NOME", default=None,
+                        help="seleciona um objeto ao abrir (nome próprio ou corpo)")
     return parser.parse_args(argv)
 
 
@@ -71,11 +73,29 @@ def main(argv=None) -> int:
 
         win.sky.camera.fov = math.radians(args.fov)
 
+    if args.select:
+        target = args.select.strip().lower()
+        selection = None
+        for i, nm in win.star_catalog.proper.items():
+            if nm.lower() == target:
+                selection = ("star", int(i))
+                break
+        if selection is None:
+            from .core.engine import _BODIES
+
+            for name, _key, _color in _BODIES:
+                if name.lower() == target:
+                    selection = ("body", name)
+                    break
+        if selection is not None:
+            win.sky.selection = selection
+            win.sky.selectionChanged.emit(selection)
+
     win.show()
 
     if args.screenshot:
         def grab() -> None:
-            img = win.sky.grabFramebuffer()
+            img = win.grab().toImage()
             img.save(args.screenshot)
             print(f"screenshot: {args.screenshot} ({img.width()}x{img.height()})")
             app.quit()

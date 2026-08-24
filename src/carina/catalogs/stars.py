@@ -20,6 +20,16 @@ GREEK = {
 }
 _SUPERSCRIPT = {"1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵"}
 
+# Nome por extenso das letras gregas (para designações completas).
+GREEK_FULL = {
+    "Alp": "Alpha", "Bet": "Beta", "Gam": "Gamma", "Del": "Delta",
+    "Eps": "Epsilon", "Zet": "Zeta", "Eta": "Eta", "The": "Theta",
+    "Iot": "Iota", "Kap": "Kappa", "Lam": "Lambda", "Mu": "Mu", "Nu": "Nu",
+    "Xi": "Xi", "Omi": "Omicron", "Pi": "Pi", "Rho": "Rho", "Sig": "Sigma",
+    "Tau": "Tau", "Ups": "Upsilon", "Phi": "Phi", "Chi": "Chi", "Psi": "Psi",
+    "Ome": "Omega",
+}
+
 # Genitivo latino das 88 constelações (abreviação IAU -> genitivo).
 GENITIVE = {
     "And": "Andromedae", "Ant": "Antliae", "Aps": "Apodis", "Aqr": "Aquarii",
@@ -56,7 +66,7 @@ def bayer_display(code: str, con: str | None = None, full: bool = False) -> str:
     letter = GREEK.get(base, base)
     sup = _SUPERSCRIPT.get(sub, sub)
     if full and con:
-        return f"{base}{sup} {GENITIVE.get(con, con)}"
+        return f"{GREEK_FULL.get(base, base)}{sup} {GENITIVE.get(con, con)}"
     if con:
         return f"{letter}{sup} {con}"
     return f"{letter}{sup}"
@@ -81,6 +91,8 @@ class StarCatalog:
         self.mag: np.ndarray = npz["mag"]                        # crescente
         self.ci: np.ndarray = npz["ci"]
         self.hip: np.ndarray = npz["hip"]
+        self.ra: np.ndarray = npz["ra"]                          # radianos J2000
+        self.dec: np.ndarray = npz["dec"]
         self.colors = _bv_to_rgb(self.ci)                        # (N,3)
 
         names = json.loads((data_dir / "star_names.json").read_text("utf-8"))
