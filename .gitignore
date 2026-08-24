@@ -1,0 +1,28 @@
+# Ambientes e IDE
+.venv/
+venv/
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Builds desktop
+build/
+dist/
+
+# Dados brutos baixados (regenerar com scripts/build_data.py)
+data/raw/
+
+# Efemérides JPL (baixadas em tempo de execução para o diretório do usuário)
+*.bsp
+
+# Saídas temporárias
+*.log
+screenshots/
