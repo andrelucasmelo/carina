@@ -125,3 +125,28 @@ def test_speed_labels():
     assert speed_label(0.0).startswith("⏸")
     assert speed_label(100.0) == "×100"
     assert speed_label(-10.0) == "×-10"
+
+
+# ---------------------------------------------------------------------------
+# Fase da Lua (usa a efeméride local, se disponível)
+# ---------------------------------------------------------------------------
+
+def test_moon_phase_angle_matches_illumination():
+    from pathlib import Path
+
+    ephem = Path(__file__).resolve().parent.parent / "data" / "ephemeris"
+    if not (ephem / "de440s.bsp").exists():
+        pytest.skip("efeméride não disponível")
+
+    from carina.config import ObserverLocation
+    from carina.core.engine import SkyEngine
+
+    engine = SkyEngine(ephem)
+    engine.set_location(ObserverLocation())
+    t = engine.ts.utc(2026, 8, 25, 1, 0)
+    moon = next(b for b in engine.bodies(t) if b.name == "Lua")
+    # Fração iluminada f = (1 + cos i) / 2 deve bater com o almanaque
+    f_from_phase = (1.0 + math.cos(moon.phase_angle)) / 2.0
+    f_almanac = engine.moon_illumination(t)
+    assert f_from_phase == pytest.approx(f_almanac, abs=0.01)
+    assert 0.85 < f_almanac < 0.95  # gibosa crescente em 24/08/2026 à noite

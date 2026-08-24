@@ -135,6 +135,39 @@ def build_horizon(densify: float = 1.0) -> PolylineSet:
     return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
 
 
+def build_ground(az_step: float = 5.0, alt_step: float = 10.0):
+    """Malha triangular do hemisfério abaixo do horizonte (solo opaco).
+
+    Retorna (verts (V,3) float32, tris (T,3) int32). Malha densa para que a
+    projeção com clamp de pontos atrás do observador degrade suavemente.
+    """
+    n_az = int(round(360.0 / az_step))
+    az = np.radians(np.arange(n_az) * az_step)
+    alts = np.radians(np.arange(0.0, -80.0 - 1e-6, -alt_step))
+    rings = []
+    for alt in alts:
+        ca, sa = math.cos(alt), math.sin(alt)
+        rings.append(
+            np.stack([ca * np.cos(az), ca * np.sin(az), np.full(n_az, sa)], axis=1)
+        )
+    verts = np.concatenate(rings + [np.array([[0.0, 0.0, -1.0]])])
+    nadir = len(verts) - 1
+
+    tris = []
+    n_rings = len(alts)
+    for r in range(n_rings - 1):
+        base0, base1 = r * n_az, (r + 1) * n_az
+        for j in range(n_az):
+            j2 = (j + 1) % n_az
+            tris.append([base0 + j, base0 + j2, base1 + j])
+            tris.append([base0 + j2, base1 + j2, base1 + j])
+    base_last = (n_rings - 1) * n_az
+    for j in range(n_az):
+        j2 = (j + 1) % n_az
+        tris.append([base_last + j, base_last + j2, nadir])
+    return verts.astype(np.float32), np.asarray(tris, dtype=np.int32)
+
+
 # Pontos cardeais no frame horizontal (az medido do norte para o leste).
 CARDINALS = [
     ("N", 0.0), ("NE", 45.0), ("L", 90.0), ("SE", 135.0),

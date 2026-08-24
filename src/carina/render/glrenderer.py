@@ -146,6 +146,8 @@ class GLRenderer:
         self.u_vp_fill = GL.glGetUniformLocation(self.prog_fill, "u_viewport")
         self.u_color_fill = GL.glGetUniformLocation(self.prog_fill, "u_color")
         GL.glEnable(GL.GL_PROGRAM_POINT_SIZE)
+        size_range = GL.glGetFloatv(GL.GL_ALIASED_POINT_SIZE_RANGE)
+        self.max_point_size = float(size_range[1])
         self._ready = True
 
     # ------------------------------------------------------------------
@@ -184,6 +186,20 @@ class GLRenderer:
         self.batch_lines.upload(interleaved)
         GL.glBindVertexArray(self.batch_lines.vao)
         GL.glDrawArrays(GL.GL_LINES, 0, len(interleaved))
+
+    def fill_triangles(self, verts: np.ndarray, color) -> None:
+        """Desenha triângulos preenchidos com cor uniforme.
+
+        verts: (3T, 2) em pixels — trincas consecutivas formam triângulos.
+        """
+        if len(verts) == 0:
+            return
+        GL.glUseProgram(self.prog_fill)
+        GL.glUniform2f(self.u_vp_fill, self._w, self._h)
+        GL.glUniform4f(self.u_color_fill, color[0], color[1], color[2], color[3])
+        self.batch_fill.upload(np.ascontiguousarray(verts, dtype=np.float32))
+        GL.glBindVertexArray(self.batch_fill.vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(verts))
 
     def fill_polygons(self, rings: list[np.ndarray], color) -> None:
         """Preenche a união (com paridade) dos anéis dados em pixels.

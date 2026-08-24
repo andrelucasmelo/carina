@@ -122,6 +122,10 @@ class Camera:
         y = self.height / 2.0 - v[:, 1] / t * r_px
         return x, y
 
+    def forward_component(self, vecs: np.ndarray) -> np.ndarray:
+        """Componente dos vetores ao longo da direção de visada (cos θ)."""
+        return vecs @ self._basis[2]
+
     def unproject(self, sx: float, sy: float) -> np.ndarray:
         """Pixel -> vetor unitário no frame horizontal."""
         scale = self.pixel_scale

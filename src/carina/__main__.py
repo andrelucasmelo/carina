@@ -29,8 +29,10 @@ def _parse_args(argv):
     parser.add_argument("--fov", metavar="GRAUS", type=float, default=None)
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
-    parser.add_argument("--dialog", choices=["dso"], default=None,
+    parser.add_argument("--dialog", choices=["dso", "search"], default=None,
                         help="abre um diálogo ao iniciar (para testes)")
+    parser.add_argument("--dialog-text", default=None,
+                        help="texto pré-digitado no diálogo (para testes)")
     return parser.parse_args(argv)
 
 
@@ -102,8 +104,20 @@ def main(argv=None) -> int:
                     selection = ("dso", int(row["id"]))
                     break
         if selection is not None:
-            win.sky.selection = selection
-            win.sky.selectionChanged.emit(selection)
+            if args.look:
+                win.sky.selection = selection
+                win.sky.selectionChanged.emit(selection)
+            else:
+                # sem --look explícito, centraliza a câmera na seleção
+                win.sky.goto_object(selection, animate=False)
+
+    if args.screenshot:
+        # janelas de teste não devem roubar o foco do usuário (teclas
+        # digitadas em outra janela acionariam os atalhos de camada)
+        from PySide6.QtCore import Qt
+
+        win.setAttribute(Qt.WA_ShowWithoutActivating, True)
+        win.setWindowFlag(Qt.WindowStaysOnBottomHint, True)
 
     win.show()
 
@@ -112,6 +126,14 @@ def main(argv=None) -> int:
         from .ui.dso_manager import DsoManagerDialog
 
         dialog = DsoManagerDialog(win.dso_catalog, win)
+        dialog.show()
+    elif args.dialog == "search":
+        from .ui.search_dialog import SearchDialog
+
+        dialog = SearchDialog(win.star_catalog, win.dso_catalog, win)
+        dialog.goto_requested.connect(win.sky.goto_object)
+        if args.dialog_text:
+            dialog.edit.setText(args.dialog_text)
         dialog.show()
 
     if args.screenshot:

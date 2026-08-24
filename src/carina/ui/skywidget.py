@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import QEasingCurve, Qt, QTimer, QVariantAnimation, Signal
 from PySide6.QtGui import QFont, QPainter, QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
@@ -33,13 +33,18 @@ DEFAULT_LAYERS = {
     "grid_eq": False,
     "milkyway": True,
     "horizon": True,
+    "ground": True,
     "cardinals": True,
     "star_names": True,
     "planet_names": True,
     "atmosphere": True,
+    "refraction": True,
     "dso": True,
     "dso_names": True,
 }
+
+COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
+COL_GROUND_DAY = np.array([0.165, 0.210, 0.150])
 
 # Cores dos símbolos de céu profundo por classe (índices de KLASS_CODES)
 DSO_COLORS = [
@@ -103,6 +108,29 @@ def _wrap_pi(a: float) -> float:
     return (a + math.pi) % (2.0 * math.pi) - math.pi
 
 
+class _LabelPlacer:
+    """Anti-colisão de rótulos: guarda retângulos ocupados (B-003).
+
+    Rótulos de maior prioridade são colocados primeiro com force=True;
+    os demais são descartados se colidirem com algo já colocado.
+    """
+
+    def __init__(self) -> None:
+        self._rects: list[tuple[float, float, float, float]] = []
+
+    def place(self, x: float, y_baseline: float, w: float, h: float,
+              force: bool = False) -> bool:
+        top = y_baseline - h
+        pad = 2.0
+        if not force:
+            for ox, oy, ow, oh in self._rects:
+                if (x < ox + ow + pad and ox < x + w + pad
+                        and top < oy + oh + pad and oy < top + h + pad):
+                    return False
+        self._rects.append((x, top, w, h))
+        return True
+
+
 class SkyWidget(QOpenGLWidget):
     statusUpdated = Signal(str)
     selectionChanged = Signal(object)  # None | ("star", idx) | ("body", nome)
@@ -126,6 +154,8 @@ class SkyWidget(QOpenGLWidget):
         self.grid = skygeometry.build_grid()
         self.horizon = skygeometry.build_horizon()
         self.cardinals = skygeometry.cardinal_vectors()
+        self.ground_verts, self.ground_tris = skygeometry.build_ground()
+        self._goto_anim = None
 
         self._drag_anchor: tuple[float, float] | None = None
         self._cursor_altaz: tuple[float, float] | None = None
@@ -172,7 +202,7 @@ class SkyWidget(QOpenGLWidget):
 
     # ------------------------------------------------------------------
     def _atmosphere(self, sun_alt: float):
-        """Cor de fundo e fator de apagamento das estrelas pelo crepúsculo."""
+        """Cor de fundo, apagamento das estrelas e fator diurno."""
         alt_deg = math.degrees(sun_alt)
         twilight = min(1.0, max(0.0, (alt_deg + 18.0) / 18.0))
         day = min(1.0, max(0.0, alt_deg / 10.0))
@@ -182,7 +212,36 @@ class SkyWidget(QOpenGLWidget):
         bg = night + (dusk - night) * twilight
         bg = bg + (noon - bg) * day
         fade = max(0.04, 1.0 - 0.85 * twilight - 0.15 * day)
-        return bg, fade
+        return bg, fade, day
+
+    # ------------------------------------------------------------------
+    def _refract(self, vecs: np.ndarray) -> np.ndarray:
+        """Refração atmosférica (Sæmundsson) aplicada a vetores horizontais.
+
+        Eleva a altitude aparente: R = 1,02/tan(h + 10,3/(h + 5,11)) arcmin,
+        com h em graus; nula abaixo de -1°. Não é aplicada à grade horizontal
+        nem ao horizonte, que são referências geométricas.
+        """
+        if not self.layers.get("refraction", True):
+            return vecs
+        z = np.clip(vecs[:, 2], -1.0, 1.0)
+        alt = np.degrees(np.arcsin(z))
+        alt_f = np.maximum(alt, -0.99)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            r_arcmin = 1.02 / np.tan(np.radians(alt_f + 10.3 / (alt_f + 5.11)))
+        r_arcmin = np.where(alt > -1.0, np.maximum(r_arcmin, 0.0), 0.0)
+        alt_new = np.radians(alt + r_arcmin / 60.0)
+        cos_old = np.maximum(np.cos(np.radians(alt)), 1e-9)
+        factor = np.cos(alt_new) / cos_old
+        out = np.empty_like(vecs)
+        out[:, 0] = vecs[:, 0] * factor
+        out[:, 1] = vecs[:, 1] * factor
+        out[:, 2] = np.sin(alt_new)
+        return out
+
+    def _to_screen(self, vecs: np.ndarray, margin: float = 64.0):
+        """Projeção de conteúdo celeste: refração + câmera."""
+        return self.camera.project(self._refract(vecs), margin=margin)
 
     def _mag_limit(self) -> float:
         fov_deg = math.degrees(self.camera.fov)
@@ -203,7 +262,7 @@ class SkyWidget(QOpenGLWidget):
             sun_alt = self.engine.sun_altitude(t)
         else:
             sun_alt = -math.pi / 2
-        bg, star_fade = self._atmosphere(sun_alt)
+        bg, star_fade, day = self._atmosphere(sun_alt)
 
         painter = QPainter(self)
         painter.beginNativePainting()
@@ -213,17 +272,26 @@ class SkyWidget(QOpenGLWidget):
         # --- Via Láctea (nuvem de splats ponderada pelas isofotas) ---
         if self.layers["milkyway"] and star_fade > 0.1:
             mw = self.milkyway
-            mw_verts = mw.xyz @ m.T
-            x, y, vis = cam.project(mw_verts, margin=96.0)
+            mw_verts = self._refract(mw.xyz @ m.T)
+            wanted = max(8.0, math.radians(1.6) * cam.pixel_scale)
+            # sprites muito grandes são descartados por alguns drivers:
+            # limitamos o tamanho e compensamos a área perdida com alpha
+            # (B-010); em zoom extremo a Via Láctea se dissolve suavemente
+            size = float(min(wanted, 60.0, r.max_point_size))
+            boost = min((wanted / size) ** 2, 6.0)
+            fov_deg = math.degrees(cam.fov)
+            zoom_fade = min(1.0, max(0.0, (fov_deg - 3.0) / 5.0))
+            x, y, vis = cam.project(mw_verts, margin=max(96.0, size))
             idx = np.nonzero(vis)[0]
-            if len(idx):
-                size = float(np.clip(math.radians(1.5) * cam.pixel_scale, 8.0, 110.0))
+            if len(idx) and zoom_fade > 0.0:
                 data = np.empty((len(idx), 7), dtype=np.float32)
                 data[:, 0] = x[idx]
                 data[:, 1] = y[idx]
                 data[:, 2] = size
                 data[:, 3:6] = COL_MILKYWAY
-                alpha = mw.weight[idx].astype(np.float32) * 0.016 * star_fade
+                alpha = np.minimum(
+                    mw.weight[idx].astype(np.float32) * 0.016 * boost, 0.30
+                ) * star_fade * zoom_fade
                 below = mw_verts[idx, 2] < 0.0
                 data[:, 6] = np.where(below, alpha * 0.15, alpha)
                 r.draw_points(data)
@@ -240,10 +308,6 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["const_lines"]:
             r.draw_lines(self._segments(self.const_lines, m, COL_CONST_LINES))
 
-        # --- horizonte ---
-        if self.layers["horizon"]:
-            r.draw_lines(self._segments(self.horizon, None, COL_HORIZON))
-
         # --- céu profundo (símbolos e contornos) ---
         dso_px = None
         if self.layers["dso"]:
@@ -257,12 +321,33 @@ class SkyWidget(QOpenGLWidget):
         # --- Sistema Solar ---
         bodies_px = []
         if self.layers["planets"]:
-            bodies_px = self._draw_bodies(t)
+            bodies_px = self._draw_bodies(t, m)
 
         # cache para o picking por clique
         self._pick_stars = star_px[:3] if star_px is not None else None
         self._pick_bodies = bodies_px
         self._pick_dso = dso_px[:3] if dso_px is not None else None
+
+        # --- solo opaco (cobre o que está abaixo do horizonte) ---
+        ground_on = self.layers["ground"]
+        if ground_on:
+            # descarta triângulos totalmente atrás da câmera: com o clamp da
+            # projeção eles se espalhariam cobrindo a tela inteira
+            fwd = cam.forward_component(self.ground_verts)
+            keep = (fwd[self.ground_tris] > -0.15).any(axis=1)
+            tris = self.ground_tris[keep]
+            if len(tris):
+                gx, gy = cam.project_clamped(self.ground_verts)
+                pts = np.column_stack([gx, gy])[tris.ravel()]
+                col = (
+                    COL_GROUND_NIGHT
+                    + (COL_GROUND_DAY - COL_GROUND_NIGHT) * day
+                )
+                r.fill_triangles(pts, (col[0], col[1], col[2], 1.0))
+
+        # --- horizonte por cima do solo ---
+        if self.layers["horizon"]:
+            r.draw_lines(self._segments(self.horizon, None, COL_HORIZON))
 
         # --- marcador da seleção ---
         self._draw_selection_marker(m)
@@ -271,7 +356,7 @@ class SkyWidget(QOpenGLWidget):
         painter.endNativePainting()
 
         # --- rótulos (QPainter em pixels lógicos) ---
-        self._draw_labels(painter, dpr, star_px, bodies_px, dso_px)
+        self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
         painter.end()
 
         self._emit_status(t)
@@ -279,7 +364,9 @@ class SkyWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def _segments(self, pset: skygeometry.PolylineSet, m: np.ndarray | None,
                   color, dim_below: bool = True) -> np.ndarray:
-        verts = pset.verts if m is None else pset.verts @ m.T
+        # Conteúdo equatorial (m fornecida) sofre refração; referências
+        # horizontais (grade alt-az, horizonte) não.
+        verts = pset.verts if m is None else self._refract(pset.verts @ m.T)
         x, y, vis = self.camera.project(verts)
         seg = pset.segments
         ok = vis[seg[:, 0]] & vis[seg[:, 1]]
@@ -304,15 +391,17 @@ class SkyWidget(QOpenGLWidget):
         n = cat.count_brighter_than(m_lim)
         if n == 0:
             return None
-        vecs = cat.xyz[:n] @ m.T
+        vecs = self._refract(cat.xyz[:n] @ m.T)
         x, y, vis = cam.project(vecs, margin=16.0)
         idx = np.nonzero(vis)[0]
         if len(idx) == 0:
             return None
         mag = cat.mag[idx]
         rel = np.maximum(0.0, m_lim - mag)
-        sizes = np.minimum(16.0, 1.3 + 0.55 * rel ** 1.25).astype(np.float32)
-        alpha = np.clip(0.28 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
+        # Curva de tamanho mais íngreme: estrelas brilhantes visivelmente
+        # maiores que as fracas (compensação de brilho por tamanho).
+        sizes = np.minimum(20.0, 1.1 + 0.62 * rel ** 1.42).astype(np.float32)
+        alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
         below = vecs[idx, 2] < 0.0
         alpha = np.where(below, alpha * 0.15, alpha)
@@ -339,7 +428,7 @@ class SkyWidget(QOpenGLWidget):
         if len(dso) == 0:
             return None
         cam = self.camera
-        vecs = dso.xyz @ m.T
+        vecs = self._refract(dso.xyz @ m.T)
         x, y, vis = cam.project(vecs, margin=48.0)
         maj_px = self._dso_size_px()
         dso_lim = self._mag_limit() - 0.3
@@ -372,7 +461,9 @@ class SkyWidget(QOpenGLWidget):
                 e_t = e_t / max(np.linalg.norm(e_t), 1e-9)
                 pts3 = np.stack([u + 1e-4 * n_t, u + 1e-4 * e_t])
                 pts3 /= np.linalg.norm(pts3, axis=1, keepdims=True)
-                px2, py2, _ = cam.project((pts3 @ m.T.astype(np.float64)), margin=1e9)
+                px2, py2, _ = self._to_screen(
+                    pts3 @ m.T.astype(np.float64), margin=1e9
+                )
                 n_scr = np.array([px2[0] - cx, py2[0] - cy])
                 e_scr = np.array([px2[1] - cx, py2[1] - cy])
                 n_scr /= max(np.linalg.norm(n_scr), 1e-9)
@@ -406,70 +497,162 @@ class SkyWidget(QOpenGLWidget):
             self.renderer.draw_lines(out)
         return idx, x, y, maj_px, vecs[:, 2] < 0.0
 
-    def _draw_bodies(self, t):
+    def _draw_bodies(self, t, m: np.ndarray):
         cam = self.camera
         out = []
         rows = []
+        specials = []  # (BodyState, cx, cy) de Sol e Lua, desenhados como discos
         scale = cam.pixel_scale
         for b in self.engine.bodies(t):
-            x, y, vis = cam.project(b.vec[np.newaxis, :])
+            x, y, vis = self._to_screen(b.vec[np.newaxis, :])
             if not vis[0]:
                 continue
-            if b.angular_radius > 0.0:
-                size = max(8.0, 2.0 * b.angular_radius * scale * 1.35)
-            else:
-                size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0))
+            if b.name in ("Sol", "Lua"):
+                radius = max(5.0, b.angular_radius * scale)
+                specials.append((b, float(x[0]), float(y[0])))
+                out.append((b, float(x[0]), float(y[0]), 2.0 * radius))
+                continue
+            size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0))
             dim = 0.25 if b.alt < 0 else 1.0
             rows.append([x[0], y[0], size, *b.color, dim])
             out.append((b, float(x[0]), float(y[0]), size))
         if rows:
             self.renderer.draw_points(np.array(rows, dtype=np.float32))
+        for b, cx, cy in specials:
+            if b.name == "Sol":
+                self._draw_sun(b, cx, cy)
+            else:
+                self._draw_moon(b, cx, cy, m, t)
         return out
+
+    def _screen_north_east(self, u_icrs: np.ndarray, m: np.ndarray,
+                           cx: float, cy: float):
+        """Direções norte e leste celestes na tela, na posição dada (ICRS)."""
+        pole = np.array([0.0, 0.0, 1.0])
+        n_t = pole - np.dot(pole, u_icrs) * u_icrs
+        norm = np.linalg.norm(n_t)
+        n_t = n_t / norm if norm > 1e-9 else np.array([1.0, 0.0, 0.0])
+        e_t = np.cross(pole, u_icrs)
+        e_t /= max(np.linalg.norm(e_t), 1e-9)
+        pts = np.stack([u_icrs + 1e-4 * n_t, u_icrs + 1e-4 * e_t])
+        pts /= np.linalg.norm(pts, axis=1, keepdims=True)
+        px, py, _ = self._to_screen(pts @ m.astype(np.float64).T, margin=1e9)
+        n_scr = np.array([px[0] - cx, py[0] - cy])
+        e_scr = np.array([px[1] - cx, py[1] - cy])
+        n_scr /= max(np.linalg.norm(n_scr), 1e-9)
+        e_scr /= max(np.linalg.norm(e_scr), 1e-9)
+        return n_scr, e_scr
+
+    def _draw_sun(self, b, cx: float, cy: float) -> None:
+        radius = max(5.0, b.angular_radius * self.camera.pixel_scale)
+        # halo suave + disco
+        halo = np.array(
+            [[cx, cy, radius * 7.0, 1.0, 0.93, 0.72, 0.30]], dtype=np.float32
+        )
+        self.renderer.draw_points(halo)
+        ang = np.linspace(0.0, 2.0 * math.pi, 49)
+        disc = np.column_stack(
+            [cx + radius * np.cos(ang), cy + radius * np.sin(ang)]
+        )
+        self.renderer.fill_polygons([disc], (1.0, 0.97, 0.86, 1.0))
+
+    def _draw_moon(self, b, cx: float, cy: float, m: np.ndarray, t) -> None:
+        """Disco lunar com a fase atual: lado escuro tênue + região iluminada.
+
+        O terminadouro é a meia-elipse de semieixo R·cos(i) (i = ângulo de
+        fase); o limbo brilhante aponta para o Sol (ângulo de posição χ
+        calculado com as coordenadas equatoriais de Sol e Lua).
+        """
+        cam = self.camera
+        radius = max(5.0, b.angular_radius * cam.pixel_scale)
+
+        sun = next(s for s in self.engine.bodies(t) if s.name == "Sol")
+        m64 = m.astype(np.float64)
+        u_moon = m64.T @ b.vec
+        u_sun = m64.T @ sun.vec
+        d_m = math.asin(max(-1.0, min(1.0, u_moon[2])))
+        a_m = math.atan2(u_moon[1], u_moon[0])
+        d_s = math.asin(max(-1.0, min(1.0, u_sun[2])))
+        a_s = math.atan2(u_sun[1], u_sun[0])
+        da = a_s - a_m
+        # Ângulo de posição do limbo brilhante (do norte, para leste)
+        chi = math.atan2(
+            math.cos(d_s) * math.sin(da),
+            math.sin(d_s) * math.cos(d_m)
+            - math.cos(d_s) * math.sin(d_m) * math.cos(da),
+        )
+        n_scr, e_scr = self._screen_north_east(u_moon, m, cx, cy)
+        u2 = math.cos(chi) * n_scr + math.sin(chi) * e_scr  # p/ limbo brilhante
+        v2 = np.array([-u2[1], u2[0]])
+
+        c = np.array([cx, cy])
+        ang = np.linspace(-math.pi / 2, math.pi / 2, 25)
+        limb = c + radius * (
+            np.outer(np.cos(ang), u2) + np.outer(np.sin(ang), v2)
+        )
+        i = b.phase_angle
+        ang2 = np.linspace(math.pi / 2, -math.pi / 2, 25)
+        term = (
+            c
+            + np.outer(-radius * math.cos(i) * np.cos(ang2), u2)
+            + np.outer(radius * np.sin(ang2), v2)
+        )
+        lit = np.vstack([limb, term])
+
+        ang3 = np.linspace(0.0, 2.0 * math.pi, 49)
+        disc = np.column_stack(
+            [cx + radius * np.cos(ang3), cy + radius * np.sin(ang3)]
+        )
+        self.renderer.fill_polygons([disc], (0.16, 0.17, 0.19, 0.75))
+        self.renderer.fill_polygons([lit], (0.94, 0.93, 0.87, 1.0))
 
     # ------------------------------------------------------------------
     def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px,
-                     dso_px=None):
+                     dso_px=None, ground_on: bool = False):
+        from PySide6.QtGui import QFontMetrics
+
         painter.setRenderHint(QPainter.TextAntialiasing)
+        placer = _LabelPlacer()
 
-        # rótulos de céu profundo (item 10: número de catálogo ou nome)
-        if self.layers["dso_names"] and dso_px is not None:
-            idx, x, y, maj_px, below = dso_px
-            dso = self.dso
-            label_lim = self._mag_limit() - 1.8
-            painter.setFont(QFont("Segoe UI", 8))
-            pen_up = QColor(150, 168, 190)
-            pen_down = QColor(64, 70, 82)
-            shown = 0
-            for i in idx:
-                if not (dso.mag[i] <= label_lim or maj_px[i] > 30.0):
-                    continue
-                painter.setPen(pen_down if below[i] else pen_up)
-                off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
-                painter.drawText(
-                    int(x[i] / dpr) + off, int(y[i] / dpr) - off + 4,
-                    dso.label(int(i), self.dso_name_mode),
-                )
-                shown += 1
-                if shown >= 30:
-                    break
-
-        # pontos cardeais
+        # pontos cardeais (prioridade máxima)
         if self.layers["cardinals"]:
-            painter.setFont(QFont("Segoe UI", 11, QFont.Bold))
+            font = QFont("Segoe UI", 11, QFont.Bold)
+            painter.setFont(font)
             painter.setPen(QColor(230, 140, 60))
+            fm = QFontMetrics(font)
             for name, vec in self.cardinals:
                 x, y, vis = self.camera.project(vec[np.newaxis, :])
                 if vis[0]:
-                    painter.drawText(
-                        int(x[0] / dpr) - 8, int(y[0] / dpr) - 6, name
-                    )
+                    tx, ty = int(x[0] / dpr) - 8, int(y[0] / dpr) - 6
+                    placer.place(tx, ty, fm.horizontalAdvance(name),
+                                 fm.height(), force=True)
+                    painter.drawText(tx, ty, name)
+
+        # nomes dos corpos do Sistema Solar
+        if self.layers["planet_names"] and bodies_px:
+            font = QFont("Segoe UI", 9, QFont.DemiBold)
+            painter.setFont(font)
+            fm = QFontMetrics(font)
+            for b, x, y, size in bodies_px:
+                if ground_on and b.alt < 0:
+                    continue
+                painter.setPen(
+                    QColor(95, 92, 82) if b.alt < 0 else QColor(235, 225, 200)
+                )
+                tx = int(x / dpr) + int(size / dpr / 2) + 5
+                ty = int(y / dpr) - 5
+                placer.place(tx, ty, fm.horizontalAdvance(b.name),
+                             fm.height(), force=True)
+                painter.drawText(tx, ty, b.name)
 
         # nomes de estrelas
         if self.layers["star_names"] and star_px is not None:
             idx, x, y, below_map = star_px
             cat = self.stars
             name_lim = max(1.6, min(7.5, self._mag_limit() - 5.0))
-            painter.setFont(QFont("Segoe UI", 8))
+            font = QFont("Segoe UI", 8)
+            painter.setFont(font)
+            fm = QFontMetrics(font)
             pen_up = QColor(170, 185, 210)
             pen_down = QColor(70, 78, 92)
             shown = 0
@@ -482,27 +665,52 @@ class SkyWidget(QOpenGLWidget):
                     break
                 if si not in on_screen:
                     continue
+                below = bool(below_map.get(int(si)))
+                if ground_on and below:
+                    continue
                 label = cat.label(int(si), self.name_mode)
                 if not label:
                     continue
-                painter.setPen(pen_down if below_map.get(int(si)) else pen_up)
-                painter.drawText(int(x[si] / dpr) + 7, int(y[si] / dpr) - 5, label)
+                tx = int(x[si] / dpr) + 7
+                ty = int(y[si] / dpr) - 5
+                if not placer.place(tx, ty, fm.horizontalAdvance(label),
+                                    fm.height()):
+                    continue
+                painter.setPen(pen_down if below else pen_up)
+                painter.drawText(tx, ty, label)
                 shown += 1
                 if shown >= 70:
                     break
 
-        # nomes dos corpos do Sistema Solar
-        if self.layers["planet_names"] and bodies_px:
-            painter.setFont(QFont("Segoe UI", 9, QFont.DemiBold))
-            for b, x, y, size in bodies_px:
-                painter.setPen(
-                    QColor(95, 92, 82) if b.alt < 0 else QColor(235, 225, 200)
-                )
-                painter.drawText(
-                    int(x / dpr) + int(size / dpr / 2) + 5,
-                    int(y / dpr) - 5,
-                    b.name,
-                )
+        # rótulos de céu profundo (item 10: número de catálogo ou nome)
+        if self.layers["dso_names"] and dso_px is not None:
+            idx, x, y, maj_px, below_arr = dso_px
+            dso = self.dso
+            label_lim = self._mag_limit() - 1.8
+            font = QFont("Segoe UI", 8)
+            painter.setFont(font)
+            fm = QFontMetrics(font)
+            pen_up = QColor(150, 168, 190)
+            pen_down = QColor(64, 70, 82)
+            shown = 0
+            for i in idx:
+                if not (dso.mag[i] <= label_lim or maj_px[i] > 30.0):
+                    continue
+                below = bool(below_arr[i])
+                if ground_on and below:
+                    continue
+                text = dso.label(int(i), self.dso_name_mode)
+                off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
+                tx = int(x[i] / dpr) + off
+                ty = int(y[i] / dpr) - off + 4
+                if not placer.place(tx, ty, fm.horizontalAdvance(text),
+                                    fm.height()):
+                    continue
+                painter.setPen(pen_down if below else pen_up)
+                painter.drawText(tx, ty, text)
+                shown += 1
+                if shown >= 30:
+                    break
 
     # ------------------------------------------------------------------
     def _selection_screen_pos(self, m: np.ndarray):
@@ -512,14 +720,14 @@ class SkyWidget(QOpenGLWidget):
         kind, key = self.selection
         if kind == "star":
             vec = (self.stars.xyz[int(key)] @ m.T)[np.newaxis, :]
-            x, y, vis = self.camera.project(vec)
+            x, y, vis = self._to_screen(vec)
             return (float(x[0]), float(y[0])) if vis[0] else None
         if kind == "dso":
             row = self.dso.row_of(int(key))
             if row is None:
                 return None
             vec = (self.dso.xyz[row] @ m.T)[np.newaxis, :]
-            x, y, vis = self.camera.project(vec)
+            x, y, vis = self._to_screen(vec)
             return (float(x[0]), float(y[0])) if vis[0] else None
         for b, x, y, _size in self._pick_bodies:
             if b.name == key:
@@ -543,6 +751,65 @@ class SkyWidget(QOpenGLWidget):
         out[1::2, 1] = py[1:]
         out[:, 2:] = (0.95, 0.65, 0.25, 0.9)
         self.renderer.draw_lines(out)
+
+    def _selection_vec(self, selection, m: np.ndarray, t):
+        """Vetor horizontal (sem refração) do objeto da seleção, ou None."""
+        kind, key = selection
+        if kind == "star":
+            return self.stars.xyz[int(key)] @ m.T
+        if kind == "dso":
+            row = self.dso.row_of(int(key))
+            if row is not None:
+                return self.dso.xyz[row] @ m.T
+            data = self.dso.get(int(key))  # objeto desabilitado ainda é válido
+            if data is None:
+                return None
+            cd = math.cos(data["dec"])
+            icrs = np.array(
+                [cd * math.cos(data["ra"]), cd * math.sin(data["ra"]),
+                 math.sin(data["dec"])]
+            )
+            return icrs @ m.T
+        state = next(
+            (s for s in self.engine.bodies(t) if s.name == key), None
+        )
+        return state.vec if state is not None else None
+
+    def goto_object(self, selection, animate: bool = True) -> None:
+        """Seleciona e centraliza a câmera no objeto (busca / 'ir para')."""
+        t = self.engine.time.current()
+        m = self.engine.horizontal_matrix(t).astype(np.float32)
+        vec = self._selection_vec(selection, m, t)
+        if vec is None:
+            return
+        if selection != self.selection:
+            self.selection = selection
+            self.selectionChanged.emit(selection)
+        alt1 = math.asin(max(-1.0, min(1.0, float(vec[2]))))
+        az1 = math.atan2(float(vec[1]), float(vec[0]))
+        cam = self.camera
+        if self._goto_anim is not None:
+            self._goto_anim.stop()
+        if not animate:
+            cam.set_direction(az1, alt1)
+            self.update()
+            return
+        az0, alt0 = cam.az, cam.alt
+        daz = _wrap_pi(az1 - az0)
+        dalt = alt1 - alt0
+        anim = QVariantAnimation(self)
+        anim.setDuration(650)
+        anim.setStartValue(0.0)
+        anim.setEndValue(1.0)
+        anim.setEasingCurve(QEasingCurve.InOutCubic)
+
+        def step(v: float) -> None:
+            cam.set_direction(az0 + daz * v, alt0 + dalt * v)
+            self.update()
+
+        anim.valueChanged.connect(step)
+        anim.start()
+        self._goto_anim = anim
 
     def clear_selection(self) -> None:
         if self.selection is not None:
@@ -611,6 +878,8 @@ class SkyWidget(QOpenGLWidget):
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
+            if self._goto_anim is not None:
+                self._goto_anim.stop()
             x, y = self._device_pos(event)
             self._press_pos = (x, y)
             self._drag_anchor = self.camera.screen_to_altaz(x, y)

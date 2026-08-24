@@ -12,6 +12,7 @@ completo observe().apparent() por serem poucos.
 from __future__ import annotations
 
 import datetime as dt
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -49,6 +50,7 @@ class BodyState:
     angular_radius: float     # radianos (0 para pontos)
     color: tuple[float, float, float]
     distance_au: float
+    phase_angle: float = 0.0  # ângulo Sol-astro-Terra (rad); usado pela Lua
 
 
 class TimeController:
@@ -200,8 +202,10 @@ class SkyEngine:
 
         obs = self._site.at(t)
         states: list[BodyState] = []
+        positions: dict[str, np.ndarray] = {}
         for name, key_bsp, color in _BODIES:
             app = obs.observe(self.eph[key_bsp]).apparent()
+            positions[name] = np.asarray(app.position.au)
             alt, az, distance = app.altaz()
             alt_r, az_r = alt.radians, az.radians
             if name == "Sol":
@@ -225,6 +229,16 @@ class SkyEngine:
                     angular_radius=ang, color=color, distance_au=float(distance.au),
                 )
             )
+        # Ângulo de fase da Lua (Sol–Lua–Terra): define o terminadouro.
+        pm, ps = positions["Lua"], positions["Sol"]
+        to_sun = ps - pm
+        to_earth = -pm
+        cos_i = float(
+            np.dot(to_sun, to_earth)
+            / (np.linalg.norm(to_sun) * np.linalg.norm(to_earth))
+        )
+        moon = next(s for s in states if s.name == "Lua")
+        moon.phase_angle = math.acos(max(-1.0, min(1.0, cos_i)))
         self._bodies_cache = (key, states)
         return states
 

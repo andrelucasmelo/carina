@@ -29,11 +29,13 @@ _LAYER_ACTIONS = [
     ("grid_eq", "Grade equatorial", "E", False),
     ("milkyway", "Via Láctea", "M", True),
     ("horizon", "Linha do horizonte", "H", True),
+    ("ground", "Solo (oculta o que está abaixo do horizonte)", "G", True),
     ("cardinals", "Pontos cardeais", "Q", True),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
     ("dso_names", "Rótulos do céu profundo", None, True),
     ("atmosphere", "Atmosfera", "A", True),
+    ("refraction", "Refração atmosférica", "R", True),
 ]
 
 
@@ -154,6 +156,12 @@ class MainWindow(QMainWindow):
         act_manage.triggered.connect(self._manage_dso)
         m_dso.addAction(act_manage)
 
+        m_tools = bar.addMenu(self.tr("&Ferramentas"))
+        act_search = QAction(self.tr("Buscar objeto…"), self)
+        act_search.setShortcut("Ctrl+F")
+        act_search.triggered.connect(self._open_search)
+        m_tools.addAction(act_search)
+
         m_obs = bar.addMenu(self.tr("&Observador"))
         act_loc = QAction(self.tr("Localização…"), self)
         act_loc.setShortcut("Ctrl+L")
@@ -230,6 +238,13 @@ class MainWindow(QMainWindow):
         self.dso_catalog.reload()
         self.sky.update()
         self._refresh_info()
+
+    def _open_search(self) -> None:
+        from .search_dialog import SearchDialog
+
+        dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
+        dlg.goto_requested.connect(self.sky.goto_object)
+        dlg.exec()
 
     def _on_status(self, text: str) -> None:
         self.statusBar().showMessage(text)
