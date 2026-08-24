@@ -404,7 +404,7 @@ class SkyWidget(QOpenGLWidget):
             out[:, :2] = all_seg
             out[:, 2:] = np.concatenate(cols)
             self.renderer.draw_lines(out)
-        return idx, x, y, maj_px
+        return idx, x, y, maj_px, vecs[:, 2] < 0.0
 
     def _draw_bodies(self, t):
         cam = self.camera
@@ -433,15 +433,17 @@ class SkyWidget(QOpenGLWidget):
 
         # rótulos de céu profundo (item 10: número de catálogo ou nome)
         if self.layers["dso_names"] and dso_px is not None:
-            idx, x, y, maj_px = dso_px
+            idx, x, y, maj_px, below = dso_px
             dso = self.dso
             label_lim = self._mag_limit() - 1.8
             painter.setFont(QFont("Segoe UI", 8))
-            painter.setPen(QColor(150, 168, 190))
+            pen_up = QColor(150, 168, 190)
+            pen_down = QColor(64, 70, 82)
             shown = 0
             for i in idx:
                 if not (dso.mag[i] <= label_lim or maj_px[i] > 30.0):
                     continue
+                painter.setPen(pen_down if below[i] else pen_up)
                 off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
                 painter.drawText(
                     int(x[i] / dpr) + off, int(y[i] / dpr) - off + 4,

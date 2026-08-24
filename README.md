@@ -20,15 +20,25 @@ python -m venv .venv
 
 ## Preparar os dados
 
-Os catálogos processados ficam em `data/processed/` (versionados no git). Para
-regenerá-los a partir das fontes originais:
+Os catálogos processados ficam em `data/processed/` (versionados no git,
+exceto as imagens). Para regenerá-los a partir das fontes originais:
 
 ```powershell
 .venv\Scripts\python scripts\build_data.py
 ```
 
-Na primeira execução o aplicativo baixa a efeméride JPL `de440s.bsp` (~32 MB)
-para o diretório de dados do usuário.
+```powershell
+.venv\Scripts\python scripts\build_dso.py
+```
+
+```powershell
+.venv\Scripts\python scripts\build_images.py
+```
+
+O terceiro passo pré-baixa as imagens Messier/Caldwell que serão embarcadas no
+instalador (ADR-012). A efeméride JPL `de440s.bsp` (~32 MB) deve estar em
+`data/ephemeris/` para ser embarcada no build; em desenvolvimento, se ausente,
+o aplicativo baixa para o diretório do usuário no primeiro uso.
 
 ## Executar
 

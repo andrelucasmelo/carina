@@ -29,6 +29,8 @@ def _parse_args(argv):
     parser.add_argument("--fov", metavar="GRAUS", type=float, default=None)
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
+    parser.add_argument("--dialog", choices=["dso"], default=None,
+                        help="abre um diálogo ao iniciar (para testes)")
     return parser.parse_args(argv)
 
 
@@ -105,6 +107,13 @@ def main(argv=None) -> int:
 
     win.show()
 
+    dialog = None
+    if args.dialog == "dso":
+        from .ui.dso_manager import DsoManagerDialog
+
+        dialog = DsoManagerDialog(win.dso_catalog, win)
+        dialog.show()
+
     if args.screenshot:
         def grab() -> None:
             # QWidget.grab() perde a camada QPainter desenhada dentro do
@@ -114,6 +123,12 @@ def main(argv=None) -> int:
             from PySide6.QtCore import QPoint, QRect
             from PySide6.QtGui import QPainter
 
+            if dialog is not None:
+                img = dialog.grab().toImage()
+                img.save(args.screenshot)
+                print(f"screenshot: {args.screenshot} ({img.width()}x{img.height()})")
+                app.quit()
+                return
             pix = win.grab()
             gl_img = win.sky.grabFramebuffer()
             painter = QPainter(pix)
