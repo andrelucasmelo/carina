@@ -29,9 +29,10 @@ def _parse_args(argv):
     parser.add_argument("--fov", metavar="GRAUS", type=float, default=None)
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
-    parser.add_argument("--dialog", choices=["dso", "search", "eclipses"],
-                        default=None,
-                        help="abre um diálogo ao iniciar (para testes)")
+    parser.add_argument(
+        "--dialog", choices=["dso", "search", "eclipses", "track"], default=None,
+        help="abre um diálogo/janela ao iniciar (para testes)",
+    )
     parser.add_argument("--dialog-text", default=None,
                         help="texto pré-digitado no diálogo (para testes)")
     parser.add_argument("--enable-layer", action="append", default=[],
@@ -147,6 +148,9 @@ def main(argv=None) -> int:
 
         dialog = EclipseDialog(win.engine, win)
         dialog.show()
+    elif args.dialog == "track":
+        win._open_track()
+        dialog = win._track_windows[-1] if win._track_windows else None
 
     if args.screenshot:
         def grab() -> None:

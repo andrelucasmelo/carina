@@ -39,9 +39,15 @@ def type_label(code: str) -> str:
 
 
 class DsoCatalog:
-    def __init__(self, bundled_db: Path, user_db: Path) -> None:
+    def __init__(self, bundled_db: Path, user_db: Path,
+                 visible_catalogs: set[str] | None = None) -> None:
         self.bundled_db = bundled_db
         self.user_db = user_db
+        # filtro de exibição por catálogo inteiro (M, C, NGC, IC, SH2, B, Mel)
+        self.visible_catalogs: set[str] = (
+            set(CATALOG_ORDER) if visible_catalogs is None
+            else set(visible_catalogs)
+        )
         if not user_db.exists():
             user_db.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(bundled_db, user_db)
@@ -50,15 +56,37 @@ class DsoCatalog:
         self.cx.execute("PRAGMA foreign_keys = ON")
         self.reload()
 
+    def set_catalog_visible(self, catalog: str, visible: bool) -> None:
+        if visible:
+            self.visible_catalogs.add(catalog)
+        else:
+            self.visible_catalogs.discard(catalog)
+        self.reload()
+
     # ------------------------------------------------------------------
     # Arrays para renderização (somente objetos habilitados)
     # ------------------------------------------------------------------
     def reload(self) -> None:
-        rows = self.cx.execute(
+        sql = (
             "SELECT id, name, klass, ra, dec, mag, maj, min, pa, common"
-            " FROM objects WHERE enabled = 1"
-            " ORDER BY CASE WHEN mag IS NULL THEN 99 ELSE mag END"
-        ).fetchall()
+            " FROM objects o WHERE enabled = 1"
+        )
+        params: list = []
+        if self.visible_catalogs != set(CATALOG_ORDER):
+            marks = ",".join("?" * len(self.visible_catalogs)) or "''"
+            # visível se: adicionado pelo usuário, sem designação alguma, ou
+            # com ao menos uma designação de catálogo habilitado
+            sql += (
+                " AND (o.user_added = 1"
+                " OR NOT EXISTS(SELECT 1 FROM designations d"
+                "               WHERE d.object_id = o.id)"
+                f" OR EXISTS(SELECT 1 FROM designations d"
+                f"           WHERE d.object_id = o.id"
+                f"           AND d.catalog IN ({marks})))"
+            )
+            params = sorted(self.visible_catalogs)
+        sql += " ORDER BY CASE WHEN mag IS NULL THEN 99 ELSE mag END"
+        rows = self.cx.execute(sql, params).fetchall()
         n = len(rows)
         self.ids = np.empty(n, dtype=np.int64)
         self.xyz = np.empty((n, 3), dtype=np.float32)
@@ -84,6 +112,16 @@ class DsoCatalog:
             self.names.append(r["name"])
             self.commons.append(r["common"])
         self._id_to_row = {int(oid): i for i, oid in enumerate(self.ids)}
+        # Messier/Caldwell: sempre rotulados, em negrito (pedido do usuário)
+        mc_ids = {
+            int(r[0]) for r in self.cx.execute(
+                "SELECT DISTINCT object_id FROM designations"
+                " WHERE catalog IN ('M', 'C')"
+            )
+        }
+        self.is_mc = np.array(
+            [int(oid) in mc_ids for oid in self.ids], dtype=bool
+        )
 
     def __len__(self) -> int:
         return len(self.ids)

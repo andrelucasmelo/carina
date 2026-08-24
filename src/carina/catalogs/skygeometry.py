@@ -135,6 +135,37 @@ def build_horizon(densify: float = 1.0) -> PolylineSet:
     return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
 
 
+def build_sphere_mesh(n_ra: int = 96, n_dec: int = 48):
+    """Malha triangular da esfera celeste com UVs para textura equirretangular.
+
+    Mesmo mecanismo do Stellarium: a Via Láctea é uma textura mapeada na
+    esfera. Retorna (verts (V,3) ICRS, uv (V,2), tris (T,3)); a coluna de RA
+    é duplicada na costura para evitar interpolação errada de u.
+    """
+    ra = np.linspace(0.0, 2.0 * math.pi, n_ra + 1)          # inclui costura
+    dec = np.linspace(math.pi / 2, -math.pi / 2, n_dec + 1)  # topo -> base
+    ra_g, dec_g = np.meshgrid(ra, dec)
+    cd = np.cos(dec_g)
+    verts = np.stack(
+        [cd * np.cos(ra_g), cd * np.sin(ra_g), np.sin(dec_g)], axis=-1
+    ).reshape(-1, 3)
+    u = (ra_g / (2.0 * math.pi)).reshape(-1)
+    v = ((math.pi / 2 - dec_g) / math.pi).reshape(-1)
+    uv = np.stack([u, v], axis=1)
+
+    cols = n_ra + 1
+    i = np.arange(n_dec)[:, None]
+    j = np.arange(n_ra)[None, :]
+    a = (i * cols + j).ravel()
+    b = (i * cols + j + 1).ravel()
+    c = ((i + 1) * cols + j).ravel()
+    d = ((i + 1) * cols + j + 1).ravel()
+    tris = np.concatenate(
+        [np.stack([a, b, c], axis=1), np.stack([b, d, c], axis=1)]
+    ).astype(np.int32)
+    return verts.astype(np.float32), uv.astype(np.float32), tris
+
+
 def build_ground(az_step: float = 5.0, alt_step: float = 10.0):
     """Malha triangular do hemisfério abaixo do horizonte (solo opaco).
 

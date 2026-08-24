@@ -14,7 +14,7 @@ from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..core.eclipses import moon_influence_radii
 from ..core.engine import SkyEngine
-from ..core.projection import Camera
+from ..core.projection import FOV_MAX, FOV_MIN, Camera
 from ..render.glrenderer import GLRenderer
 
 # Cores (r, g, b, a)
@@ -149,6 +149,12 @@ class SkyWidget(QOpenGLWidget):
         self.name_mode = "proper"    # 'proper' | 'bayer'
         self.dso_name_mode = "number"  # 'number' | 'name' (item 10)
         self.location_name = ""
+        self.mag_cap: float | None = None   # limite manual de magnitude
+        self.chart_mode = False             # modo mapa para impressão
+        self.mouse_mode = "pan"             # 'pan' | 'measure' | 'zoom_rect'
+        self._measure: dict | None = None   # medição angular ativa
+        self._rubber: list | None = None    # retângulo de zoom
+        self._label_hits: list = []         # (rect lógico, seleção)
 
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
         self.const_bounds = skygeometry.load_constellation_bounds(data_dir)
@@ -158,6 +164,19 @@ class SkyWidget(QOpenGLWidget):
         self.cardinals = skygeometry.cardinal_vectors()
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
         self._goto_anim = None
+
+        # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
+        self.mw_mesh = skygeometry.build_sphere_mesh()
+        self._mw_tex_rgb = None
+        tex_path = data_dir / "milkyway_tex.jpg"
+        if tex_path.exists():
+            from PySide6.QtGui import QImage
+
+            img = QImage(str(tex_path)).convertToFormat(QImage.Format_RGB888)
+            w, h = img.width(), img.height()
+            buf = np.frombuffer(img.constBits(), dtype=np.uint8)
+            buf = buf.reshape(h, img.bytesPerLine())[:, : w * 3]
+            self._mw_tex_rgb = buf.reshape(h, w, 3).copy()
 
         self._drag_anchor: tuple[float, float] | None = None
         self._cursor_altaz: tuple[float, float] | None = None
@@ -198,6 +217,8 @@ class SkyWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def initializeGL(self) -> None:
         self.renderer.initialize()
+        if self._mw_tex_rgb is not None:
+            self.renderer.set_mw_texture(self._mw_tex_rgb)
 
     def resizeGL(self, w: int, h: int) -> None:
         pass  # o viewport é definido a cada quadro em paintGL
@@ -247,7 +268,27 @@ class SkyWidget(QOpenGLWidget):
 
     def _mag_limit(self) -> float:
         fov_deg = math.degrees(self.camera.fov)
-        return min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
+        auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
+        if self.mag_cap is not None:
+            return min(auto, self.mag_cap)
+        return auto
+
+    def set_mag_cap(self, value: float | None) -> None:
+        self.mag_cap = value
+        self.update()
+
+    def set_chart_mode(self, on: bool) -> None:
+        self.chart_mode = on
+        self.update()
+
+    def set_mouse_mode(self, mode: str) -> None:
+        self.mouse_mode = mode
+        self._measure = None
+        self._rubber = None
+        self.setCursor(
+            Qt.CrossCursor if mode in ("measure", "zoom_rect") else Qt.ArrowCursor
+        )
+        self.update()
 
     # ------------------------------------------------------------------
     def paintGL(self) -> None:
@@ -260,19 +301,36 @@ class SkyWidget(QOpenGLWidget):
         t = self.engine.time.current()
         m = self.engine.horizontal_matrix(t).astype(np.float32)
 
-        if self.layers["atmosphere"]:
+        if self.chart_mode:
+            bg, star_fade, day = np.array([1.0, 1.0, 1.0]), 1.0, 0.0
+        elif self.layers["atmosphere"]:
             sun_alt = self.engine.sun_altitude(t)
+            bg, star_fade, day = self._atmosphere(sun_alt)
         else:
-            sun_alt = -math.pi / 2
-        bg, star_fade, day = self._atmosphere(sun_alt)
+            bg, star_fade, day = self._atmosphere(-math.pi / 2)
 
         painter = QPainter(self)
         painter.beginNativePainting()
         r = self.renderer
         r.begin_frame(w, h, bg)
 
-        # --- Via Láctea (nuvem de splats ponderada pelas isofotas) ---
-        if self.layers["milkyway"] and star_fade > 0.1:
+        # --- Via Láctea: textura na esfera (mecanismo do Stellarium) ---
+        if (self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode
+                and self._mw_tex_rgb is not None):
+            verts, uv, tris = self.mw_mesh
+            vh = self._refract(verts @ m.T)
+            fwd = cam.forward_component(vh)
+            keep = (fwd[tris] > -0.05).any(axis=1)
+            tri = tris[keep]
+            if len(tri):
+                px, py = cam.project_clamped(vh)
+                idx = tri.ravel()
+                pos = np.column_stack([px, py])[idx]
+                # atenua a textura abaixo do horizonte junto com o solo
+                self.renderer.draw_textured_triangles(
+                    pos, uv[idx], 0.40 * star_fade
+                )
+        elif self.layers["milkyway"] and star_fade > 0.1:
             mw = self.milkyway
             mw_verts = self._refract(mw.xyz @ m.T)
             wanted = max(8.0, math.radians(1.6) * cam.pixel_scale)
@@ -364,6 +422,7 @@ class SkyWidget(QOpenGLWidget):
 
         # --- rótulos (QPainter em pixels lógicos) ---
         self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
+        self._draw_tools_overlay(painter, dpr)
         painter.end()
 
         self._emit_status(t)
@@ -405,9 +464,9 @@ class SkyWidget(QOpenGLWidget):
             return None
         mag = cat.mag[idx]
         rel = np.maximum(0.0, m_lim - mag)
-        # Curva de tamanho mais íngreme: estrelas brilhantes visivelmente
-        # maiores que as fracas (compensação de brilho por tamanho).
-        sizes = np.minimum(20.0, 1.1 + 0.62 * rel ** 1.42).astype(np.float32)
+        # Curva de tamanho bem íngreme: as estrelas mais brilhantes dominam
+        # visivelmente o campo (compensação de brilho por tamanho).
+        sizes = np.minimum(26.0, 1.1 + 0.68 * rel ** 1.58).astype(np.float32)
         alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
         below = vecs[idx, 2] < 0.0
@@ -420,8 +479,12 @@ class SkyWidget(QOpenGLWidget):
         data[:, 0] = x[idx]
         data[:, 1] = y[idx]
         data[:, 2] = sizes[keep]
-        data[:, 3:6] = cat.colors[idx]
-        data[:, 6] = alpha[keep]
+        if self.chart_mode:
+            data[:, 3:6] = 0.05  # pontos escuros sobre fundo branco
+            data[:, 6] = np.clip(alpha[keep] * 1.6, 0.0, 1.0)
+        else:
+            data[:, 3:6] = cat.colors[idx]
+            data[:, 6] = alpha[keep]
         self.renderer.draw_points(data)
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
         return idx, x, y, below_map
@@ -662,10 +725,12 @@ class SkyWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px,
                      dso_px=None, ground_on: bool = False):
+        from PySide6.QtCore import QRect
         from PySide6.QtGui import QFontMetrics
 
         painter.setRenderHint(QPainter.TextAntialiasing)
         placer = _LabelPlacer()
+        self._label_hits = []
 
         # pontos cardeais (prioridade máxima)
         if self.layers["cardinals"]:
@@ -689,14 +754,19 @@ class SkyWidget(QOpenGLWidget):
             for b, x, y, size in bodies_px:
                 if ground_on and b.alt < 0:
                     continue
-                painter.setPen(
-                    QColor(95, 92, 82) if b.alt < 0 else QColor(235, 225, 200)
-                )
+                if self.chart_mode:
+                    pen = QColor(20, 20, 20)
+                else:
+                    pen = QColor(95, 92, 82) if b.alt < 0 else QColor(235, 225, 200)
+                painter.setPen(pen)
                 tx = int(x / dpr) + int(size / dpr / 2) + 5
                 ty = int(y / dpr) - 5
-                placer.place(tx, ty, fm.horizontalAdvance(b.name),
-                             fm.height(), force=True)
+                w_text, h_text = fm.horizontalAdvance(b.name), fm.height()
+                placer.place(tx, ty, w_text, h_text, force=True)
                 painter.drawText(tx, ty, b.name)
+                self._label_hits.append(
+                    (QRect(tx, ty - h_text, w_text, h_text), ("body", b.name))
+                )
 
         # nomes de estrelas
         if self.layers["star_names"] and star_px is not None:
@@ -706,8 +776,10 @@ class SkyWidget(QOpenGLWidget):
             font = QFont("Segoe UI", 8)
             painter.setFont(font)
             fm = QFontMetrics(font)
-            pen_up = QColor(170, 185, 210)
-            pen_down = QColor(70, 78, 92)
+            if self.chart_mode:
+                pen_up, pen_down = QColor(30, 30, 30), QColor(160, 160, 160)
+            else:
+                pen_up, pen_down = QColor(170, 185, 210), QColor(70, 78, 92)
             shown = 0
             id_set = (
                 cat.proper_idx if self.name_mode == "proper" else cat.bayer_idx
@@ -726,44 +798,71 @@ class SkyWidget(QOpenGLWidget):
                     continue
                 tx = int(x[si] / dpr) + 7
                 ty = int(y[si] / dpr) - 5
-                if not placer.place(tx, ty, fm.horizontalAdvance(label),
-                                    fm.height()):
+                w_text, h_text = fm.horizontalAdvance(label), fm.height()
+                if not placer.place(tx, ty, w_text, h_text):
                     continue
                 painter.setPen(pen_down if below else pen_up)
                 painter.drawText(tx, ty, label)
+                self._label_hits.append(
+                    (QRect(tx, ty - h_text, w_text, h_text), ("star", int(si)))
+                )
                 shown += 1
                 if shown >= 70:
                     break
 
-        # rótulos de céu profundo (item 10: número de catálogo ou nome)
+        # rótulos de céu profundo (item 10: número de catálogo ou nome).
+        # Messier e Caldwell aparecem SEMPRE e em negrito (pedido do usuário).
         if self.layers["dso_names"] and dso_px is not None:
+            from PySide6.QtCore import QRect
+
             idx, x, y, maj_px, below_arr = dso_px
             dso = self.dso
             label_lim = self._mag_limit() - 1.8
             font = QFont("Segoe UI", 8)
-            painter.setFont(font)
+            font_mc = QFont("Segoe UI", 9, QFont.Bold)
             fm = QFontMetrics(font)
-            pen_up = QColor(150, 168, 190)
-            pen_down = QColor(64, 70, 82)
+            fm_mc = QFontMetrics(font_mc)
+            if self.chart_mode:
+                pen_up, pen_mc, pen_down = (
+                    QColor(40, 40, 40), QColor(0, 0, 0), QColor(150, 150, 150)
+                )
+            else:
+                pen_up, pen_mc, pen_down = (
+                    QColor(150, 168, 190), QColor(235, 226, 190),
+                    QColor(64, 70, 82),
+                )
             shown = 0
-            for i in idx:
-                if not (dso.mag[i] <= label_lim or maj_px[i] > 30.0):
+            # duas passadas: M/C primeiro (prioridade), depois os demais
+            order = sorted(idx, key=lambda i: not bool(dso.is_mc[i]))
+            for i in order:
+                is_mc = bool(dso.is_mc[i])
+                if not is_mc and shown >= 30:
+                    continue
+                if not (is_mc or dso.mag[i] <= label_lim or maj_px[i] > 30.0):
                     continue
                 below = bool(below_arr[i])
                 if ground_on and below:
                     continue
                 text = dso.label(int(i), self.dso_name_mode)
+                metrics = fm_mc if is_mc else fm
+                w_text, h_text = metrics.horizontalAdvance(text), metrics.height()
                 off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
                 tx = int(x[i] / dpr) + off
                 ty = int(y[i] / dpr) - off + 4
-                if not placer.place(tx, ty, fm.horizontalAdvance(text),
-                                    fm.height()):
+                if not placer.place(tx, ty, w_text, h_text, force=is_mc):
                     continue
-                painter.setPen(pen_down if below else pen_up)
+                painter.setFont(font_mc if is_mc else font)
+                painter.setPen(
+                    pen_down if below else (pen_mc if is_mc else pen_up)
+                )
                 painter.drawText(tx, ty, text)
-                shown += 1
-                if shown >= 30:
-                    break
+                # rótulo clicável seleciona o objeto (pedido do usuário)
+                self._label_hits.append(
+                    (QRect(tx, ty - h_text, w_text, h_text),
+                     ("dso", int(dso.ids[i])))
+                )
+                if not is_mc:
+                    shown += 1
 
     # ------------------------------------------------------------------
     def _selection_screen_pos(self, m: np.ndarray):
@@ -903,6 +1002,64 @@ class SkyWidget(QOpenGLWidget):
         self.update()
 
     # ------------------------------------------------------------------
+    def _draw_tools_overlay(self, painter: QPainter, dpr: float) -> None:
+        """Régua angular e retângulo de zoom (coordenadas lógicas)."""
+        from PySide6.QtCore import QPoint, QRect
+        from PySide6.QtGui import QPen
+
+        if self._measure and self._measure.get("b") is not None:
+            a, b = self._measure["a"], self._measure["b"]
+            sep = math.degrees(
+                math.acos(max(-1.0, min(1.0, float(np.dot(a["vec"], b["vec"])))))
+            )
+            pa_x, pa_y = a["x"] / dpr, a["y"] / dpr
+            pb_x, pb_y = b["x"] / dpr, b["y"] / dpr
+            pen = QPen(QColor(255, 200, 90), 1.4)
+            painter.setPen(pen)
+            painter.drawLine(int(pa_x), int(pa_y), int(pb_x), int(pb_y))
+            for px, py in ((pa_x, pa_y), (pb_x, pb_y)):
+                painter.drawEllipse(QPoint(int(px), int(py)), 4, 4)
+            if sep < 1.0:
+                text = f"{sep * 60:.1f}′"
+            elif sep < 10.0:
+                text = f"{sep:.2f}°"
+            else:
+                text = f"{sep:.1f}°"
+            painter.setFont(QFont("Segoe UI", 10, QFont.Bold))
+            mx, my = int((pa_x + pb_x) / 2) + 8, int((pa_y + pb_y) / 2) - 8
+            painter.setPen(QColor(20, 20, 20))
+            painter.drawText(mx + 1, my + 1, text)
+            painter.setPen(QColor(255, 210, 110))
+            painter.drawText(mx, my, text)
+
+        if self._rubber is not None:
+            x0, y0, x1, y1 = self._rubber
+            rect = QRect(
+                QPoint(int(min(x0, x1) / dpr), int(min(y0, y1) / dpr)),
+                QPoint(int(max(x0, x1) / dpr), int(max(y0, y1) / dpr)),
+            )
+            painter.setPen(QPen(QColor(120, 200, 255), 1.2, Qt.DashLine))
+            painter.setBrush(QColor(120, 200, 255, 28))
+            painter.drawRect(rect)
+            painter.setBrush(Qt.NoBrush)
+
+    def _zoom_to_rect(self, x0, y0, x1, y1) -> None:
+        """Ajusta a câmera ao retângulo selecionado (zoom por área)."""
+        cam = self.camera
+        if abs(x1 - x0) < 12 or abs(y1 - y0) < 12:
+            return
+        v_center = cam.unproject((x0 + x1) / 2.0, (y0 + y1) / 2.0)
+        alt = math.asin(max(-1.0, min(1.0, float(v_center[2]))))
+        az = math.atan2(float(v_center[1]), float(v_center[0]))
+        # ângulo vertical coberto pelo retângulo -> novo FOV
+        v_top = cam.unproject((x0 + x1) / 2.0, min(y0, y1))
+        v_bot = cam.unproject((x0 + x1) / 2.0, max(y0, y1))
+        ang = math.acos(max(-1.0, min(1.0, float(np.dot(v_top, v_bot)))))
+        cam.set_direction(az, alt)
+        cam.fov = max(FOV_MIN, min(FOV_MAX, ang if ang > 1e-4 else cam.fov))
+        self.update()
+
+    # ------------------------------------------------------------------
     def _emit_status(self, t) -> None:
         from ..core.formats import speed_label
 
@@ -930,17 +1087,47 @@ class SkyWidget(QOpenGLWidget):
         return p.x() * dpr, p.y() * dpr
 
     def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.LeftButton:
-            if self._goto_anim is not None:
-                self._goto_anim.stop()
-            x, y = self._device_pos(event)
-            self._press_pos = (x, y)
-            self._drag_anchor = self.camera.screen_to_altaz(x, y)
-            self.setCursor(Qt.ClosedHandCursor)
+        if event.button() != Qt.LeftButton:
+            return
+        if self._goto_anim is not None:
+            self._goto_anim.stop()
+        x, y = self._device_pos(event)
+        self._press_pos = (x, y)
+
+        if self.mouse_mode == "measure":
+            point = {"x": x, "y": y, "vec": self.camera.unproject(x, y)}
+            if self._measure is None or self._measure.get("b") is not None:
+                self._measure = {"a": point, "b": None}
+            else:
+                self._measure["b"] = point
+            self.update()
+            return
+        if self.mouse_mode == "zoom_rect":
+            self._rubber = [x, y, x, y]
+            self.update()
+            return
+
+        self._drag_anchor = self.camera.screen_to_altaz(x, y)
+        self.setCursor(Qt.ClosedHandCursor)
 
     def mouseMoveEvent(self, event) -> None:
         x, y = self._device_pos(event)
         self._cursor_altaz = self.camera.screen_to_altaz(x, y)
+
+        if self.mouse_mode == "zoom_rect" and self._rubber is not None:
+            self._rubber[2], self._rubber[3] = x, y
+            self.update()
+            return
+        if (self.mouse_mode == "measure" and self._measure is not None
+                and self._measure.get("b") is None):
+            # pré-visualiza a medição enquanto o segundo ponto não é fixado
+            self._measure["b"] = {
+                "x": x, "y": y, "vec": self.camera.unproject(x, y),
+            }
+            self.update()
+            self._measure["b"] = None
+            return
+
         if self._drag_anchor is not None and (event.buttons() & Qt.LeftButton):
             az_c, alt_c = self._cursor_altaz
             az_p, alt_p = self._drag_anchor
@@ -954,16 +1141,43 @@ class SkyWidget(QOpenGLWidget):
             self._emit_status(t)
 
     def mouseReleaseEvent(self, event) -> None:
-        if event.button() == Qt.LeftButton:
-            self._drag_anchor = None
-            self.setCursor(Qt.ArrowCursor)
-            x, y = self._device_pos(event)
-            if self._press_pos is not None:
-                dx = x - self._press_pos[0]
-                dy = y - self._press_pos[1]
-                if dx * dx + dy * dy <= 36.0:  # clique, não arrasto
-                    self._pick_at(x, y)
+        if event.button() != Qt.LeftButton:
+            return
+        x, y = self._device_pos(event)
+
+        if self.mouse_mode == "zoom_rect" and self._rubber is not None:
+            x0, y0, _, _ = self._rubber
+            self._rubber = None
+            self._zoom_to_rect(x0, y0, x, y)
             self._press_pos = None
+            return
+        if self.mouse_mode == "measure":
+            self._press_pos = None
+            return
+
+        self._drag_anchor = None
+        self.setCursor(Qt.ArrowCursor)
+        if self._press_pos is not None:
+            dx = x - self._press_pos[0]
+            dy = y - self._press_pos[1]
+            if dx * dx + dy * dy <= 36.0:  # clique, não arrasto
+                dpr = self.devicePixelRatioF()
+                hit = self._label_at(x / dpr, y / dpr)
+                if hit is not None:
+                    if hit != self.selection:
+                        self.selection = hit
+                        self.selectionChanged.emit(hit)
+                    self.update()
+                else:
+                    self._pick_at(x, y)
+        self._press_pos = None
+
+    def _label_at(self, lx: float, ly: float):
+        """Seleção associada a um rótulo sob o cursor (coords. lógicas)."""
+        for rect, selection in self._label_hits:
+            if rect.adjusted(-2, -2, 2, 2).contains(int(lx), int(ly)):
+                return selection
+        return None
 
     def keyPressEvent(self, event) -> None:
         if event.key() == Qt.Key_Escape:

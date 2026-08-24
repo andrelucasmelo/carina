@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
-from PySide6.QtWidgets import QDockWidget, QMainWindow, QMessageBox
+from PySide6.QtWidgets import (
+    QApplication, QDockWidget, QFileDialog, QMainWindow, QMessageBox,
+)
 
 from .. import __version__
 from ..catalogs import skygeometry
@@ -12,6 +14,7 @@ from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
 from ..core.engine import SkyEngine
+from .controlpanel import ControlPanel
 from .dso_manager import DsoManagerDialog
 from .infopanel import InfoPanel, build_info_html
 from .location_dialog import LocationDialog
@@ -75,6 +78,15 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.info_dock)
         self.info_dock.hide()
 
+        # painel lateral de controle
+        self.control_dock = QDockWidget(self.tr("Controles"), self)
+        self.control_dock.setObjectName("control_dock")
+        self.control_panel = ControlPanel(self.engine, self.control_dock)
+        self.control_dock.setWidget(self.control_panel)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.control_dock)
+        self._wire_control_panel()
+        self._track_windows: list = []
+
         self._build_menus()
         self._restore_layers()
 
@@ -83,6 +95,11 @@ class MainWindow(QMainWindow):
         bar = self.menuBar()
 
         m_file = bar.addMenu(self.tr("&Arquivo"))
+        act_export = QAction(self.tr("Exportar vista…"), self)
+        act_export.setShortcut("Ctrl+S")
+        act_export.triggered.connect(self._export_view)
+        m_file.addAction(act_export)
+        m_file.addSeparator()
         act_quit = QAction(self.tr("Sair"), self)
         act_quit.setShortcut(QKeySequence.Quit)
         act_quit.triggered.connect(self.close)
@@ -237,12 +254,147 @@ class MainWindow(QMainWindow):
                 )
             )
 
+    # --- painel de controle ------------------------------------------
+    def _wire_control_panel(self) -> None:
+        p = self.control_panel
+        p.magCapChanged.connect(self.sky.set_mag_cap)
+        p.layerToggled.connect(self._on_panel_layer)
+        p.catalogToggled.connect(self._on_catalog_toggled)
+        p.timeStep.connect(self._on_time_step)
+        p.timeNow.connect(self._time_now)
+        p.mouseModeChanged.connect(self.sky.set_mouse_mode)
+        p.chartModeChanged.connect(self.sky.set_chart_mode)
+        p.trackRequested.connect(self._open_track)
+        p.refresh_night()
+
+    def _on_panel_layer(self, key: str, value: bool) -> None:
+        act = self._layer_acts.get(key)
+        if act is not None and act.isChecked() != value:
+            act.setChecked(value)  # dispara o toggled -> aplica e persiste
+        else:
+            self._on_layer_toggled(key, value)
+
+    def _on_catalog_toggled(self, catalog: str, visible: bool) -> None:
+        self.dso_catalog.set_catalog_visible(catalog, visible)
+        self.sky.update()
+
+    def _on_time_step(self, seconds: float) -> None:
+        self.engine.time.step(seconds)
+        self.sky.sync_clock()
+        self.control_panel.refresh_night()
+
+    def _open_track(self) -> None:
+        """Abre a janela de rastreamento para o objeto selecionado."""
+        from ..core.tracking import compute_track
+        from .track_window import TrackWindow
+
+        selection = self.sky.selection
+        if selection is None:
+            QMessageBox.information(
+                self, "Carina",
+                self.tr("Selecione um objeto no céu (ou pela busca) para "
+                        "rastrear sua trajetória na noite."),
+            )
+            return
+        kind, key = selection
+        icrs = None
+        if kind == "star":
+            idx = int(key)
+            label = (
+                self.star_catalog.proper.get(idx)
+                or self.star_catalog.label(idx, "bayer")
+                or f"HIP {int(self.star_catalog.hip[idx])}"
+            )
+            icrs = self.star_catalog.xyz[idx]
+        elif kind == "dso":
+            data = self.dso_catalog.get(int(key))
+            if data is None:
+                return
+            label = data["name"]
+            if data.get("common"):
+                label += f" — {data['common'].split(',')[0]}"
+            import math as _math
+
+            cd = _math.cos(data["dec"])
+            icrs = [
+                cd * _math.cos(data["ra"]), cd * _math.sin(data["ra"]),
+                _math.sin(data["dec"]),
+            ]
+        else:
+            label = str(key)
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            result = compute_track(
+                self.engine, selection, label, icrs,
+                self.engine.time.current_datetime(),
+            )
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        win = TrackWindow(result, self.settings.location().name, self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.destroyed.connect(
+            lambda *_: self._track_windows.remove(win)
+            if win in self._track_windows else None
+        )
+        self._track_windows.append(win)
+        win.show()
+
     def _manage_dso(self) -> None:
         dlg = DsoManagerDialog(self.dso_catalog, self)
         dlg.exec()
         self.dso_catalog.reload()
         self.sky.update()
         self._refresh_info()
+
+    def _export_view(self) -> None:
+        """Exporta a vista atual do céu (PNG/JPG/PDF) — base do item 11."""
+        path, selected = QFileDialog.getSaveFileName(
+            self, self.tr("Exportar vista"), "carina_mapa.png",
+            "PNG (*.png);;JPEG (*.jpg);;PDF (*.pdf)",
+        )
+        if not path:
+            return
+        img = self.sky.grabFramebuffer()
+        try:
+            if path.lower().endswith(".pdf") or "PDF" in selected:
+                from PySide6.QtCore import QMarginsF, QRectF
+                from PySide6.QtGui import QPageLayout, QPageSize, QPainter, QPdfWriter
+
+                if not path.lower().endswith(".pdf"):
+                    path += ".pdf"
+                writer = QPdfWriter(path)
+                writer.setPageSize(QPageSize(QPageSize.A4))
+                writer.setPageOrientation(
+                    QPageLayout.Landscape if img.width() >= img.height()
+                    else QPageLayout.Portrait
+                )
+                writer.setPageMargins(
+                    QMarginsF(10, 10, 10, 10), QPageLayout.Millimeter
+                )
+                writer.setResolution(300)
+                painter = QPainter(writer)
+                page = QRectF(0, 0, writer.width(), writer.height())
+                scale = min(page.width() / img.width(),
+                            page.height() / img.height())
+                w, h = img.width() * scale, img.height() * scale
+                painter.drawImage(
+                    QRectF((page.width() - w) / 2, (page.height() - h) / 2, w, h),
+                    img,
+                )
+                painter.end()
+            else:
+                img.save(path)
+        except Exception as exc:  # noqa: BLE001
+            QMessageBox.warning(
+                self, "Carina",
+                self.tr("Falha ao exportar: {e}").format(e=exc),
+            )
+            return
+        self.statusBar().showMessage(
+            self.tr("Vista exportada: {p}").format(p=path), 6000
+        )
 
     def _open_search(self) -> None:
         from .search_dialog import SearchDialog

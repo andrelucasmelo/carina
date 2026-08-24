@@ -139,6 +139,12 @@ class TimeController:
         self._base_sim = max(self.SIM_MIN, min(self.SIM_MAX, when))
         self._base_real = dt.datetime.now(dt.timezone.utc)
 
+    def step(self, seconds: float) -> None:
+        """Avança/retrocede um passo fixo (painel de controle)."""
+        self.set_datetime(
+            self.current_datetime() + dt.timedelta(seconds=seconds)
+        )
+
     def to_now(self) -> None:
         self.set_datetime(dt.datetime.now(dt.timezone.utc))
         self._speed = 1.0
@@ -167,6 +173,14 @@ class SkyEngine:
     def site(self):
         """Observador (Terra + posição geográfica) para observações diretas."""
         return self._site
+
+    @staticmethod
+    def body_key(name: str) -> str:
+        """Nome exibido -> alvo no BSP ('Marte' -> 'mars barycenter')."""
+        for label, key, _color in _BODIES:
+            if label == name:
+                return key
+        raise KeyError(name)
 
     # -- observador ------------------------------------------------------
     def set_location(self, loc: ObserverLocation) -> None:

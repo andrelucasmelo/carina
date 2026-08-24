@@ -81,6 +81,35 @@ out vec4 frag;
 void main() { frag = u_color; }
 """
 
+_TEX_VS = """
+#version 330 core
+layout(location=0) in vec2 a_pos;
+layout(location=1) in vec2 a_uv;
+uniform vec2 u_viewport;
+out vec2 v_uv;
+void main() {
+    vec2 ndc = vec2(a_pos.x / u_viewport.x * 2.0 - 1.0,
+                    1.0 - a_pos.y / u_viewport.y * 2.0);
+    gl_Position = vec4(ndc, 0.0, 1.0);
+    v_uv = a_uv;
+}
+"""
+
+_TEX_FS = """
+#version 330 core
+in vec2 v_uv;
+uniform sampler2D u_tex;
+uniform float u_alpha;
+out vec4 frag;
+void main() {
+    vec3 c = texture(u_tex, v_uv).rgb;
+    // alpha proporcional ao brilho: regiões escuras da textura ficam
+    // transparentes (o céu de fundo aparece), a banda ganha corpo
+    float lum = dot(c, vec3(0.299, 0.587, 0.114));
+    frag = vec4(c, clamp(lum * 2.2, 0.0, 1.0) * u_alpha);
+}
+"""
+
 
 def _compile(vs_src: str, fs_src: str) -> int:
     def shader(src, kind):
@@ -138,9 +167,15 @@ class GLRenderer:
         self.prog_points = _compile(_POINTS_VS, _POINTS_FS)
         self.prog_lines = _compile(_LINES_VS, _LINES_FS)
         self.prog_fill = _compile(_FILL_VS, _FILL_FS)
+        self.prog_tex = _compile(_TEX_VS, _TEX_FS)
         self.batch_points = _Batch(self.prog_points, [(0, 2), (1, 1), (2, 4)])
         self.batch_lines = _Batch(self.prog_lines, [(0, 2), (1, 4)])
         self.batch_fill = _Batch(self.prog_fill, [(0, 2)])
+        self.batch_tex = _Batch(self.prog_tex, [(0, 2), (1, 2)])
+        self.u_vp_tex = GL.glGetUniformLocation(self.prog_tex, "u_viewport")
+        self.u_tex_sampler = GL.glGetUniformLocation(self.prog_tex, "u_tex")
+        self.u_tex_alpha = GL.glGetUniformLocation(self.prog_tex, "u_alpha")
+        self.mw_texture = 0
         self.u_vp_points = GL.glGetUniformLocation(self.prog_points, "u_viewport")
         self.u_vp_lines = GL.glGetUniformLocation(self.prog_lines, "u_viewport")
         self.u_vp_fill = GL.glGetUniformLocation(self.prog_fill, "u_viewport")
@@ -186,6 +221,68 @@ class GLRenderer:
         self.batch_lines.upload(interleaved)
         GL.glBindVertexArray(self.batch_lines.vao)
         GL.glDrawArrays(GL.GL_LINES, 0, len(interleaved))
+
+    def set_mw_texture(self, rgb: np.ndarray) -> None:
+        """Envia a textura da Via Láctea (H,W,3 uint8) para a GPU."""
+        h, w, _ = rgb.shape
+        rgb = np.ascontiguousarray(rgb, dtype=np.uint8)
+        if self.mw_texture:
+            GL.glDeleteTextures([self.mw_texture])
+        self.mw_texture = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.mw_texture)
+        # GL_UNPACK_ALIGNMENT é estado GLOBAL do contexto: deixá-lo em 1
+        # corrompe o upload do atlas de glifos do QPainter (rótulos ilegíveis).
+        prev_align = int(GL.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D, 0, GL.GL_RGB8, w, h, 0,
+            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, rgb,
+        )
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, prev_align)
+        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
+            GL.GL_LINEAR_MIPMAP_LINEAR,
+        )
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR
+        )
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT
+        )
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE
+        )
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+
+    def draw_textured_triangles(self, pos: np.ndarray, uv: np.ndarray,
+                                alpha: float) -> None:
+        """Triângulos texturizados com blending ADITIVO (céu: soma luz).
+
+        pos (3T,2) px · uv (3T,2) — trincas consecutivas formam triângulos.
+        """
+        if len(pos) == 0 or not self.mw_texture:
+            return
+        data = np.concatenate(
+            [pos.astype(np.float32), uv.astype(np.float32)], axis=1
+        )
+        # O QPainter do Qt mantém o atlas de glifos ligado na unidade ativa;
+        # trocar o binding sem restaurar apaga o texto dos rótulos.
+        prev_unit = int(GL.glGetIntegerv(GL.GL_ACTIVE_TEXTURE))
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        prev_tex = int(GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D))
+
+        GL.glUseProgram(self.prog_tex)
+        GL.glUniform2f(self.u_vp_tex, self._w, self._h)
+        GL.glUniform1i(self.u_tex_sampler, 0)
+        GL.glUniform1f(self.u_tex_alpha, float(alpha))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.mw_texture)
+        self.batch_tex.upload(data)
+        GL.glBindVertexArray(self.batch_tex.vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(data))
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, prev_tex)
+        GL.glActiveTexture(prev_unit)
 
     def fill_triangles(self, verts: np.ndarray, color) -> None:
         """Desenha triângulos preenchidos com cor uniforme.
