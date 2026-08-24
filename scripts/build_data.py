@@ -295,37 +295,59 @@ def build_constellations(force: bool) -> None:
     print(f"  via láctea: {len(layer_names)} camadas, {len(counts)} polígonos, {len(verts):,} vértices")
 
 
-def _even_odd_accumulate(inside: np.ndarray, pts: np.ndarray, ring: np.ndarray) -> None:
-    """XOR de pertencimento (regra even-odd) dos pontos em relação a um anel 2D.
+def _ring_column_crossings(ring: np.ndarray, step: float, n_cols: int):
+    """Cruzamentos de um anel com as colunas verticais de longitude.
 
-    Testa apenas os pontos dentro do bounding box do anel (vetorizado).
+    Desenrola as longitudes pelo caminho curto (trata o antimeridiano e os
+    anéis que dão a volta completa na esfera, como as bordas da banda da Via
+    Láctea) e devolve (col_idx, lat_cross): em quais colunas o anel cruza e a
+    latitude de cada cruzamento.
     """
-    xmin, ymin = ring.min(axis=0)
-    xmax, ymax = ring.max(axis=0)
-    sel = (
-        (pts[:, 0] >= xmin) & (pts[:, 0] <= xmax)
-        & (pts[:, 1] >= ymin) & (pts[:, 1] <= ymax)
-    )
-    if not sel.any():
-        return
-    p = pts[sel]
-    x, y = p[:, 0], p[:, 1]
-    x0, y0 = ring[:-1, 0][:, None], ring[:-1, 1][:, None]
-    x1, y1 = ring[1:, 0][:, None], ring[1:, 1][:, None]
-    cond = ((y0 <= y) & (y1 > y)) | ((y1 <= y) & (y0 > y))
+    r = np.asarray(ring, dtype=np.float64)
+    if np.allclose(r[0], r[-1]):
+        r = r[:-1]
+    if len(r) < 3:
+        return None
+    lon, lat = r[:, 0], r[:, 1]
+    dl = np.diff(np.concatenate([lon, lon[:1]]))
+    dl = (dl + 180.0) % 360.0 - 180.0            # passos pelo caminho curto
+    lon_u = np.concatenate([[lon[0]], lon[0] + np.cumsum(dl)])
+    lat_c = np.concatenate([lat, lat[:1]])
+    l0, l1 = lon_u[:-1], lon_u[1:]
+    a0, a1 = lat_c[:-1], lat_c[1:]
+
+    # centros de coluna: Lc(k) = -180 + (k + 0,5)·step, k inteiro (periódico).
+    # Regra semiaberta lo <= Lc < hi SEM epsilon: arestas adjacentes usam o
+    # MESMO float do vértice compartilhado, então a paridade é consistente por
+    # construção (empates no vértice contam 0 ou 2 em tangências, 1 em
+    # travessias — nunca quebram a paridade).
+    lo = np.minimum(l0, l1)
+    hi = np.maximum(l0, l1)
+    k_lo = np.ceil((lo + 180.0) / step - 0.5).astype(np.int64)
+    k_hi = (np.ceil((hi + 180.0) / step - 0.5) - 1.0).astype(np.int64)
+    counts = np.maximum(0, k_hi - k_lo + 1)
+    if counts.sum() == 0:
+        return None
+    edge_idx = np.repeat(np.arange(len(l0)), counts)
+    # k sequencial dentro de cada aresta
+    offsets = np.concatenate([np.arange(c) for c in counts if c > 0])
+    k = k_lo[edge_idx] + offsets
+    lq = -180.0 + (k + 0.5) * step
     with np.errstate(divide="ignore", invalid="ignore"):
-        xin = x0 + (y - y0) * (x1 - x0) / (y1 - y0)
-    crossings = np.count_nonzero(cond & (x < xin), axis=0)
-    inside[sel] ^= (crossings % 2).astype(bool)
+        t = (lq - l0[edge_idx]) / (l1[edge_idx] - l0[edge_idx])
+    lat_cross = a0[edge_idx] + t * (a1[edge_idx] - a0[edge_idx])
+    col = np.mod(k, n_cols)
+    return col, lat_cross
 
 
 def build_milkyway_points(force: bool) -> None:
     """Converte as isofotas da Via Láctea numa nuvem de pontos com peso.
 
-    O preenchimento de polígonos esféricos côncavos na projeção é frágil
-    (paridade quebra quando o anel cruza o antípoda da vista); uma nuvem de
-    splats suaves ponderada pelo número de isofotas que contêm cada ponto é
-    robusta e tem visual mais orgânico. Grade de 0,5° com jitter determinístico.
+    Pertencimento por paridade com raio VERTICAL (rumo ao polo norte, que
+    está fora de todas as isofotas) e longitudes desenroladas: correto para
+    anéis que cruzam o antimeridiano e para as bordas da banda galáctica,
+    que dão a volta completa na esfera (B-013 — o teste planar antigo criava
+    um anel falso em torno do polo sul).
     """
     print("== Via Láctea: nuvem de pontos ==")
     path = RAW / "mw.json"
@@ -333,7 +355,7 @@ def build_milkyway_points(force: bool) -> None:
         download(D3C_FILES["mw.json"], path, force)
     mw_geo = json.loads(path.read_text(encoding="utf-8"))
 
-    layers: dict[str, list[np.ndarray]] = {}
+    layers: dict[str, list] = {}
     for feat in mw_geo["features"]:
         layer = str(feat.get("id", "mw"))
         geom = feat["geometry"]
@@ -345,37 +367,56 @@ def build_milkyway_points(force: bool) -> None:
             continue
         for ring in rings:
             if len(ring) >= 3:
-                r = np.asarray(ring, dtype=np.float64)
-                if not np.allclose(r[0], r[-1]):
-                    r = np.vstack([r, r[0]])
-                layers.setdefault(layer, []).append(r)
+                layers.setdefault(layer, []).append(ring)
 
-    step = 0.5
+    step = 0.4
+    n_cols = int(round(360.0 / step))
+    lats = np.arange(-89.8, 89.8 + 1e-9, step)
+    n_rows = len(lats)
     rng = np.random.default_rng(20260824)
-    lon = np.arange(-180.0, 180.0, step)
-    lat = np.arange(-89.5, 89.5 + 1e-9, step)
-    glon, glat = np.meshgrid(lon, lat)
-    pts = np.column_stack([glon.ravel(), glat.ravel()])
-    pts += rng.uniform(-step / 2, step / 2, size=pts.shape)
+    lat_jitter = rng.uniform(-step / 2, step / 2, size=(n_rows, n_cols))
+    lat_grid = lats[:, None] + lat_jitter          # (rows, cols)
 
-    weight = np.zeros(len(pts), dtype=np.uint8)
+    weight = np.zeros((n_rows, n_cols), dtype=np.uint8)
     for layer in sorted(layers):
-        inside = np.zeros(len(pts), dtype=bool)
+        # junta os cruzamentos de todos os anéis da camada por coluna
+        cols_all, lats_all = [], []
         for ring in layers[layer]:
-            _even_odd_accumulate(inside, pts, ring)
-        weight += inside.astype(np.uint8)
+            res = _ring_column_crossings(ring, step, n_cols)
+            if res is not None:
+                cols_all.append(res[0])
+                lats_all.append(res[1])
+        if not cols_all:
+            continue
+        col = np.concatenate(cols_all)
+        lat_cross = np.concatenate(lats_all)
+        order = np.argsort(col, kind="stable")
+        col, lat_cross = col[order], lat_cross[order]
+        starts = np.searchsorted(col, np.arange(n_cols))
+        ends = np.searchsorted(col, np.arange(n_cols) + 1)
+        for c in range(n_cols):
+            lc = lat_cross[starts[c]:ends[c]]
+            if len(lc) == 0:
+                continue
+            # nº de cruzamentos ACIMA da amostra; ímpar = dentro
+            above = (lat_grid[:, c][:, None] < lc[None, :]).sum(axis=1)
+            weight[:, c] += (above % 2).astype(np.uint8)
 
-    keep = weight > 0
-    pts, weight = pts[keep], weight[keep]
-    ra = np.radians(np.mod(pts[:, 0], 360.0))
-    dec = np.radians(pts[:, 1])
+    rows, cols = np.nonzero(weight)
+    w = weight[rows, cols]
+    lon_pts = -180.0 + (cols + 0.5) * step
+    lat_pts = lat_grid[rows, cols]
+    ra = np.radians(np.mod(lon_pts, 360.0))
+    dec = np.radians(lat_pts)
     cd = np.cos(dec)
     xyz = np.stack([cd * np.cos(ra), cd * np.sin(ra), np.sin(dec)], axis=1)
     np.savez_compressed(
         OUT / "milkyway_pts.npz",
-        xyz=xyz.astype(np.float32), weight=weight,
+        xyz=xyz.astype(np.float32), weight=w.astype(np.uint8),
     )
-    print(f"  {len(pts):,} splats | pesos 1..{weight.max()}")
+    frac_polar = float(np.mean(np.abs(lat_pts) > 75.0))
+    print(f"  {len(w):,} splats | pesos 1..{w.max()} | "
+          f"fração |Dec|>75°: {frac_polar:.3%} (deve ser ~0)")
 
 
 def main() -> int:

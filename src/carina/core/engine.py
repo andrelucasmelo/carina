@@ -163,6 +163,11 @@ class SkyEngine:
         self._matrix_cache: tuple[float, np.ndarray] | None = None
         self._bodies_cache: tuple[float, list[BodyState]] | None = None
 
+    @property
+    def site(self):
+        """Observador (Terra + posição geográfica) para observações diretas."""
+        return self._site
+
     # -- observador ------------------------------------------------------
     def set_location(self, loc: ObserverLocation) -> None:
         self.topos = wgs84.latlon(

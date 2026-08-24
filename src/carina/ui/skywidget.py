@@ -12,6 +12,7 @@ from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from ..catalogs import skygeometry
 from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
+from ..core.eclipses import moon_influence_radii
 from ..core.engine import SkyEngine
 from ..core.projection import Camera
 from ..render.glrenderer import GLRenderer
@@ -27,6 +28,7 @@ COL_MILKYWAY = (0.58, 0.64, 0.80)
 DEFAULT_LAYERS = {
     "stars": True,
     "planets": True,
+    "moon_zone": False,
     "const_lines": True,
     "const_bounds": False,
     "grid_altaz": True,
@@ -284,14 +286,15 @@ class SkyWidget(QOpenGLWidget):
             x, y, vis = cam.project(mw_verts, margin=max(96.0, size))
             idx = np.nonzero(vis)[0]
             if len(idx) and zoom_fade > 0.0:
+                w = mw.weight[idx].astype(np.float32)
                 data = np.empty((len(idx), 7), dtype=np.float32)
                 data[:, 0] = x[idx]
                 data[:, 1] = y[idx]
-                data[:, 2] = size
+                # isofotas internas com splats um pouco menores: núcleo da
+                # banda mais definido, borda mais difusa
+                data[:, 2] = size * (1.15 - 0.06 * w)
                 data[:, 3:6] = COL_MILKYWAY
-                alpha = np.minimum(
-                    mw.weight[idx].astype(np.float32) * 0.016 * boost, 0.30
-                ) * star_fade * zoom_fade
+                alpha = np.minimum(w * 0.016 * boost, 0.30) * star_fade * zoom_fade
                 below = mw_verts[idx, 2] < 0.0
                 data[:, 6] = np.where(below, alpha * 0.15, alpha)
                 r.draw_points(data)
@@ -322,6 +325,10 @@ class SkyWidget(QOpenGLWidget):
         bodies_px = []
         if self.layers["planets"]:
             bodies_px = self._draw_bodies(t, m)
+
+        # --- zona de influência da Lua para astrofotografia (item 5) ---
+        if self.layers["moon_zone"]:
+            self._draw_moon_zone(t)
 
         # cache para o picking por clique
         self._pick_stars = star_px[:3] if star_px is not None else None
@@ -496,6 +503,52 @@ class SkyWidget(QOpenGLWidget):
             out[:, 2:] = np.concatenate(cols)
             self.renderer.draw_lines(out)
         return idx, x, y, maj_px, vecs[:, 2] < 0.0
+
+    def _draw_moon_zone(self, t) -> None:
+        """Anéis da zona de influência da Lua (regra prática por iluminação).
+
+        Círculo interno: zona crítica (evitar alvos de astrofoto); externo:
+        zona de cautela. Raios crescem com a fração iluminada.
+        """
+        moon = next(
+            (b for b in self.engine.bodies(t) if b.name == "Lua"), None
+        )
+        if moon is None or moon.alt < math.radians(-5.0):
+            return
+        if float(self.camera.forward_component(moon.vec[np.newaxis, :])[0]) < -0.4:
+            return
+        illum = self.engine.moon_illumination(t)
+        r1, r2 = moon_influence_radii(illum)
+
+        u = moon.vec / np.linalg.norm(moon.vec)
+        ref = (
+            np.array([0.0, 0.0, 1.0]) if abs(u[2]) < 0.95
+            else np.array([1.0, 0.0, 0.0])
+        )
+        e1 = np.cross(u, ref)
+        e1 /= np.linalg.norm(e1)
+        e2 = np.cross(u, e1)
+        ang = np.linspace(0.0, 2.0 * math.pi, 121)
+        for radius, alpha in ((r1, 0.55), (r2, 0.30)):
+            ring = (
+                math.cos(radius) * u[np.newaxis, :]
+                + math.sin(radius) * (
+                    np.outer(np.cos(ang), e1) + np.outer(np.sin(ang), e2)
+                )
+            )
+            x, y, vis = self._to_screen(ring, margin=32.0)
+            ok = vis[:-1] & vis[1:]
+            idx = np.nonzero(ok)[0]
+            idx = idx[idx % 2 == 0]  # tracejado: segmentos alternados
+            if len(idx) == 0:
+                continue
+            out = np.empty((2 * len(idx), 6), dtype=np.float32)
+            out[0::2, 0] = x[idx]
+            out[0::2, 1] = y[idx]
+            out[1::2, 0] = x[idx + 1]
+            out[1::2, 1] = y[idx + 1]
+            out[:, 2:] = (0.90, 0.72, 0.35, alpha)
+            self.renderer.draw_lines(out)
 
     def _draw_bodies(self, t, m: np.ndarray):
         cam = self.camera

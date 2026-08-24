@@ -93,9 +93,18 @@ def build_info_html(selection, engine: SkyEngine, stars: StarCatalog,
         dec = float(np.arcsin(np.clip(v_icrs[2], -1, 1)))
         rows = [_row("Magnitude", f"{state.magnitude:.1f}")]
         if state.name == "Lua":
+            from ..core.eclipses import moon_influence_radii
+
+            illum = engine.moon_illumination(t)
             rows.append(_row("Distância", f"{state.distance_au * AU_KM:,.0f} km"))
+            rows.append(_row("Iluminação", f"{illum * 100:.0f}%"))
+            r1, r2 = moon_influence_radii(illum)
             rows.append(
-                _row("Iluminação", f"{engine.moon_illumination(t) * 100:.0f}%")
+                _row(
+                    "Astrofotografia",
+                    f"evitar alvos a menos de {math.degrees(r1):.0f}° "
+                    f"(cautela até {math.degrees(r2):.0f}°)",
+                )
             )
         else:
             rows.append(_row("Distância", f"{state.distance_au:.3f} UA"))

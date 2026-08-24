@@ -29,10 +29,14 @@ def _parse_args(argv):
     parser.add_argument("--fov", metavar="GRAUS", type=float, default=None)
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
-    parser.add_argument("--dialog", choices=["dso", "search"], default=None,
+    parser.add_argument("--dialog", choices=["dso", "search", "eclipses"],
+                        default=None,
                         help="abre um diálogo ao iniciar (para testes)")
     parser.add_argument("--dialog-text", default=None,
                         help="texto pré-digitado no diálogo (para testes)")
+    parser.add_argument("--enable-layer", action="append", default=[],
+                        metavar="CAMADA",
+                        help="liga uma camada ao iniciar (para testes)")
     return parser.parse_args(argv)
 
 
@@ -66,6 +70,9 @@ def main(argv=None) -> int:
             win.resize(w, h)
         except ValueError:
             pass
+
+    for layer_name in args.enable_layer:
+        win.sky.set_layer(layer_name, True)
 
     if args.look:
         import math
@@ -134,6 +141,11 @@ def main(argv=None) -> int:
         dialog.goto_requested.connect(win.sky.goto_object)
         if args.dialog_text:
             dialog.edit.setText(args.dialog_text)
+        dialog.show()
+    elif args.dialog == "eclipses":
+        from .ui.eclipse_dialog import EclipseDialog
+
+        dialog = EclipseDialog(win.engine, win)
         dialog.show()
 
     if args.screenshot:

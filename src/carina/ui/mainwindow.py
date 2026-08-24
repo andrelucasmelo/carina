@@ -23,6 +23,7 @@ _LAYER_ACTIONS = [
     ("stars", "Estrelas", None, True),
     ("planets", "Planetas, Sol e Lua", "P", True),
     ("dso", "Objetos de céu profundo", "D", True),
+    ("moon_zone", "Zona de influência da Lua (astrofoto)", "U", False),
     ("const_lines", "Linhas das constelações", "C", True),
     ("const_bounds", "Fronteiras das constelações", "B", False),
     ("grid_altaz", "Grade horizontal (Alt-Az)", "Z", True),
@@ -161,6 +162,10 @@ class MainWindow(QMainWindow):
         act_search.setShortcut("Ctrl+F")
         act_search.triggered.connect(self._open_search)
         m_tools.addAction(act_search)
+        act_ecl = QAction(self.tr("Eclipses…"), self)
+        act_ecl.setShortcut("Ctrl+E")
+        act_ecl.triggered.connect(self._open_eclipses)
+        m_tools.addAction(act_ecl)
 
         m_obs = bar.addMenu(self.tr("&Observador"))
         act_loc = QAction(self.tr("Localização…"), self)
@@ -245,6 +250,19 @@ class MainWindow(QMainWindow):
         dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
         dlg.goto_requested.connect(self.sky.goto_object)
         dlg.exec()
+
+    def _open_eclipses(self) -> None:
+        from .eclipse_dialog import EclipseDialog
+
+        dlg = EclipseDialog(self.engine, self)
+        dlg.goto_requested.connect(self._goto_eclipse)
+        dlg.exec()
+
+    def _goto_eclipse(self, when_utc, body: str) -> None:
+        self.engine.time.set_datetime(when_utc)
+        self.engine.time.set_speed(0.0)  # pausa no instante do máximo
+        self.sky.sync_clock()
+        self.sky.goto_object(("body", body))
 
     def _on_status(self, text: str) -> None:
         self.statusBar().showMessage(text)
