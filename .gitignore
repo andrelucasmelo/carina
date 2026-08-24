@@ -20,6 +20,9 @@ dist/
 # Dados brutos baixados (regenerar com scripts/build_data.py)
 data/raw/
 
+# Imagens pré-baixadas p/ o instalador (regenerar com scripts/build_images.py)
+data/processed/images/
+
 # Efemérides JPL (baixadas em tempo de execução para o diretório do usuário)
 *.bsp
 
