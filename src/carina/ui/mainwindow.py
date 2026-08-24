@@ -435,8 +435,11 @@ class MainWindow(QMainWindow):
             self.tr("Sobre o Carina"),
             self.tr(
                 "<b>Carina {v}</b><br>"
-                "Planetário desktop em Python — PySide6 + OpenGL + Skyfield.<br><br>"
-                "Dados: HYG v4.1 (CC BY-SA), d3-celestial (BSD-3), "
-                "efemérides JPL DE440s."
+                "Planetário desktop em Python — PySide6 + OpenGL + Skyfield."
+                "<br><br>Dados: HYG v4.1 (CC BY-SA), d3-celestial (BSD-3), "
+                "OpenNGC (CC BY-SA 4.0), catálogos SH2/Barnard/Melotte via "
+                "VizieR e SIMBAD (CDS), imagens DSS2 via hips2fits (CDS), "
+                "efemérides JPL DE440s.<br>"
+                "Textura da Via Láctea: <b>ESO/S. Brunier</b> (CC BY 4.0)."
             ).format(v=__version__),
         )

@@ -38,6 +38,10 @@ def _parse_args(argv):
     parser.add_argument("--enable-layer", action="append", default=[],
                         metavar="CAMADA",
                         help="liga uma camada ao iniciar (para testes)")
+    parser.add_argument("--chart", action="store_true",
+                        help="inicia em modo mapa para impressão")
+    parser.add_argument("--demo-measure", metavar="A,B", default=None,
+                        help="mede entre dois objetos por nome (testes)")
     return parser.parse_args(argv)
 
 
@@ -74,6 +78,46 @@ def main(argv=None) -> int:
 
     for layer_name in args.enable_layer:
         win.sky.set_layer(layer_name, True)
+
+    if args.chart:
+        win.control_panel.btn_chart.setChecked(True)
+
+    def _apply_demo_measure() -> None:
+        """Injeta uma medição entre dois objetos (só para testes visuais).
+
+        Precisa rodar depois de show() e de --look: as posições de tela
+        dependem da câmera final e do viewport real.
+        """
+        import math as _math
+
+        import numpy as _np
+
+        names = [s.strip().lower() for s in args.demo_measure.split(",")]
+        t0 = win.engine.time.current()
+        m0 = win.engine.horizontal_matrix(t0)
+        points = []
+        for want in names:
+            for i, nm in win.star_catalog.proper.items():
+                if nm.lower() == want:
+                    vec = win.star_catalog.xyz[i] @ m0.T
+                    x, y, _ = win.sky._to_screen(vec[_np.newaxis, :], margin=1e9)
+                    points.append(
+                        {"x": float(x[0]), "y": float(y[0]),
+                         "vec": win.sky.camera.unproject(float(x[0]), float(y[0]))}
+                    )
+                    break
+        if len(points) == 2:
+            win.sky.set_mouse_mode("measure")
+            win.sky._measure = {"a": points[0], "b": points[1]}
+            sep = _math.degrees(
+                _math.acos(
+                    max(-1.0, min(1.0, float(
+                        _np.dot(points[0]["vec"], points[1]["vec"])
+                    )))
+                )
+            )
+            print(f"medicao: {args.demo_measure} = {sep:.3f} graus")
+            win.sky.update()
 
     if args.look:
         import math
@@ -151,6 +195,9 @@ def main(argv=None) -> int:
     elif args.dialog == "track":
         win._open_track()
         dialog = win._track_windows[-1] if win._track_windows else None
+
+    if args.demo_measure:
+        _apply_demo_measure()
 
     if args.screenshot:
         def grab() -> None:

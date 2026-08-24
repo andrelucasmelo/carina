@@ -48,6 +48,17 @@ DEFAULT_LAYERS = {
 COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
 COL_GROUND_DAY = np.array([0.165, 0.210, 0.150])
 
+# Paleta do modo mapa para impressão (traços escuros sobre papel branco)
+CHART_COLORS = {
+    "grid_altaz": (0.62, 0.68, 0.62, 0.85),
+    "grid_eq": (0.58, 0.62, 0.78, 0.85),
+    "const_lines": (0.35, 0.42, 0.62, 0.95),
+    "const_bounds": (0.72, 0.62, 0.42, 0.85),
+    "horizon": (0.70, 0.35, 0.10, 1.0),
+    "ground": (0.88, 0.90, 0.86),
+    "dso": (0.15, 0.20, 0.30),
+}
+
 # Cores dos símbolos de céu profundo por classe (índices de KLASS_CODES)
 DSO_COLORS = [
     (0.88, 0.58, 0.58),  # GAL
@@ -330,7 +341,7 @@ class SkyWidget(QOpenGLWidget):
                 self.renderer.draw_textured_triangles(
                     pos, uv[idx], 0.40 * star_fade
                 )
-        elif self.layers["milkyway"] and star_fade > 0.1:
+        elif self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode:
             mw = self.milkyway
             mw_verts = self._refract(mw.xyz @ m.T)
             wanted = max(8.0, math.radians(1.6) * cam.pixel_scale)
@@ -358,16 +369,21 @@ class SkyWidget(QOpenGLWidget):
                 r.draw_points(data)
 
         # --- grades ---
+        chart = self.chart_mode
         if self.layers["grid_altaz"]:
-            r.draw_lines(self._segments(self.grid, None, COL_GRID_ALTAZ))
+            col = CHART_COLORS["grid_altaz"] if chart else COL_GRID_ALTAZ
+            r.draw_lines(self._segments(self.grid, None, col))
         if self.layers["grid_eq"]:
-            r.draw_lines(self._segments(self.grid, m, COL_GRID_EQ))
+            col = CHART_COLORS["grid_eq"] if chart else COL_GRID_EQ
+            r.draw_lines(self._segments(self.grid, m, col))
 
         # --- constelações ---
         if self.layers["const_bounds"]:
-            r.draw_lines(self._segments(self.const_bounds, m, COL_CONST_BOUNDS))
+            col = CHART_COLORS["const_bounds"] if chart else COL_CONST_BOUNDS
+            r.draw_lines(self._segments(self.const_bounds, m, col))
         if self.layers["const_lines"]:
-            r.draw_lines(self._segments(self.const_lines, m, COL_CONST_LINES))
+            col = CHART_COLORS["const_lines"] if chart else COL_CONST_LINES
+            r.draw_lines(self._segments(self.const_lines, m, col))
 
         # --- céu profundo (símbolos e contornos) ---
         dso_px = None
@@ -404,15 +420,19 @@ class SkyWidget(QOpenGLWidget):
             if len(tris):
                 gx, gy = cam.project_clamped(self.ground_verts)
                 pts = np.column_stack([gx, gy])[tris.ravel()]
-                col = (
-                    COL_GROUND_NIGHT
-                    + (COL_GROUND_DAY - COL_GROUND_NIGHT) * day
-                )
+                if self.chart_mode:
+                    col = np.asarray(CHART_COLORS["ground"])
+                else:
+                    col = (
+                        COL_GROUND_NIGHT
+                        + (COL_GROUND_DAY - COL_GROUND_NIGHT) * day
+                    )
                 r.fill_triangles(pts, (col[0], col[1], col[2], 1.0))
 
         # --- horizonte por cima do solo ---
         if self.layers["horizon"]:
-            r.draw_lines(self._segments(self.horizon, None, COL_HORIZON))
+            col = CHART_COLORS["horizon"] if self.chart_mode else COL_HORIZON
+            r.draw_lines(self._segments(self.horizon, None, col))
 
         # --- marcador da seleção ---
         self._draw_selection_marker(m)
@@ -515,7 +535,8 @@ class SkyWidget(QOpenGLWidget):
             code = int(dso.klass[i])
             below = vecs[i, 2] < 0.0
             alpha = 0.85 * fade * (0.25 if below else 1.0)
-            color = np.array([*DSO_COLORS[code], alpha], dtype=np.float32)
+            rgb = CHART_COLORS["dso"] if self.chart_mode else DSO_COLORS[code]
+            color = np.array([*rgb, alpha], dtype=np.float32)
             cx, cy = x[i], y[i]
             big = maj_px[i] > 26.0
             if big:
@@ -736,7 +757,9 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["cardinals"]:
             font = QFont("Segoe UI", 11, QFont.Bold)
             painter.setFont(font)
-            painter.setPen(QColor(230, 140, 60))
+            painter.setPen(
+                QColor(170, 80, 20) if self.chart_mode else QColor(230, 140, 60)
+            )
             fm = QFontMetrics(font)
             for name, vec in self.cardinals:
                 x, y, vis = self.camera.project(vec[np.newaxis, :])
