@@ -159,6 +159,7 @@ class SkyWidget(QOpenGLWidget):
         self.layers = dict(DEFAULT_LAYERS)
         self.name_mode = "proper"    # 'proper' | 'bayer'
         self.dso_name_mode = "number"  # 'number' | 'name' (item 10)
+        self.prefer_caldwell = True    # C 14 em vez de NGC 7000
         self.location_name = ""
         self.mag_cap: float | None = None   # limite manual de magnitude
         self.chart_mode = False             # modo mapa para impressão
@@ -226,6 +227,10 @@ class SkyWidget(QOpenGLWidget):
 
     def set_dso_name_mode(self, mode: str) -> None:
         self.dso_name_mode = mode
+        self.update()
+
+    def set_prefer_caldwell(self, value: bool) -> None:
+        self.prefer_caldwell = value
         self.update()
 
     # ------------------------------------------------------------------
@@ -976,7 +981,9 @@ class SkyWidget(QOpenGLWidget):
                 below = bool(below_arr[i])
                 if ground_on and below:
                     continue
-                text = dso.label(int(i), self.dso_name_mode)
+                text = dso.label(
+                    int(i), self.dso_name_mode, self.prefer_caldwell
+                )
                 metrics = fm_mc if is_mc else fm
                 w_text, h_text = metrics.horizontalAdvance(text), metrics.height()
                 off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)

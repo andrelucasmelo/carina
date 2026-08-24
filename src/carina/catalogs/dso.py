@@ -122,6 +122,13 @@ class DsoCatalog:
         self.is_mc = np.array(
             [int(oid) in mc_ids for oid in self.ids], dtype=bool
         )
+        # designação Caldwell (objetos C costumam ter nome principal NGC/IC)
+        cald = {
+            int(r[0]): f"C {r[1]}" for r in self.cx.execute(
+                "SELECT object_id, ident FROM designations WHERE catalog = 'C'"
+            )
+        }
+        self.caldwell_names = [cald.get(int(oid)) for oid in self.ids]
 
     def __len__(self) -> int:
         return len(self.ids)
@@ -129,10 +136,20 @@ class DsoCatalog:
     def row_of(self, object_id: int) -> int | None:
         return self._id_to_row.get(int(object_id))
 
-    def label(self, i: int, mode: str = "number") -> str:
-        """mode 'number': designação de catálogo; 'name': nome comum."""
+    def label(self, i: int, mode: str = "number",
+              prefer_caldwell: bool = True) -> str:
+        """Rótulo do objeto no mapa.
+
+        mode 'number': designação de catálogo; 'name': nome comum.
+        ``prefer_caldwell`` faz os objetos Caldwell aparecerem como "C 14" em
+        vez do NGC/IC correspondente (configurável no menu Exibir).
+        """
         if mode == "name" and self.commons[i]:
             return self.commons[i].split(",")[0].strip()
+        if prefer_caldwell and not self.names[i].startswith("M "):
+            cald = self.caldwell_names[i]
+            if cald:
+                return cald
         return self.names[i]
 
     # ------------------------------------------------------------------

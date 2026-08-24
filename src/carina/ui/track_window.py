@@ -111,14 +111,6 @@ class TrackCanvas(QWidget):
         grid = QColor(70, 82, 100) if s.dark_theme else QColor(200, 200, 200)
         painter.fillRect(rect, bg)
 
-        margin_l, margin_r = 62.0, 26.0
-        margin_t, margin_b = 96.0, 74.0
-        plot = QRectF(
-            rect.left() + margin_l, rect.top() + margin_t,
-            max(50.0, rect.width() - margin_l - margin_r),
-            max(50.0, rect.height() - margin_t - margin_b),
-        )
-
         pts = self.result.points
         if not pts:
             painter.setPen(fg)
@@ -130,113 +122,135 @@ class TrackCanvas(QWidget):
             self._draw_borders(painter, rect, fg)
             return
 
-        # faixa de azimute observada, com folga
-        azs = [math.degrees(p.az) for p in pts]
-        az_min, az_max = min(azs), max(azs)
-        if az_max - az_min > 180.0:  # cruza o norte: usa referencial -180..180
-            azs = [a - 360.0 if a > 180.0 else a for a in azs]
-            az_min, az_max = min(azs), max(azs)
-        pad = max(8.0, (az_max - az_min) * 0.08)
-        az_min, az_max = az_min - pad, az_max + pad
-        alt_max = max(90.0, math.degrees(self.result.max_alt) + 8.0)
-        alt_max = min(90.0, alt_max)
+        self._render_polar(painter, rect, fg, grid)
+        self._draw_borders(painter, rect, fg)
 
-        def to_xy(az_deg: float, alt_deg: float) -> QPointF:
-            fx = (az_deg - az_min) / max(1e-6, az_max - az_min)
-            fy = 1.0 - alt_deg / alt_max
+    # ------------------------------------------------------------------
+    def _render_polar(self, painter: QPainter, rect: QRectF, fg: QColor,
+                      grid: QColor) -> None:
+        """Céu redondo visto de baixo: zênite no centro, horizonte na borda.
+
+        Azimute cresce do N (topo) para o L (esquerda... veja abaixo): usamos
+        a convenção de cartas celestes — N em cima, L à esquerda —, de modo
+        que a carta corresponde ao céu quando erguida sobre a cabeça.
+        """
+        s = self.settings
+        pts = self.result.points
+        top = rect.top() + 74.0
+        bottom = rect.bottom() - 118.0
+        radius = max(40.0, min(rect.width() / 2 - 40.0, (bottom - top) / 2))
+        cx = rect.center().x()
+        cy = (top + bottom) / 2.0
+
+        def to_xy(az_rad: float, alt_deg: float) -> QPointF:
+            r = radius * (1.0 - max(0.0, min(90.0, alt_deg)) / 90.0)
+            # N no topo, L à esquerda (vista do céu, não do mapa do chão)
             return QPointF(
-                plot.left() + fx * plot.width(),
-                plot.top() + fy * plot.height(),
+                cx - r * math.sin(az_rad), cy - r * math.cos(az_rad)
             )
 
-        # --- grade (item E) ---
+        # --- círculos de altitude ---
         painter.setFont(QFont("Segoe UI", 8))
         if s.show_alt_grid:
             alt = 0.0
-            while alt <= alt_max + 1e-6:
-                p0 = to_xy(az_min, alt)
-                p1 = to_xy(az_max, alt)
-                painter.setPen(QPen(grid, 1.0, Qt.SolidLine if alt == 0 else Qt.DotLine))
-                painter.drawLine(p0, p1)
-                painter.setPen(fg)
-                painter.drawText(
-                    QRectF(rect.left() + 6, p0.y() - 9, margin_l - 14, 18),
-                    Qt.AlignRight | Qt.AlignVCenter, f"{alt:.0f}°",
+            while alt < 90.0:
+                rr = radius * (1.0 - alt / 90.0)
+                painter.setPen(
+                    QPen(grid, 1.4 if alt == 0.0 else 1.0,
+                         Qt.SolidLine if alt == 0.0 else Qt.DotLine)
                 )
-                alt += s.grid_alt_step
-        if s.show_az_grid:
-            step = s.grid_az_step
-            a = math.ceil(az_min / step) * step
-            while a <= az_max:
-                p0, p1 = to_xy(a, 0.0), to_xy(a, alt_max)
-                painter.setPen(QPen(grid, 1.0, Qt.DotLine))
-                painter.drawLine(p0, p1)
-                if s.show_cardinals:
+                painter.drawEllipse(QPointF(cx, cy), rr, rr)
+                if alt > 0.0:
                     painter.setPen(fg)
                     painter.drawText(
-                        QRectF(p0.x() - 40, plot.bottom() + 4, 80, 18),
-                        Qt.AlignCenter, self._az_label(a),
+                        QRectF(cx - 18, cy - rr - 9, 36, 16),
+                        Qt.AlignCenter, f"{alt:.0f}°",
                     )
-                a += step
+                alt += s.grid_alt_step
+
+        # --- raios de azimute ---
+        if s.show_az_grid:
+            a = 0.0
+            while a < 360.0:
+                ar = math.radians(a)
+                painter.setPen(QPen(grid, 1.0, Qt.DotLine))
+                painter.drawLine(QPointF(cx, cy), to_xy(ar, 0.0))
+                a += s.grid_az_step
+
+        # --- pontos cardeais na borda (reservam espaço antes dos horários) ---
+        taken: list[QRectF] = []
+        if s.show_cardinals:
+            painter.setFont(QFont("Segoe UI", 10, QFont.Bold))
+            painter.setPen(QColor(230, 140, 60) if s.dark_theme
+                           else QColor(170, 80, 20))
+            for name, az_deg in (
+                ("N", 0), ("NE", 45), ("L", 90), ("SE", 135),
+                ("S", 180), ("SO", 225), ("O", 270), ("NO", 315),
+            ):
+                ar = math.radians(az_deg)
+                px = cx - (radius + 22) * math.sin(ar)
+                py = cy - (radius + 22) * math.cos(ar)
+                box = QRectF(px - 16, py - 10, 32, 20)
+                taken.append(box)
+                painter.drawText(box, Qt.AlignCenter, name)
 
         # --- trajetória (itens A, B, D) ---
         for i in range(len(pts) - 1):
             p0, p1 = pts[i], pts[i + 1]
-            gap = (p1.when_utc - p0.when_utc).total_seconds()
-            if gap > 30 * 60:  # descontinuidade (objeto ficou abaixo)
+            if (p1.when_utc - p0.when_utc).total_seconds() > 30 * 60:
                 continue
             alt_deg = math.degrees((p0.alt + p1.alt) / 2)
             moon = p0.moon_affected or p1.moon_affected
-            pen = QPen(s.color_for(alt_deg, moon), 2.4)
+            pen = QPen(s.color_for(alt_deg, moon), 2.6)
             pen.setStyle(BAND_STYLE.get(p0.band, Qt.SolidLine))
             pen.setCapStyle(Qt.RoundCap)
             painter.setPen(pen)
             painter.drawLine(
-                to_xy(self._az_of(p0, azs, i), math.degrees(p0.alt)),
-                to_xy(self._az_of(p1, azs, i + 1), math.degrees(p1.alt)),
+                to_xy(p0.az, math.degrees(p0.alt)),
+                to_xy(p1.az, math.degrees(p1.alt)),
             )
 
         # --- marcadores e horários (item C) ---
         painter.setFont(QFont("Segoe UI", 8))
-        for i, p in enumerate(pts):
+        for p in pts:
             local = p.when_utc.astimezone()
             minutes = local.hour * 60 + local.minute
-            xy = to_xy(self._az_of(p, azs, i), math.degrees(p.alt))
+            xy = to_xy(p.az, math.degrees(p.alt))
             if minutes % s.marker_every_min == 0:
                 color = s.color_for(math.degrees(p.alt), p.moon_affected)
                 painter.setPen(QPen(color, 1.4))
-                painter.setBrush(color if minutes % s.label_every_min == 0
-                                 else Qt.NoBrush)
-                r = 3.6 if minutes % s.label_every_min == 0 else 2.4
-                painter.drawEllipse(xy, r, r)
+                full = minutes % s.label_every_min == 0
+                painter.setBrush(color if full else Qt.NoBrush)
+                painter.drawEllipse(xy, 3.8 if full else 2.4,
+                                    3.8 if full else 2.4)
                 painter.setBrush(Qt.NoBrush)
             if minutes % s.label_every_min == 0:
+                # afasta o rótulo radialmente e evita sobrepor outros
+                dx, dy = xy.x() - cx, xy.y() - cy
+                norm = max(1.0, math.hypot(dx, dy))
+                placed = None
+                for offset in (18, -18, 30, -30):
+                    box = QRectF(
+                        xy.x() + dx / norm * offset - 24,
+                        xy.y() + dy / norm * offset - 8, 48, 16,
+                    )
+                    if not any(box.intersects(o) for o in taken):
+                        placed = box
+                        break
+                if placed is None:
+                    continue
+                taken.append(placed)
                 painter.setPen(fg)
                 painter.drawText(
-                    QRectF(xy.x() - 26, xy.y() - 22, 52, 14),
-                    Qt.AlignCenter, local.strftime("%H:%M"),
+                    placed, Qt.AlignCenter, local.strftime("%H:%M")
                 )
 
-        self._draw_legend(painter, plot, fg)
-        self._draw_borders(painter, rect, fg)
+        # legenda no rodapé, abaixo do "S" (não cobre o círculo nem o "N")
+        self._draw_legend(painter, QRectF(
+            rect.left() + 40, bottom + 44, rect.width() - 80, 20,
+        ), fg)
 
     # ------------------------------------------------------------------
-    @staticmethod
-    def _az_of(point, azs, index) -> float:
-        return azs[index]
-
-    @staticmethod
-    def _az_label(az_deg: float) -> str:
-        a = az_deg % 360.0
-        names = [
-            (0, "N"), (45, "NE"), (90, "L"), (135, "SE"),
-            (180, "S"), (225, "SO"), (270, "O"), (315, "NO"), (360, "N"),
-        ]
-        for ref, name in names:
-            if abs(a - ref) < 1e-6:
-                return name
-        return f"{a:.0f}°"
-
     def _draw_legend(self, painter: QPainter, plot: QRectF, fg: QColor) -> None:
         s = self.settings
         painter.setFont(QFont("Segoe UI", 8))
@@ -255,7 +269,7 @@ class TrackCanvas(QWidget):
             ]
         fm = QFontMetricsF(painter.font())
         x = plot.left()
-        y = plot.top() - 18
+        y = plot.top() - 22
         for style, color, text in items:
             width = 42 + fm.horizontalAdvance(text)
             if x + width > plot.right():   # quebra de linha na legenda

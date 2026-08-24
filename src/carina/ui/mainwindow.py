@@ -5,7 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
-    QApplication, QDockWidget, QFileDialog, QMainWindow, QMessageBox,
+    QApplication, QDockWidget, QFileDialog, QMainWindow, QMessageBox, QWidget,
 )
 
 from .. import __version__
@@ -14,12 +14,12 @@ from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
 from ..core.engine import SkyEngine
-from .controlpanel import ControlPanel
 from .dso_manager import DsoManagerDialog
 from .infopanel import InfoPanel, build_info_html
 from .location_dialog import LocationDialog
 from .skywidget import SkyWidget
 from .time_dialog import TimeDialog
+from .toolbar import SideToolBar
 
 # (chave da camada, título do menu, atalho, padrão)
 _LAYER_ACTIONS = [
@@ -78,14 +78,17 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.info_dock)
         self.info_dock.hide()
 
-        # painel lateral de controle
-        self.control_dock = QDockWidget(self.tr("Controles"), self)
-        self.control_dock.setObjectName("control_dock")
-        self.control_panel = ControlPanel(self.engine, self.control_dock)
-        self.control_dock.setWidget(self.control_panel)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.control_dock)
-        self._wire_control_panel()
+        # barra lateral compacta (botões quadrados)
+        self.side_bar = SideToolBar(self)
+        self.side_dock = QDockWidget(self.tr("Ferramentas"), self)
+        self.side_dock.setObjectName("side_dock")
+        self.side_dock.setWidget(self.side_bar)
+        self.side_dock.setTitleBarWidget(QWidget())  # sem barra de título
+        self.side_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.side_dock)
+        self._wire_side_bar()
         self._track_windows: list = []
+        self._time_step_seconds = 3600.0
 
         self._build_menus()
         self._restore_layers()
@@ -119,6 +122,41 @@ class MainWindow(QMainWindow):
             act = QAction(title, self)
             act.setShortcut(shortcut)
             act.triggered.connect(slot)
+            m_time.addAction(act)
+
+        m_time.addSeparator()
+        m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
+        step_group = QActionGroup(self)
+        for label, secs in [
+            ("1 minuto", 60), ("5 minutos", 300), ("15 minutos", 900),
+            ("30 minutos", 1800), ("1 hora", 3600), ("3 horas", 10800),
+            ("6 horas", 21600), ("12 horas", 43200), ("1 dia", 86400),
+            ("1 semana", 604800), ("1 mês (30 d)", 2592000),
+            ("1 ano (365 d)", 31536000),
+        ]:
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(step_group)
+            act.triggered.connect(
+                lambda _c=False, s=float(secs): setattr(
+                    self, "_time_step_seconds", s
+                )
+            )
+            if secs == 3600:
+                act.setChecked(True)
+            m_step.addAction(act)
+        m_time.addSeparator()
+        for title, shortcut, secs in (
+            (self.tr("Retroceder um passo"), "Ctrl+Left", -1.0),
+            (self.tr("Avançar um passo"), "Ctrl+Right", 1.0),
+        ):
+            act = QAction(title, self)
+            act.setShortcut(shortcut)
+            act.triggered.connect(
+                lambda _c=False, s=secs: self._on_time_step(
+                    s * self._time_step_seconds
+                )
+            )
             m_time.addAction(act)
 
         m_view = bar.addMenu(self.tr("&Exibir"))
@@ -166,13 +204,66 @@ class MainWindow(QMainWindow):
         self.act_dso_number.setChecked(True)
 
         m_view.addSeparator()
+        m_mag = m_view.addMenu(self.tr("Magnitude máxima das estrelas"))
+        mag_group = QActionGroup(self)
+        for label, value in [
+            (self.tr("Automática (pelo zoom)"), None), ("3,0", 3.0),
+            ("4,0", 4.0), ("4,5", 4.5), ("5,0", 5.0), ("5,5", 5.5),
+            ("6,0", 6.0), ("6,5", 6.5), ("7,0", 7.0), ("8,0", 8.0),
+            ("9,0", 9.0), ("10,0", 10.0),
+        ]:
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(mag_group)
+            act.triggered.connect(
+                lambda _c=False, v=value: self.sky.set_mag_cap(v)
+            )
+            if value is None:
+                act.setChecked(True)
+            m_mag.addAction(act)
+
+        m_view.addSeparator()
+        self.act_chart = QAction(self.tr("Modo mapa para impressão"), self)
+        self.act_chart.setCheckable(True)
+        self.act_chart.setShortcut("Ctrl+M")
+        self.act_chart.toggled.connect(self._on_chart_from_menu)
+        m_view.addAction(self.act_chart)
         m_view.addAction(self.info_dock.toggleViewAction())
+        m_view.addAction(self.side_dock.toggleViewAction())
 
         m_dso = bar.addMenu(self.tr("&Céu profundo"))
         act_manage = QAction(self.tr("Gerenciar objetos e catálogos…"), self)
         act_manage.setShortcut("Ctrl+D")
         act_manage.triggered.connect(self._manage_dso)
         m_dso.addAction(act_manage)
+
+        m_dso.addSeparator()
+        m_cat = m_dso.addMenu(self.tr("Catálogos exibidos"))
+        self._catalog_acts = {}
+        for key, label in (
+            ("M", "Messier"), ("C", "Caldwell"), ("NGC", "NGC"), ("IC", "IC"),
+            ("SH2", "Sharpless"), ("B", "Barnard"), ("Mel", "Melotte"),
+        ):
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setChecked(True)
+            act.toggled.connect(
+                lambda on, k=key: self._on_catalog_toggled(k, on)
+            )
+            m_cat.addAction(act)
+            self._catalog_acts[key] = act
+
+        m_dso.addSeparator()
+        self.act_caldwell = QAction(
+            self.tr("Rotular Caldwell pela designação C"), self
+        )
+        self.act_caldwell.setCheckable(True)
+        self.act_caldwell.setChecked(True)
+        self.act_caldwell.setToolTip(
+            self.tr("Desmarque para exibir a designação NGC/IC correspondente")
+        )
+        self.act_caldwell.toggled.connect(self.sky.set_prefer_caldwell)
+        m_dso.addAction(self.act_caldwell)
 
         m_tools = bar.addMenu(self.tr("&Ferramentas"))
         act_search = QAction(self.tr("Buscar objeto…"), self)
@@ -192,6 +283,16 @@ class MainWindow(QMainWindow):
         act_track.triggered.connect(self._open_track)
         m_tools.addAction(act_track)
 
+        m_info = bar.addMenu(self.tr("&Informações"))
+        act_night = QAction(self.tr("Crepúsculos e noite…"), self)
+        act_night.setShortcut("Ctrl+I")
+        act_night.triggered.connect(self._open_night_info)
+        m_info.addAction(act_night)
+        act_sel = QAction(self.tr("Objeto selecionado"), self)
+        act_sel.setShortcut("Ctrl+J")
+        act_sel.triggered.connect(self._show_selection_info)
+        m_info.addAction(act_sel)
+
         m_obs = bar.addMenu(self.tr("&Observador"))
         act_loc = QAction(self.tr("Localização…"), self)
         act_loc.setShortcut("Ctrl+L")
@@ -207,6 +308,8 @@ class MainWindow(QMainWindow):
     def _on_layer_toggled(self, key: str, on: bool) -> None:
         self.sky.set_layer(key, on)
         self.settings.set_layer(key, on)
+        if hasattr(self, "side_bar"):
+            self.side_bar.set_layer_state(key, on)
 
     def _restore_layers(self) -> None:
         for key, _title, _sc, default in _LAYER_ACTIONS:
@@ -262,18 +365,54 @@ class MainWindow(QMainWindow):
                 )
             )
 
-    # --- painel de controle ------------------------------------------
-    def _wire_control_panel(self) -> None:
-        p = self.control_panel
-        p.magCapChanged.connect(self.sky.set_mag_cap)
-        p.layerToggled.connect(self._on_panel_layer)
-        p.catalogToggled.connect(self._on_catalog_toggled)
-        p.timeStep.connect(self._on_time_step)
-        p.timeNow.connect(self._time_now)
-        p.mouseModeChanged.connect(self.sky.set_mouse_mode)
-        p.chartModeChanged.connect(self.sky.set_chart_mode)
-        p.trackRequested.connect(self._open_track)
-        p.refresh_night()
+    # --- barra lateral -------------------------------------------------
+    def _wire_side_bar(self) -> None:
+        b = self.side_bar
+        b.layerToggled.connect(self._on_panel_layer)
+        b.mouseModeChanged.connect(self.sky.set_mouse_mode)
+        b.chartModeChanged.connect(self._on_chart_mode)
+        b.timeStep.connect(
+            lambda sign: self._on_time_step(sign * self._time_step_seconds)
+        )
+        b.timeNow.connect(self._time_now)
+        b.action.connect(self._on_side_action)
+
+    def _on_side_action(self, kind: str) -> None:
+        {
+            "search": self._open_search,
+            "track": self._open_track,
+            "fov": self._open_fov,
+            "info": self._open_night_info,
+        }[kind]()
+
+    def _on_chart_mode(self, on: bool) -> None:
+        self.sky.set_chart_mode(on)
+        if self.act_chart.isChecked() != on:
+            self.act_chart.setChecked(on)
+
+    def _open_night_info(self) -> None:
+        from .night_dialog import NightInfoDialog
+
+        dlg = NightInfoDialog(
+            self.engine, self.settings.location().name, self
+        )
+        dlg.exec()
+
+    def _show_selection_info(self) -> None:
+        if self.sky.selection is None:
+            QMessageBox.information(
+                self, "Carina",
+                self.tr("Nenhum objeto selecionado. Clique num objeto do céu "
+                        "ou use a busca (Ctrl+F)."),
+            )
+            return
+        self.info_dock.show()
+        self._refresh_info()
+
+    def _on_chart_from_menu(self, on: bool) -> None:
+        self.sky.set_chart_mode(on)
+        if self.side_bar.btn_chart.isChecked() != on:
+            self.side_bar.btn_chart.setChecked(on)
 
     def _on_panel_layer(self, key: str, value: bool) -> None:
         act = self._layer_acts.get(key)
@@ -289,7 +428,6 @@ class MainWindow(QMainWindow):
     def _on_time_step(self, seconds: float) -> None:
         self.engine.time.step(seconds)
         self.sky.sync_clock()
-        self.control_panel.refresh_night()
 
     def _open_track(self) -> None:
         """Abre a janela de rastreamento para o objeto selecionado."""
