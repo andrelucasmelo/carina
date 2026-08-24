@@ -183,6 +183,14 @@ class MainWindow(QMainWindow):
         act_ecl.setShortcut("Ctrl+E")
         act_ecl.triggered.connect(self._open_eclipses)
         m_tools.addAction(act_ecl)
+        act_fov = QAction(self.tr("Campo de visão (equipamentos)…"), self)
+        act_fov.setShortcut("Ctrl+K")
+        act_fov.triggered.connect(self._open_fov)
+        m_tools.addAction(act_fov)
+        act_track = QAction(self.tr("Rastrear objeto na noite…"), self)
+        act_track.setShortcut("Ctrl+R")
+        act_track.triggered.connect(self._open_track)
+        m_tools.addAction(act_track)
 
         m_obs = bar.addMenu(self.tr("&Observador"))
         act_loc = QAction(self.tr("Localização…"), self)
@@ -401,6 +409,19 @@ class MainWindow(QMainWindow):
 
         dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
         dlg.goto_requested.connect(self.sky.goto_object)
+        dlg.exec()
+
+    def _open_fov(self) -> None:
+        """Simulador de campo de visão dos equipamentos (item 7)."""
+        from ..catalogs.equipment import EquipmentStore
+        from .fov_dialog import FovDialog
+
+        if not hasattr(self, "_equipment"):
+            self._equipment = EquipmentStore(
+                user_data_path() / "equipamentos.json"
+            )
+        dlg = FovDialog(self._equipment, self)
+        dlg.fovChanged.connect(self.sky.set_fov_shapes)
         dlg.exec()
 
     def _open_eclipses(self) -> None:

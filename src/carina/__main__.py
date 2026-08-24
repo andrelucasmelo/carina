@@ -30,9 +30,11 @@ def _parse_args(argv):
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
     parser.add_argument(
-        "--dialog", choices=["dso", "search", "eclipses", "track"], default=None,
-        help="abre um diálogo/janela ao iniciar (para testes)",
+        "--dialog", choices=["dso", "search", "eclipses", "track", "fov"],
+        default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
+    parser.add_argument("--demo-fov", metavar="TEL,CAM", default=None,
+                        help="aplica um campo de visão ao céu (testes)")
     parser.add_argument("--dialog-text", default=None,
                         help="texto pré-digitado no diálogo (para testes)")
     parser.add_argument("--enable-layer", action="append", default=[],
@@ -195,9 +197,45 @@ def main(argv=None) -> int:
     elif args.dialog == "track":
         win._open_track()
         dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "fov":
+        from .catalogs.equipment import EquipmentStore
+        from .config import user_data_path
+        from .ui.fov_dialog import FovDialog
+
+        win._equipment = EquipmentStore(user_data_path() / "equipamentos.json")
+        dialog = FovDialog(win._equipment, win)
+        dialog.fovChanged.connect(win.sky.set_fov_shapes)
+        dialog.show()
 
     if args.demo_measure:
         _apply_demo_measure()
+
+    if args.demo_fov:
+        from .catalogs.equipment import EquipmentStore, compute_camera_fov
+        from .config import user_data_path
+
+        store = EquipmentStore(user_data_path() / "equipamentos.json")
+        tel_name, cam_name = (s.strip() for s in args.demo_fov.split(","))
+        scope = next(
+            (t for t in store.items("telescopes") if tel_name.lower() in t.name.lower()),
+            None,
+        )
+        cam = next(
+            (c for c in store.items("cameras") if cam_name.lower() in c.name.lower()),
+            None,
+        )
+        if scope and cam:
+            shape = compute_camera_fov(scope, cam)
+            import math as _math
+
+            print(
+                f"FOV: {shape.label} = "
+                f"{_math.degrees(shape.width):.3f} x "
+                f"{_math.degrees(shape.height):.3f} graus"
+            )
+            for k, v in shape.details:
+                print(f"  {k}: {v}")
+            win.sky.set_fov_shapes([shape], 0.0, True)
 
     if args.screenshot:
         def grab() -> None:

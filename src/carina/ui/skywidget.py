@@ -166,6 +166,9 @@ class SkyWidget(QOpenGLWidget):
         self._measure: dict | None = None   # medição angular ativa
         self._rubber: list | None = None    # retângulo de zoom
         self._label_hits: list = []         # (rect lógico, seleção)
+        self.fov_shapes: list = []          # campos de equipamentos (item 7)
+        self.fov_angle: float = 0.0         # rotação do campo (rad)
+        self.fov_follow_selection = True
 
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
         self.const_bounds = skygeometry.load_constellation_bounds(data_dir)
@@ -328,19 +331,23 @@ class SkyWidget(QOpenGLWidget):
         # --- Via Láctea: textura na esfera (mecanismo do Stellarium) ---
         if (self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode
                 and self._mw_tex_rgb is not None):
-            verts, uv, tris = self.mw_mesh
-            vh = self._refract(verts @ m.T)
-            fwd = cam.forward_component(vh)
-            keep = (fwd[tris] > -0.05).any(axis=1)
-            tri = tris[keep]
-            if len(tri):
-                px, py = cam.project_clamped(vh)
-                idx = tri.ravel()
-                pos = np.column_stack([px, py])[idx]
-                # atenua a textura abaixo do horizonte junto com o solo
-                self.renderer.draw_textured_triangles(
-                    pos, uv[idx], 0.40 * star_fade
-                )
+            # A textura tem ~5′/pixel: em campos pequenos não há detalhe e ela
+            # viraria um borrão cinza, então some progressivamente no zoom.
+            fov_deg = math.degrees(cam.fov)
+            zoom_fade = min(1.0, max(0.0, (fov_deg - 8.0) / 22.0))
+            if zoom_fade > 0.01:
+                verts, uv, tris = self.mw_mesh
+                vh = self._refract(verts @ m.T)
+                fwd = cam.forward_component(vh)
+                keep = (fwd[tris] > -0.05).any(axis=1)
+                tri = tris[keep]
+                if len(tri):
+                    px, py = cam.project_clamped(vh)
+                    idx = tri.ravel()
+                    pos = np.column_stack([px, py])[idx]
+                    self.renderer.draw_textured_triangles(
+                        pos, uv[idx], 0.40 * star_fade * zoom_fade
+                    )
         elif self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode:
             mw = self.milkyway
             mw_verts = self._refract(mw.xyz @ m.T)
@@ -434,6 +441,10 @@ class SkyWidget(QOpenGLWidget):
             col = CHART_COLORS["horizon"] if self.chart_mode else COL_HORIZON
             r.draw_lines(self._segments(self.horizon, None, col))
 
+        # --- campos de visão dos equipamentos (item 7) ---
+        if self.fov_shapes:
+            self._draw_fov_shapes(m)
+
         # --- marcador da seleção ---
         self._draw_selection_marker(m)
 
@@ -442,6 +453,7 @@ class SkyWidget(QOpenGLWidget):
 
         # --- rótulos (QPainter em pixels lógicos) ---
         self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
+        self._draw_fov_labels(painter, dpr)
         self._draw_tools_overlay(painter, dpr)
         painter.end()
 
@@ -587,6 +599,104 @@ class SkyWidget(QOpenGLWidget):
             out[:, 2:] = np.concatenate(cols)
             self.renderer.draw_lines(out)
         return idx, x, y, maj_px, vecs[:, 2] < 0.0
+
+    def set_fov_shapes(self, shapes: list, angle_deg: float = 0.0,
+                       follow_selection: bool = True) -> None:
+        self.fov_shapes = list(shapes)
+        self.fov_angle = math.radians(angle_deg)
+        self.fov_follow_selection = follow_selection
+        self.update()
+
+    def _fov_center_vec(self, m: np.ndarray):
+        """Centro dos campos: o objeto selecionado ou o centro da vista."""
+        if self.fov_follow_selection and self.selection is not None:
+            t = self.engine.time.current()
+            vec = self._selection_vec(self.selection, m, t)
+            if vec is not None:
+                return self._refract(np.asarray(vec)[np.newaxis, :])[0]
+        from ..core.projection import altaz_to_vec
+
+        return altaz_to_vec(self.camera.az, self.camera.alt)
+
+    def _draw_fov_shapes(self, m: np.ndarray) -> None:
+        """Desenha os campos de visão (retângulos/círculos) sobre o céu."""
+        u = np.asarray(self._fov_center_vec(m), dtype=np.float64)
+        norm = np.linalg.norm(u)
+        if norm < 1e-9:
+            return
+        u = u / norm
+        zen = np.array([0.0, 0.0, 1.0])
+        up_t = zen - np.dot(zen, u) * u
+        if np.linalg.norm(up_t) < 1e-6:
+            up_t = np.array([1.0, 0.0, 0.0])
+        up_t /= np.linalg.norm(up_t)
+        right_t = np.cross(up_t, u)
+        right_t /= max(np.linalg.norm(right_t), 1e-9)
+
+        ca, sa = math.cos(self.fov_angle), math.sin(self.fov_angle)
+        e1 = ca * right_t + sa * up_t
+        e2 = -sa * right_t + ca * up_t
+
+        palette = [
+            (0.35, 0.95, 0.65, 0.95), (0.95, 0.75, 0.35, 0.95),
+            (0.75, 0.55, 0.95, 0.95),
+        ]
+        for i, shape in enumerate(self.fov_shapes):
+            color = palette[i % len(palette)]
+            if shape.kind == "circle":
+                ang = np.linspace(0.0, 2.0 * math.pi, 145)
+                a = shape.width / 2.0
+                pts = (
+                    math.cos(a) * u[np.newaxis, :]
+                    + math.sin(a) * (np.outer(np.cos(ang), e1)
+                                     + np.outer(np.sin(ang), e2))
+                )
+            else:
+                hw, hh = shape.width / 2.0, shape.height / 2.0
+                edge = []
+                n = 40
+                for t0, t1 in (((-hw, -hh), (hw, -hh)), ((hw, -hh), (hw, hh)),
+                               ((hw, hh), (-hw, hh)), ((-hw, hh), (-hw, -hh))):
+                    for k in range(n):
+                        f = k / n
+                        edge.append(
+                            (t0[0] + (t1[0] - t0[0]) * f,
+                             t0[1] + (t1[1] - t0[1]) * f)
+                        )
+                edge.append(edge[0])
+                arr = np.asarray(edge)
+                # gnomônica local: tan dos ângulos no plano tangente
+                pts = (
+                    u[np.newaxis, :]
+                    + np.outer(np.tan(arr[:, 0]), e1)
+                    + np.outer(np.tan(arr[:, 1]), e2)
+                )
+                pts /= np.linalg.norm(pts, axis=1, keepdims=True)
+
+            x, y, vis = self.camera.project(pts, margin=64.0)
+            ok = vis[:-1] & vis[1:]
+            idx = np.nonzero(ok)[0]
+            if len(idx) == 0:
+                continue
+            out = np.empty((2 * len(idx), 6), dtype=np.float32)
+            out[0::2, 0] = x[idx]
+            out[0::2, 1] = y[idx]
+            out[1::2, 0] = x[idx + 1]
+            out[1::2, 1] = y[idx + 1]
+            out[:, 2:] = color
+            self.renderer.draw_lines(out)
+
+            # marcas do centro (cruz pequena)
+            xc, yc, visc = self.camera.project(u[np.newaxis, :], margin=64.0)
+            if visc[0]:
+                cx, cy = float(xc[0]), float(yc[0])
+                cross = np.array([
+                    [cx - 7, cy, cx + 7, cy], [cx, cy - 7, cx, cy + 7],
+                ], dtype=np.float32).reshape(-1, 2)
+                seg = np.empty((4, 6), dtype=np.float32)
+                seg[:, :2] = cross
+                seg[:, 2:] = color
+                self.renderer.draw_lines(seg)
 
     def _draw_moon_zone(self, t) -> None:
         """Anéis da zona de influência da Lua (regra prática por iluminação).
@@ -1025,6 +1135,29 @@ class SkyWidget(QOpenGLWidget):
         self.update()
 
     # ------------------------------------------------------------------
+    def _draw_fov_labels(self, painter: QPainter, dpr: float) -> None:
+        """Legenda dos campos de visão ativos (canto inferior esquerdo)."""
+        if not self.fov_shapes:
+            return
+        painter.setFont(QFont("Segoe UI", 8, QFont.DemiBold))
+        colors = [
+            QColor(90, 240, 165), QColor(240, 190, 90), QColor(190, 140, 240),
+        ]
+        y = int(self.height() - 10 - 14 * len(self.fov_shapes))
+        for i, shape in enumerate(self.fov_shapes):
+            w = math.degrees(shape.width)
+            h = math.degrees(shape.height)
+            size = (
+                f"{w:.2f}°" if shape.kind == "circle"
+                else f"{w:.2f}° × {h:.2f}°"
+            )
+            text = f"{shape.label} — {size}"
+            painter.setPen(QColor(10, 12, 16) if not self.chart_mode
+                           else QColor(255, 255, 255))
+            painter.drawText(13, y + 14 * i + 1, text)
+            painter.setPen(colors[i % len(colors)])
+            painter.drawText(12, y + 14 * i, text)
+
     def _draw_tools_overlay(self, painter: QPainter, dpr: float) -> None:
         """Régua angular e retângulo de zoom (coordenadas lógicas)."""
         from PySide6.QtCore import QPoint, QRect
