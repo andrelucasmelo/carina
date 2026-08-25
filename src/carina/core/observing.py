@@ -906,12 +906,32 @@ def build_period_plan(engine, dso, stars, kind: str, ref_utc: dt.datetime,
             continue                       # some em alguma noite do período
         scored.append((sum(alts) / len(alts), row, vec, max(alts)))
 
-    # os mais altos primeiro: é onde a atmosfera atrapalha menos
+    # Os mais altos primeiro (é onde a atmosfera atrapalha menos), mas com
+    # um teto por constelação: sem isso a lista inteira cairia no zênite
+    # da estação — no inverno austral, quarenta objetos de Sagitário — e
+    # deixaria de ser um passeio pelo céu da temporada.
     scored.sort(key=lambda s: -s[0])
+    per_const = max(3, max_objects // 6)
+    seen: dict[str, int] = {}
+    diverse = []
+    for item in scored:
+        con = item[1]["con"] or "?"
+        if seen.get(con, 0) >= per_const:
+            continue
+        seen[con] = seen.get(con, 0) + 1
+        diverse.append(item)
+        if len(diverse) >= max_objects:
+            break
+    if len(diverse) < max_objects:      # completa com o que sobrou
+        chosen = {id(i) for i in diverse}
+        diverse += [i for i in scored if id(i) not in chosen][
+            : max_objects - len(diverse)
+        ]
+
     mid = ts[len(ts) // 2]
     m_mid = engine.horizontal_matrix(mid)
 
-    for mean_alt, row, vec, best_alt in scored[:max_objects]:
+    for mean_alt, row, vec, best_alt in diverse:
         v_h = vec @ m_mid.T
         az = math.atan2(float(v_h[1]), float(v_h[0])) % (2 * math.pi)
         finder, guides = _build_finder(
