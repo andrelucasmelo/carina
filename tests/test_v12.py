@@ -228,6 +228,81 @@ def test_marathon_guides_feed_finder_charts(engine, catalogs):
     assert g["name"].split()[0] in e.how_to_find
 
 
+# --- camadas com efeitos ligados -----------------------------------------
+
+class _FakeSky:
+    """Só o suficiente para exercitar SkyWidget.set_layer sem OpenGL."""
+
+    from carina.ui.skywidget import DEFAULT_LAYERS, SkyWidget
+
+    _GROUND_PAIR = SkyWidget._GROUND_PAIR
+    set_layer = SkyWidget.set_layer
+
+    def __init__(self):
+        self.layers = dict(self.DEFAULT_LAYERS)
+        self.updated = 0
+
+    def update(self):
+        self.updated += 1
+
+
+def test_ground_and_below_horizon_are_one_choice():
+    """Solo e "ver abaixo do horizonte" são opostos exatos: um controle."""
+    sky = _FakeSky()
+    sky.set_layer("ground", True)
+    assert sky.layers["ground"] and not sky.layers["below_horizon"]
+
+    sky.set_layer("ground", False)
+    assert not sky.layers["ground"] and sky.layers["below_horizon"]
+
+    # mexer pelo outro lado (menu antigo, linha de comando) é coerente
+    sky.set_layer("below_horizon", False)
+    assert sky.layers["ground"] and not sky.layers["below_horizon"]
+    sky.set_layer("below_horizon", True)
+    assert not sky.layers["ground"] and sky.layers["below_horizon"]
+
+
+def test_dso_toggle_carries_images():
+    """Desligar o céu profundo leva junto as imagens do levantamento."""
+    sky = _FakeSky()
+    sky.set_layer("dso", True)
+    sky.set_layer("dso_images", True)
+
+    sky.set_layer("dso", False)
+    assert not sky.layers["dso_images"], "imagens deveriam sumir junto"
+
+    sky.set_layer("dso", True)
+    assert sky.layers["dso_images"], "e voltar ao religar o céu profundo"
+
+
+def test_dso_toggle_remembers_images_were_off():
+    """Se as imagens já estavam desligadas, não devem ligar sozinhas."""
+    sky = _FakeSky()
+    sky.set_layer("dso", True)
+    sky.set_layer("dso_images", False)
+
+    sky.set_layer("dso", False)
+    sky.set_layer("dso", True)
+    assert not sky.layers["dso_images"]
+
+
+def test_sidebar_has_single_ground_button():
+    """A barra lateral não deve mais ter o botão separado do horizonte."""
+    from carina.ui.toolbar import SideToolBar
+
+    keys = [k for k, _tip, _icon in SideToolBar.LAYER_BUTTONS]
+    assert "ground" in keys
+    assert "below_horizon" not in keys
+
+
+def test_menu_has_no_separate_below_horizon_entry():
+    from carina.ui.mainwindow import _LAYER_ACTIONS
+
+    keys = [k for k, _t, _s, _d in _LAYER_ACTIONS]
+    assert "ground" in keys
+    assert "below_horizon" not in keys
+
+
 # --- acervo de equipamentos ----------------------------------------------
 
 def test_equipment_defaults_include_smart_telescopes():

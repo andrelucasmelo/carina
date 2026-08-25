@@ -299,10 +299,39 @@ class SkyWidget(QOpenGLWidget):
             self._clock.setInterval(interval)
         self.update()
 
-    # ------------------------------------------------------------------
+    # Camadas que não são independentes: mexer numa implica na outra.
+    # 'ground' e 'below_horizon' são as duas faces da MESMA escolha —
+    # ou o solo é opaco, ou se enxerga o céu sob o horizonte. Mantê-las
+    # como chaves separadas (várias partes do desenho consultam cada
+    # uma), mas com um único controle na interface.
+    _GROUND_PAIR = ("ground", "below_horizon")
+
     def set_layer(self, key: str, value: bool) -> None:
-        """Liga/desliga uma camada de exibição e repinta."""
-        self.layers[key] = value
+        """Liga/desliga uma camada de exibição e repinta.
+
+        Duas camadas têm efeitos ligados, para que qualquer via (botão,
+        menu ou linha de comando) produza um estado coerente:
+
+        * ``ground`` ⇄ ``below_horizon``: opostos exatos;
+        * ``dso`` desligado leva junto ``dso_images`` — as imagens do
+          levantamento são o "fundo" dos objetos de céu profundo, não
+          fazia sentido continuarem sozinhas com o céu profundo desligado
+          (o estado anterior das imagens é lembrado e restaurado ao
+          religar o céu profundo).
+        """
+        if key in self._GROUND_PAIR:
+            self.layers["ground"] = value if key == "ground" else not value
+            self.layers["below_horizon"] = not self.layers["ground"]
+        elif key == "dso":
+            self.layers["dso"] = value
+            if not value:
+                self._dso_images_memo = self.layers["dso_images"]
+                self.layers["dso_images"] = False
+            elif getattr(self, "_dso_images_memo", False):
+                self.layers["dso_images"] = True
+                self._dso_images_memo = False
+        else:
+            self.layers[key] = value
         self.update()
 
     def set_name_mode(self, mode: str) -> None:

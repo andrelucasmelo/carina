@@ -167,7 +167,10 @@ class SideToolBar(QWidget):
         ("milkyway", "Via Láctea", "milkyway"),
         ("const_lines", "Constelações", "constellations"),
         ("grid_altaz", "Grade horizontal", "grid"),
-        ("ground", "Solo", "ground"),
+        # botão ÚNICO: marcado = solo opaco; desmarcado = vê abaixo do
+        # horizonte (o SkyWidget mantém 'below_horizon' como o oposto)
+        ("ground", "Solo opaco — desmarque para ver abaixo do horizonte",
+         "ground"),
     ]
 
     STYLE = """
@@ -241,15 +244,6 @@ class SideToolBar(QWidget):
         layout.addWidget(self.btn_chart)
 
         layout.addWidget(self._separator())
-
-        btn_below = self._button(
-            "below", "Ver o céu abaixo do horizonte", checkable=True
-        )
-        btn_below.toggled.connect(
-            lambda on: self.layerToggled.emit("below_horizon", on)
-        )
-        layout.addWidget(btn_below)
-        self.layer_buttons["below_horizon"] = btn_below
 
         btn_moon = self._button(
             "moonpath", "Previsão da Lua (28 dias)", checkable=True

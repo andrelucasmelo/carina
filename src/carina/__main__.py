@@ -63,6 +63,12 @@ def _parse_args(argv):
     parser.add_argument("--enable-layer", action="append", default=[],
                         metavar="CAMADA",
                         help="liga uma camada ao iniciar (para testes)")
+    parser.add_argument("--disable-layer", action="append", default=[],
+                        metavar="CAMADA",
+                        help="desliga uma camada ao iniciar (para testes)")
+    parser.add_argument("--side-toggle", action="append", default=[],
+                        metavar="CAMADA",
+                        help="clica no botão da barra lateral (para testes)")
     parser.add_argument("--chart", action="store_true",
                         help="inicia em modo mapa para impressão")
     parser.add_argument("--demo-measure", metavar="A,B", default=None,
@@ -217,6 +223,14 @@ def main(argv=None) -> int:
 
     for layer_name in args.enable_layer:
         win.sky.set_layer(layer_name, True)
+    for layer_name in args.disable_layer:
+        win.sky.set_layer(layer_name, False)
+    for layer_name in args.side_toggle:
+        # exercita o caminho REAL do usuário: o botão da barra lateral
+        btn = win.side_bar.layer_buttons.get(layer_name)
+        if btn is not None:
+            btn.setChecked(not btn.isChecked())
+            print(f"botao {layer_name}: agora {btn.isChecked()}")
 
     if args.chart:
         win.side_bar.btn_chart.setChecked(True)

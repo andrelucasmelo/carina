@@ -37,13 +37,16 @@ _LAYER_ACTIONS = [
     ("equator", "Equador celeste", None, False),
     ("milkyway", "Via Láctea", "M", True),
     ("horizon", "Linha do horizonte", "H", True),
-    ("ground", "Solo (oculta o que está abaixo do horizonte)", "G", True),
+    # Controle ÚNICO do solo: marcado = solo opaco; desmarcado = enxerga
+    # o céu abaixo do horizonte. A camada 'below_horizon' é o oposto
+    # exato (mantida por SkyWidget.set_layer) e não tem entrada própria.
+    ("ground", "Solo opaco (desmarque para ver abaixo do horizonte)",
+     "G", True),
     ("cardinals", "Pontos cardeais", "Q", True),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
     ("dso_names", "Rótulos do céu profundo", None, True),
     ("dso_images", "Imagens dos objetos (DSS) no céu", "I", False),
-    ("below_horizon", "Ver o céu abaixo do horizonte", "V", False),
     ("atmosphere", "Atmosfera", "A", True),
     ("refraction", "Refração atmosférica", "R", True),
 ]
@@ -192,7 +195,12 @@ class MainWindow(QMainWindow):
             act.setCheckable(True)
             act.setChecked(default)
             if shortcut:
-                act.setShortcut(shortcut)
+                if key == "ground":
+                    # o "V" era o atalho do antigo item "ver abaixo do
+                    # horizonte"; agora aciona o mesmo controle único
+                    act.setShortcuts([shortcut, "V"])
+                else:
+                    act.setShortcut(shortcut)
             act.toggled.connect(
                 lambda on, k=key: self._on_layer_toggled(k, on)
             )
@@ -435,12 +443,35 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------
     def _on_layer_toggled(self, key: str, on: bool) -> None:
-        """Ação de camada mudou: aplica na cena, persiste e espelha na
-        barra lateral (menu e botões nunca discordam)."""
+        """Ação de camada mudou: aplica na cena e sincroniza toda a UI.
+
+        ``set_layer`` pode alterar MAIS de uma camada (ver as regras lá:
+        solo ⇄ abaixo do horizonte, céu profundo → imagens), por isso a
+        sincronização parte sempre do estado real de ``sky.layers``, e
+        não do par (chave, valor) recebido.
+        """
         self.sky.set_layer(key, on)
-        self.settings.set_layer(key, on)
-        if hasattr(self, "side_bar"):
-            self.side_bar.set_layer_state(key, on)
+        self._sync_layer_ui()
+
+    def _sync_layer_ui(self) -> None:
+        """Espelha ``sky.layers`` nos menus, nos botões e no QSettings.
+
+        O guard ``_syncing`` evita a recursão óbvia: ajustar uma ação
+        dispara seu ``toggled``, que voltaria aqui.
+        """
+        if getattr(self, "_syncing", False):
+            return
+        self._syncing = True
+        try:
+            for key, value in self.sky.layers.items():
+                act = self._layer_acts.get(key)
+                if act is not None and act.isChecked() != value:
+                    act.setChecked(value)
+                if hasattr(self, "side_bar"):
+                    self.side_bar.set_layer_state(key, value)
+                self.settings.set_layer(key, value)
+        finally:
+            self._syncing = False
 
     def _restore_layers(self) -> None:
         """Reaplica na inicialização o estado de camadas salvo no QSettings."""
