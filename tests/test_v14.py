@@ -197,3 +197,120 @@ def test_track_export_is_square(engine, m42):
         if band.pixelColor(x, int(side * 0.92)).lightness() > 40
     )
     assert painted > 0, "a faixa inferior do quadrado deveria ter conteúdo"
+
+
+# --- B-021: altitude máxima da noite -------------------------------------
+
+@pytest.fixture(scope="module")
+def m42_vec(m42):
+    import numpy as np
+
+    return np.asarray(m42[1], dtype=np.float64)
+
+
+def test_max_altitude_matches_transit_exactly(engine, m42_vec):
+    """A máxima da noite tem de bater com uma varredura fina.
+
+    Regressão do B-021: a máxima era amostrada de hora em hora a partir
+    do pôr do sol. Como o trânsito desliza ~4 min/dia, quase nunca caía
+    numa amostra — o erro variava erraticamente até ~1,5°, criando
+    quedas no meio de uma rampa que deveria ser suave.
+    """
+    import math
+
+    from carina.core.twilight import night_info
+    from carina.ui.object_window import yearly_altitude
+
+    def alt_at(when):
+        m = engine.horizontal_matrix(engine.ts.from_datetime(when))
+        v = m42_vec @ m.T
+        return math.degrees(math.asin(max(-1.0, min(1.0, float(v[2])))))
+
+    start = dt.datetime(2026, 1, 5, 12, 0, tzinfo=dt.timezone.utc)
+    dates, _mid, alt_max = yearly_altitude(engine, m42_vec, start,
+                                           step_days=30)
+    day = start
+    for value in alt_max:
+        info = night_info(engine, day)
+        if info.sunset and info.sunrise:
+            total = int((info.sunrise - info.sunset).total_seconds())
+            fine = max(
+                alt_at(info.sunset + dt.timedelta(seconds=s))
+                for s in range(0, total + 1, 30)
+            )
+            fine = max(fine, alt_at(info.sunrise))
+            assert abs(fine - value) < 0.05, (
+                f"{day:%d/%m}: máxima {value:.3f}° destoa da varredura "
+                f"fina {fine:.3f}°"
+            )
+        day += dt.timedelta(days=30)
+
+
+def test_max_altitude_curve_is_smooth(engine, m42_vec):
+    """Sem saltos bruscos: a curva anual varia devagar entre amostras."""
+    from carina.ui.object_window import yearly_altitude
+
+    start = dt.datetime(2026, 1, 5, 12, 0, tzinfo=dt.timezone.utc)
+    _dates, _mid, alt_max = yearly_altitude(engine, m42_vec, start)
+    jumps = [abs(b - a) for a, b in zip(alt_max, alt_max[1:])]
+    # 10 dias mudam o horário do trânsito em ~40 min: a máxima pode cair
+    # bastante quando ele sai da noite, mas nunca dar um salto absurdo
+    assert max(jumps) < 12.0, f"salto de {max(jumps):.1f}° entre amostras"
+
+
+def test_max_altitude_never_below_midnight_altitude(engine, m42_vec):
+    """A máxima da noite não pode ser menor que a altitude do meio dela."""
+    from carina.ui.object_window import yearly_altitude
+
+    start = dt.datetime(2026, 1, 5, 12, 0, tzinfo=dt.timezone.utc)
+    _dates, mid, alt_max = yearly_altitude(engine, m42_vec, start)
+    for m, mx in zip(mid, alt_max):
+        assert mx >= m - 0.05, f"máxima {mx:.2f}° < meio da noite {m:.2f}°"
+
+
+def test_transit_time_is_near_maximum(engine, m42_vec):
+    """O instante calculado do trânsito é mesmo onde a altitude é máxima."""
+    import math
+
+    from carina.ui.object_window import _transit_time
+
+    ra_hours = (math.degrees(math.atan2(m42_vec[1], m42_vec[0])) / 15.0) % 24.0
+    near = dt.datetime(2026, 1, 15, 3, 0, tzinfo=dt.timezone.utc)
+    transit = _transit_time(engine, ra_hours, near)
+    assert abs((transit - near).total_seconds()) < 12 * 3600
+
+    def alt_at(when):
+        m = engine.horizontal_matrix(engine.ts.from_datetime(when))
+        v = m42_vec @ m.T
+        return math.degrees(math.asin(max(-1.0, min(1.0, float(v[2])))))
+
+    peak = alt_at(transit)
+    for offset in (-40, -10, 10, 40):
+        assert alt_at(transit + dt.timedelta(minutes=offset)) <= peak + 1e-6
+
+
+# --- B-022: imagem duplicada ---------------------------------------------
+
+def test_info_html_can_omit_embedded_image(engine, m42):
+    """Quem já mostra a imagem grande pede a ficha sem a miniatura."""
+    import tempfile
+
+    from carina.catalogs import skygeometry
+    from carina.catalogs.dso import DsoCatalog
+    from carina.catalogs.stars import StarCatalog
+    from carina.ui.infopanel import build_info_html
+
+    obj_id, _icrs = m42
+    tmp = Path(tempfile.mkdtemp()) / "dso.sqlite"
+    dso = DsoCatalog(DATA / "dso.sqlite", tmp)
+    stars = StarCatalog(DATA)
+    const = {c["id"]: c for c in skygeometry.load_constellation_info(DATA)}
+    selection = ("dso", obj_id)
+
+    with_img = build_info_html(selection, engine, stars, const, dso)
+    without = build_info_html(selection, engine, stars, const, dso,
+                              include_image=False)
+    assert "<img" in with_img, "o painel lateral mantém a miniatura"
+    assert "<img" not in without, "a ficha da janela de detalhes não"
+    # o resto do conteúdo continua lá
+    assert "M 42" in without and "Magnitude" in without

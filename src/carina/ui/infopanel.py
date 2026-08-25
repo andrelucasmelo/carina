@@ -49,8 +49,15 @@ def _row(label: str, value: str) -> str:
 
 def build_info_html(selection, engine: SkyEngine, stars: StarCatalog,
                     const_names: dict[str, dict],
-                    dso: DsoCatalog | None = None) -> str:
-    """Monta o HTML do painel para a seleção atual."""
+                    dso: DsoCatalog | None = None,
+                    include_image: bool = True) -> str:
+    """Monta o HTML do painel para a seleção atual.
+
+    ``include_image=False`` omite a miniatura embutida na ficha. É o que
+    as janelas que já exibem a imagem em tamanho grande usam (janela de
+    detalhes e popup de informações) — sem isso, o mesmo objeto aparecia
+    duas vezes na tela, grande ao lado e pequeno dentro do texto (B-022).
+    """
     if selection is None:
         return "<i>Clique num objeto do céu para ver os detalhes.</i>"
 
@@ -59,7 +66,8 @@ def build_info_html(selection, engine: SkyEngine, stars: StarCatalog,
     kind, key = selection
 
     if kind == "dso" and dso is not None:
-        return _dso_html(int(key), engine, m, dso, const_names)
+        return _dso_html(int(key), engine, m, dso, const_names,
+                         include_image=include_image)
 
     if kind == "star":
         idx = int(key)
@@ -133,7 +141,9 @@ def build_info_html(selection, engine: SkyEngine, stars: StarCatalog,
 
 
 def _dso_html(object_id: int, engine: SkyEngine, m, dso: DsoCatalog,
-              const_names: dict[str, dict]) -> str:
+              const_names: dict[str, dict],
+              include_image: bool = True) -> str:
+    """Ficha de um objeto de céu profundo (ver :func:`build_info_html`)."""
     data = dso.get(object_id)
     if data is None:
         return "<i>Objeto removido do banco.</i>"
@@ -185,7 +195,13 @@ def _dso_html(object_id: int, engine: SkyEngine, m, dso: DsoCatalog,
         rows.append(_row("Estado", "desabilitado no banco"))
 
     img_path = images.image_path_for(data["name"])
-    if img_path is not None:
+    if not include_image:
+        # quem já mostra a imagem em tamanho grande pede a ficha sem ela;
+        # o download continua sendo disparado, pois é o que a alimenta
+        if img_path is None:
+            images.request_image(data["name"], ra, dec, data.get("maj"))
+        img_html = ""
+    elif img_path is not None:
         img_html = (
             f"<p><img src='{img_path.as_uri()}' width='300'></p>"
             "<p style='color:#8a93a5; font-size:7pt'>Imagem: DSS2 color"

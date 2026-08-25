@@ -22,16 +22,53 @@ from PySide6.QtWidgets import (
 STEP_DAYS = 10
 
 
+# Um dia solar tem 24 h; o mesmo intervalo vale 24 × 1,0027379 h siderais.
+# É essa razão que converte um deslocamento em ângulo horário (sideral)
+# no tempo de relógio correspondente.
+SIDEREAL_RATIO = 1.00273790935
+
+
+def _transit_time(engine, ra_hours: float, near: dt.datetime) -> dt.datetime:
+    """Instante do trânsito (culminação) mais próximo de ``near``.
+
+    O objeto culmina quando o tempo sideral local iguala sua ascensão
+    reta. Calculamos a diferença entre os dois e a convertemos em tempo
+    de relógio — resultado exato, sem varredura.
+    """
+    t = engine.ts.from_datetime(near)
+    lon_hours = engine.topos.longitude.degrees / 15.0
+    lst = (t.gast + lon_hours) % 24.0
+    # diferença em horas siderais, trazida para (−12, +12]
+    delta = (ra_hours - lst + 12.0) % 24.0 - 12.0
+    return near + dt.timedelta(hours=delta / SIDEREAL_RATIO)
+
+
 def yearly_altitude(engine, icrs_vec, start: dt.datetime,
                     step_days: int = STEP_DAYS):
     """Altitude do objeto ao longo de um ano.
 
-    Retorna (datas, alt_meia_noite, alt_maxima) em graus. A altitude máxima
-    é amostrada de hora em hora entre o pôr e o nascer do Sol.
+    Retorna (datas, alt_meia_noite, alt_maxima) em graus.
+
+    A altitude máxima da noite é obtida do INSTANTE DO TRÂNSITO, não de
+    uma varredura por amostragem (B-021). A altitude tem um único máximo
+    — a culminação — e amostrar de hora em hora quase nunca cai nele: o
+    horário do trânsito desliza ~4 min por dia, então o erro variava de
+    forma errática entre 0° e ~1,5°, produzindo quedas no meio de uma
+    rampa que deveria ser suave. Quando a culminação acontece fora da
+    janela da noite, o máximo está numa das bordas (pôr ou nascer do
+    Sol), e é isso que se avalia.
     """
+    from ..core.localtime import to_local
     from ..core.twilight import night_info
 
     icrs = np.asarray(icrs_vec, dtype=np.float64)
+    ra_hours = (math.degrees(math.atan2(icrs[1], icrs[0])) / 15.0) % 24.0
+
+    def altitude_at(when: dt.datetime) -> float:
+        m = engine.horizontal_matrix(engine.ts.from_datetime(when))
+        v = icrs @ m.T
+        return math.degrees(math.asin(max(-1.0, min(1.0, float(v[2])))))
+
     dates: list[dt.date] = []
     alt_mid: list[float] = []
     alt_max: list[float] = []
@@ -43,32 +80,24 @@ def yearly_altitude(engine, icrs_vec, start: dt.datetime,
         if info.astro_dusk and info.astro_dawn:
             ref = info.astro_dusk + (info.astro_dawn - info.astro_dusk) / 2
         else:
-            from ..core.localtime import to_local
-
             local = to_local(day).replace(
                 hour=0, minute=0, second=0, microsecond=0
             ) + dt.timedelta(days=1)
             ref = local.astimezone(dt.timezone.utc)
-        t = engine.ts.from_datetime(ref)
-        m = engine.horizontal_matrix(t)
-        v = icrs @ m.T
-        alt_mid.append(math.degrees(math.asin(max(-1.0, min(1.0, v[2])))))
+        alt_mid.append(altitude_at(ref))
 
-        # máxima da noite: varredura horária entre pôr e nascer
+        # --- máxima da noite ---
         begin = info.sunset or ref - dt.timedelta(hours=6)
         end = info.sunrise or ref + dt.timedelta(hours=6)
-        hours = max(2, int((end - begin).total_seconds() // 3600))
-        times = [begin + dt.timedelta(hours=h) for h in range(hours + 1)]
-        ts = engine.ts.from_datetimes(times)
-        best = -90.0
-        for ti in ts:
-            mm = engine.horizontal_matrix(ti)
-            vv = icrs @ mm.T
-            best = max(best, math.degrees(math.asin(max(-1.0, min(1.0, vv[2])))))
+        transit = _transit_time(engine, ra_hours, ref)
+        if begin <= transit <= end:
+            best = altitude_at(transit)      # culmina durante a noite
+        else:
+            # culmina de dia: o melhor da noite está numa das pontas
+            best = max(altitude_at(begin), altitude_at(end))
         alt_max.append(best)
-        from ..core.localtime import to_local as _tl
 
-        dates.append(_tl(day).date())
+        dates.append(to_local(day).date())
         day = day + dt.timedelta(days=step_days)
     return dates, alt_mid, alt_max
 

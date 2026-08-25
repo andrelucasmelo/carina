@@ -955,9 +955,10 @@ class MainWindow(QMainWindow):
             return
 
         def render(sel):
+            # o popup tem a imagem própria no topo: a ficha vem sem ela
             return build_info_html(
                 sel, self.engine, self.star_catalog, self.const_names,
-                self.dso_catalog,
+                self.dso_catalog, include_image=False,
             )
 
         image_path = None
@@ -994,9 +995,10 @@ class MainWindow(QMainWindow):
             )
             return
         kind, key = selection
+        # sem a miniatura embutida: esta janela já mostra a imagem grande
         html = build_info_html(
             selection, self.engine, self.star_catalog, self.const_names,
-            self.dso_catalog,
+            self.dso_catalog, include_image=False,
         )
         icrs = None
         title = str(key)
