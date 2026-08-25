@@ -4,7 +4,7 @@ Baixa os catálogos brutos para ``data/raw/`` (ignorado no git) e gera os
 arquivos processados e compactos em ``data/processed/`` (versionados), que são
 os únicos lidos pelo aplicativo em tempo de execução.
 
-Fontes (ver docs/FONTES_DE_DADOS.md):
+Fontes (ver dev-docs/FONTES_DE_DADOS.md):
   - Estrelas: HYG v4.1 (astronexus/HYG-Database) — CC BY-SA
   - Linhas/fronteiras de constelações e Via Láctea: d3-celestial (BSD-3)
 

@@ -3,7 +3,7 @@
 Diretriz do projeto (ADR-012): todo dado baixado vira base LOCAL embarcada na
 instalação — o aplicativo nunca depende de internet para exibir o mapa.
 
-Fontes (docs/FONTES_DE_DADOS.md):
+Fontes (dev-docs/FONTES_DE_DADOS.md):
   - OpenNGC (NGC/IC + cruzamento Messier, tipos, tamanhos, PA)  CC BY-SA 4.0
   - Lista Caldwell: mapeamento C1–C109 embutido neste script (auditar!)
   - Sharpless SH2: VizieR VII/20 (coordenadas J2000 computadas pelo CDS)

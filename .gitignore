@@ -29,3 +29,12 @@ data/processed/images/
 # Saídas temporárias
 *.log
 screenshots/
+
+# Documentação INTERNA de desenvolvimento (ADRs, changelog técnico,
+# pendências, bugs). Fica só no repositório local por enquanto — a
+# documentação pública do software está em docs/.
+dev-docs/
+
+# Ícones gerados a partir de assets/ (rode scripts/build_icon.py)
+data/processed/icon.ico
+data/processed/icon*.png

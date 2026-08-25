@@ -25,7 +25,7 @@ def _parse_args(argv):
     O padrão do projeto: cada recurso novo ganha uma flag que o aciona ao
     iniciar, e ``--screenshot`` captura o resultado num PNG sem interação.
     É assim que as validações visuais e o ``--bench`` de desempenho rodam
-    em CI/desenvolvimento (ver docs/ARQUITETURA.md).
+    em CI/desenvolvimento (ver dev-docs/ARQUITETURA.md).
     """
     parser = argparse.ArgumentParser(prog="carina")
     parser.add_argument("--screenshot", metavar="CAMINHO", default=None)
@@ -204,6 +204,16 @@ def main(argv=None) -> int:
     app = QApplication(sys.argv[:1])
     app.setApplicationName(APP_NAME)
     app.setOrganizationName(ORG_NAME)
+
+    # ícone do aplicativo: vale para a janela, a barra de tarefas e os
+    # diálogos (todos herdam o ícone da aplicação)
+    from .config import app_icon_path
+
+    icon_file = app_icon_path()
+    if icon_file is not None:
+        from PySide6.QtGui import QIcon
+
+        app.setWindowIcon(QIcon(str(icon_file)))
 
     from .ui.mainwindow import MainWindow
 

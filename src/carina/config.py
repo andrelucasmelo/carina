@@ -42,6 +42,22 @@ def ephemeris_dir() -> Path:
     return user_data_path()
 
 
+def app_icon_path() -> Path | None:
+    """Ícone do aplicativo (logotipo do Astronomia no Quintal).
+
+    Procura primeiro o ``.ico`` multi-resolução — o formato que o Windows
+    usa na barra de tarefas e no Explorer — e cai no PNG quando ele não
+    existe. Devolve ``None`` se nenhum estiver presente, para o aplicativo
+    seguir com o ícone padrão do sistema em vez de falhar.
+    """
+    base = package_data_dir()
+    for name in ("icon.ico", "icon.png"):
+        candidate = base / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def user_data_path() -> Path:
     """Pasta de dados do usuário (banco DSO editável, equipamentos…)."""
     p = Path(user_data_dir(APP_NAME, ORG_NAME))

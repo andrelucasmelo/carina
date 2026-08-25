@@ -314,3 +314,25 @@ def test_info_html_can_omit_embedded_image(engine, m42):
     assert "<img" not in without, "a ficha da janela de detalhes não"
     # o resto do conteúdo continua lá
     assert "M 42" in without and "Magnitude" in without
+
+
+# --- ícone do aplicativo -------------------------------------------------
+
+def test_app_icon_path_tolerates_absence(tmp_path, monkeypatch):
+    """Sem ícone gerado, o aplicativo segue com o do sistema.
+
+    O ``.ico`` é produzido por ``scripts/build_icon.py`` a partir de
+    ``assets/`` e não é versionado — quem clona o repositório roda o
+    programa antes de gerá-lo, e isso não pode quebrar a inicialização.
+    """
+    from carina import config
+
+    monkeypatch.setattr(config, "package_data_dir", lambda: tmp_path)
+    assert config.app_icon_path() is None
+
+    (tmp_path / "icon.png").write_bytes(b"x")
+    assert config.app_icon_path().name == "icon.png"
+
+    # o .ico tem precedência: é o formato que o Windows usa
+    (tmp_path / "icon.ico").write_bytes(b"x")
+    assert config.app_icon_path().name == "icon.ico"
