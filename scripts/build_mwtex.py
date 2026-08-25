@@ -15,6 +15,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -105,22 +106,30 @@ def gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
 
 
 def remove_stars(rgb: np.ndarray, window: int = 17,
-                 sigma: float = 1.6) -> np.ndarray:
+                 sigma: float = 0.9) -> np.ndarray:
     """Remove fontes pontuais (estrelas do levantamento) preservando o difuso.
 
-    Abertura morfológica (erosão seguida de dilatação): picos menores que a
-    janela desaparecem; a nebulosidade extensa da Via Láctea permanece. Um
-    gaussiano leve fecha as bordas duras deixadas pela morfologia.
+    Em vez de aplicar a abertura morfológica na imagem inteira (que borrava
+    toda a estrutura — reclamação do usuário), ela é usada apenas para
+    DETECTAR os pixels estelares: onde o original excede o fundo aberto, o
+    pixel é substituído pelo fundo suavizado; todo o resto mantém o detalhe
+    original. Um gaussiano bem leve dá coesão ao conjunto.
     """
     a = rgb.astype(np.float32)
     opened = _max_filter(_min_filter(a, window), window)
-    # o difuso nunca deve ficar mais claro que o original
-    opened = np.minimum(opened, a)
-    return gaussian_blur(opened, sigma)
+    opened = np.minimum(opened, a)          # fundo sem os picos
+    residual = (a - opened).max(axis=2)     # o que "sobra" = estrelas
+    mask = residual > 16.0
+    # dilata a máscara p/ cobrir halos e espículas de difração
+    mask = _max_filter(mask.astype(np.float32)[..., None], 7)[..., 0] > 0.5
+    patch = gaussian_blur(opened, 1.2)      # remendo discreto nos buracos
+    out = np.where(mask[..., None], patch, a)
+    return gaussian_blur(out, sigma) if sigma > 0 else out
 
 
 def build(out_w: int, out_h: int, flip_l: bool, clean: bool = True,
-          sigma: float = 2.2, window: int = 17) -> None:
+          sigma: float = 0.9, window: int = 17,
+          out_path: Path | None = None, lon_shift_deg: float = 0.0) -> None:
     if not SRC.exists():
         raise SystemExit(f"Panorâmica não encontrada: {SRC}")
     src = qimage_to_array(QImage(str(SRC)))
@@ -143,6 +152,7 @@ def build(out_w: int, out_h: int, flip_l: bool, clean: bool = True,
 
     sign = -1.0 if flip_l else 1.0
     # centro galáctico no meio; l positivo para a ESQUERDA por padrão
+    lon = lon + math.radians(lon_shift_deg)
     xin = (0.5 - sign * lon / (2.0 * np.pi)) * in_w - 0.5
     yin = (0.5 - lat / np.pi) * in_h - 0.5
     xin = np.mod(xin, in_w)
@@ -172,10 +182,11 @@ def build(out_w: int, out_h: int, flip_l: bool, clean: bool = True,
             f"pico {before.max():.0f} -> {after.max():.0f} · "
             f"média {before.mean():.1f} -> {after.mean():.1f}"
         )
+    dest = out_path or OUT
     img = array_to_qimage(np.clip(out, 0, 255).astype(np.uint8))
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    img.save(str(OUT), "JPG", 90)
-    print(f"gravado: {OUT} ({OUT.stat().st_size:,} bytes)")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    img.save(str(dest), "JPG", 90)
+    print(f"gravado: {dest} ({dest.stat().st_size:,} bytes)")
 
 
 def main() -> int:
@@ -185,12 +196,18 @@ def main() -> int:
                         help="inverte o sentido da longitude galáctica")
     parser.add_argument("--raw", action="store_true",
                         help="não remove estrelas nem suaviza")
-    parser.add_argument("--sigma", type=float, default=2.2)
+    parser.add_argument("--sigma", type=float, default=0.9)
     parser.add_argument("--window", type=int, default=17)
+    parser.add_argument("--out", default=None,
+                        help="caminho de saída alternativo")
+    parser.add_argument("--lon-shift", type=float, default=0.0,
+                        help="deslocamento de longitude galáctica (graus)")
     args = parser.parse_args()
     w, h = (int(v) for v in args.size.lower().split("x"))
     build(w, h, args.flip, clean=not args.raw, sigma=args.sigma,
-          window=args.window)
+          window=args.window,
+          out_path=Path(args.out) if args.out else None,
+          lon_shift_deg=args.lon_shift)
     return 0
 
 
