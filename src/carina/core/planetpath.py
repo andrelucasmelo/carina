@@ -83,8 +83,10 @@ def compute_path(engine, name: str, start: dt.datetime, days: int = 365,
     # --- marcas: a cada mark_degrees de deslocamento ou início de mês ---
     acc = 0.0
     last_month = None
+    from .localtime import to_local
+
     for i in range(len(times)):
-        local_month = times[i].astimezone().month
+        local_month = to_local(times[i]).month
         month_changed = local_month != last_month
         if i > 0:
             acc += math.degrees(

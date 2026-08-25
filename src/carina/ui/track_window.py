@@ -84,7 +84,9 @@ class TrackSettings:
 
 
 def _hm(value: dt.datetime | None) -> str:
-    return value.astimezone().strftime("%H:%M") if value else "—"
+    from ..core.localtime import to_local
+
+    return to_local(value).strftime("%H:%M") if value else "—"
 
 
 class TrackCanvas(QWidget):
@@ -219,8 +221,10 @@ class TrackCanvas(QWidget):
 
         # --- marcadores e horários (item C) ---
         painter.setFont(QFont("Segoe UI", 8))
+        from ..core.localtime import to_local
+
         for p in pts:
-            local = p.when_utc.astimezone()
+            local = to_local(p.when_utc)
             minutes = local.hour * 60 + local.minute
             xy = to_xy(p.az, math.degrees(p.alt))
             if minutes % s.marker_every_min == 0:
@@ -305,7 +309,9 @@ class TrackCanvas(QWidget):
         fmt = "%d/%m/%Y" if s.show_year else "%d/%m"
         night_txt = ""
         if night and night.sunset:
-            night_txt = f"Noite de {night.sunset.astimezone().strftime(fmt)}"
+            from ..core.localtime import to_local
+
+            night_txt = f"Noite de {to_local(night.sunset).strftime(fmt)}"
         painter.setFont(QFont("Segoe UI", 9))
         painter.drawText(
             QRectF(rect.left() + 12, rect.top() + 30, rect.width() - 24, 18),

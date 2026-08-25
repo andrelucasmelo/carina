@@ -40,8 +40,13 @@ def _parse_args(argv):
     parser.add_argument("--bortle", type=int, default=None)
     parser.add_argument("--moon-forecast", action="store_true",
                         help="calcula a previsão da Lua ao iniciar (testes)")
-    parser.add_argument("--marathon", choices=["M", "C"], default=None,
-                        help="abre o planejamento da maratona (testes)")
+    parser.add_argument(
+        "--marathon",
+        choices=["M", "C", "OC", "GC", "NEB", "DARK", "BEST"], default=None,
+        help="abre o planejamento da maratona (testes)",
+    )
+    parser.add_argument("--marathon-pdf", default=None,
+                        help="exporta o PDF da maratona para o caminho dado")
     parser.add_argument("--const-names", default=None,
                         choices=["none", "pt", "latin", "abbr"])
     parser.add_argument("--demo-fov", metavar="TEL,CAM", default=None,
@@ -55,10 +60,121 @@ def _parse_args(argv):
                         help="inicia em modo mapa para impressão")
     parser.add_argument("--demo-measure", metavar="A,B", default=None,
                         help="mede entre dois objetos por nome (testes)")
+    parser.add_argument("--bench", action="store_true",
+                        help="mede o tempo de quadro em cenários de estresse")
     return parser.parse_args(argv)
 
 
+def _run_bench(win, app) -> None:
+    """Estresse de renderização: mede ms/quadro em cenários pesados.
+
+    Cada cenário configura a cena, faz dois quadros de aquecimento (upload
+    de texturas, compilação de shaders) e cronometra 40 repaints síncronos.
+    Reporta mediana/p95/máximo — a mediana é a fluidez típica, o máximo
+    denuncia travadas (hitches) de carregamento.
+    """
+    import math
+
+    from PySide6.QtCore import QElapsedTimer
+
+    sky = win.sky
+    results = {}
+
+    def measure(name: str, frames: int = 40) -> None:
+        # grabFramebuffer() força um render completo (paintGL) mesmo com a
+        # janela ao fundo — repaint() seria ignorado sem exposição. O
+        # readback de pixels embutido adiciona um custo fixo (~1-3 ms)
+        # igual em todos os cenários, então a comparação permanece válida.
+        sky.grabFramebuffer()
+        sky.grabFramebuffer()
+        timer = QElapsedTimer()
+        samples = []
+        for _ in range(frames):
+            timer.restart()
+            sky.grabFramebuffer()
+            samples.append(timer.nsecsElapsed() / 1e6)
+        samples.sort()
+        p50 = samples[len(samples) // 2]
+        p95 = samples[int(len(samples) * 0.95) - 1]
+        results[name] = (p50, p95, samples[-1])
+        print(f"  {name:32s} p50 {p50:7.2f} ms   p95 {p95:7.2f}   "
+              f"max {samples[-1]:7.2f}")
+
+    def look(az: float, alt: float, fov: float) -> None:
+        sky.camera.set_direction(math.radians(az), math.radians(alt))
+        sky.camera.fov = math.radians(fov)
+
+    print("cenários (ms por quadro):")
+    look(250.0, 45.0, 100.0)
+    measure("fov100 padrão")
+
+    sky.set_mag_cap(12.0)
+    measure("fov100 mag12 (céu profundo)")
+
+    sky.set_const_label_mode("pt")
+    measure("fov100 mag12 + nomes const")
+
+    look(262.0, 57.0, 20.0)
+    sky.set_layer("dso_images", True)
+    measure("fov20 Sagitário + imagens DSS")
+
+    look(262.0, 57.0, 5.0)
+    measure("fov5 Sagitário mag12 + imagens")
+
+    # varredura de zoom: o pior quadro enquanto o campo muda a cada frame
+    look(262.0, 57.0, 100.0)
+    sky.grabFramebuffer()
+    timer = QElapsedTimer()
+    worst = 0.0
+    steps = 60
+    for i in range(steps):
+        f = 100.0 * (1.0 - i / steps) + 1.5 * (i / steps)
+        sky.camera.fov = math.radians(f)
+        timer.restart()
+        sky.grabFramebuffer()
+        worst = max(worst, timer.nsecsElapsed() / 1e6)
+    print(f"  {'zoom sweep 100→1.5°':32s} pior quadro {worst:7.2f} ms")
+
+    sky.set_mag_cap(None)
+    sky.set_layer("dso_images", False)
+
+    # memória do processo (working set) via API do Windows
+    try:
+        import ctypes
+
+        class _PMC(ctypes.Structure):
+            _fields_ = [
+                ("cb", ctypes.c_uint32),
+                ("PageFaultCount", ctypes.c_uint32),
+                ("PeakWorkingSetSize", ctypes.c_size_t),
+                ("WorkingSetSize", ctypes.c_size_t),
+                ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                ("PagefileUsage", ctypes.c_size_t),
+                ("PeakPagefileUsage", ctypes.c_size_t),
+            ]
+
+        pmc = _PMC()
+        pmc.cb = ctypes.sizeof(_PMC)
+        # pseudo-handle do processo atual; c_void_p evita o truncamento
+        # para 32 bits que o int puro sofreria no ctypes em Win64
+        handle = ctypes.c_void_p(-1)
+        ctypes.windll.psapi.GetProcessMemoryInfo(
+            handle, ctypes.byref(pmc), pmc.cb
+        )
+        print(f"memória: {pmc.WorkingSetSize / 1048576:.0f} MB em uso "
+              f"(pico {pmc.PeakWorkingSetSize / 1048576:.0f} MB)")
+    except Exception:
+        pass
+    app.quit()
+
+
 def main(argv=None) -> int:
+    import time as _time
+
+    t_start = _time.perf_counter()
     args = _parse_args(sys.argv[1:] if argv is None else argv)
 
     fmt = QSurfaceFormat()
@@ -196,7 +312,7 @@ def main(argv=None) -> int:
                 # sem --look explícito, centraliza a câmera na seleção
                 win.sky.goto_object(selection, animate=False)
 
-    if args.screenshot:
+    if args.screenshot or args.bench:
         # janelas de teste não devem roubar o foco do usuário (teclas
         # digitadas em outra janela acionariam os atalhos de camada)
         from PySide6.QtCore import Qt
@@ -272,10 +388,19 @@ def main(argv=None) -> int:
             dialog = win._track_windows[-1]
             plan = dialog.plan
             print(f"{plan.title}: {len(plan.entries)} objetos, "
-                  f"{plan.skipped} fora de alcance")
-            for e in plan.entries[:5]:
-                print(f"  {e.when_utc.astimezone():%H:%M} {e.catalog_id:8s} "
-                      f"alt {e.altitude:.0f} {e.constellation}")
+                  f"{plan.skipped} fora de alcance, "
+                  f"{plan.minutes_per_object} min/objeto")
+            for e in plan.entries[:6]:
+                print(f"  {e.when_utc.astimezone():%H:%M} "
+                      f"{e.catalog_id[:22]:22s} alt {e.altitude:.0f} "
+                      f"{e.constellation}")
+            if args.marathon_pdf:
+                ok = dialog._write_pdf(args.marathon_pdf)
+                import os as _os
+
+                print(f"pdf: {args.marathon_pdf} "
+                      f"({_os.path.getsize(args.marathon_pdf)} bytes, "
+                      f"ok={ok})")
 
     if args.demo_fov:
         from .catalogs.equipment import EquipmentStore, compute_camera_fov
@@ -333,6 +458,15 @@ def main(argv=None) -> int:
             app.quit()
 
         QTimer.singleShot(1200, grab)
+
+    if args.bench:
+        def _bench_wrapper() -> None:
+            print(f"inicialização até a janela: "
+                  f"{_time.perf_counter() - t_start:.2f} s "
+                  f"(inclui a espera do agendador)")
+            _run_bench(win, app)
+
+        QTimer.singleShot(600, _bench_wrapper)
 
     return app.exec()
 

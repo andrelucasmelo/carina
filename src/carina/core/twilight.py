@@ -31,9 +31,11 @@ class NightInfo:
         """Datas locais (início, fim) da noite, para rótulos."""
         if self.sunset is None or self.sunrise is None:
             return None
+        from .localtime import to_local
+
         return (
-            self.sunset.astimezone().date(),
-            self.sunrise.astimezone().date(),
+            to_local(self.sunset).date(),
+            to_local(self.sunrise).date(),
         )
 
 
@@ -49,7 +51,11 @@ def night_info(engine, ref_utc: dt.datetime) -> NightInfo:
     A janela vai do meio-dia local anterior ao meio-dia local seguinte, de
     modo que qualquer hora da tarde/madrugada caia na mesma noite.
     """
-    local = ref_utc.astimezone()
+    from .localtime import to_local
+
+    # "meio-dia local" é o do OBSERVADOR: com uma cidade em outro fuso, a
+    # noite calculada seria a errada se usássemos o relógio do computador
+    local = to_local(ref_utc)
     noon = local.replace(hour=12, minute=0, second=0, microsecond=0)
     if local < noon:
         noon -= dt.timedelta(days=1)
@@ -84,8 +90,10 @@ def sun_altitude_band(sun_alt_deg: float) -> str:
 
 def format_night_summary(info: NightInfo) -> list[tuple[str, str]]:
     """Pares (título, 'HH:MM – HH:MM') para exibição no painel."""
+    from .localtime import to_local
+
     def hm(value: dt.datetime | None) -> str:
-        return value.astimezone().strftime("%H:%M") if value else "—"
+        return to_local(value).strftime("%H:%M") if value else "—"
 
     return [
         ("Sol", f"{hm(info.sunset)} – {hm(info.sunrise)}"),

@@ -12,7 +12,14 @@ from __future__ import annotations
 import ctypes
 
 import numpy as np
-from OpenGL import GL
+import OpenGL
+
+# O PyOpenGL embrulha CADA chamada GL com glGetError — custava ~1 s a cada
+# 13 s de renderização (medido no --bench). Em produção a validação já foi
+# feita durante o desenvolvimento; desligar antes de importar OpenGL.GL
+# remove o embrulho por completo.
+OpenGL.ERROR_CHECKING = False
+from OpenGL import GL  # noqa: E402
 
 _POINTS_VS = """
 #version 330 core

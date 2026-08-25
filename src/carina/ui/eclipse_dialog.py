@@ -93,8 +93,10 @@ class EclipseDialog(QDialog):
         kind = self.kind_combo.currentData()
         events = [e for e in self._events if not kind or e.kind == kind]
         self.table.setRowCount(len(events))
+        from ..core.localtime import to_local
+
         for r, ev in enumerate(events):
-            local = ev.when_utc.astimezone()
+            local = to_local(ev.when_utc)
             cells = [
                 local.strftime("%d/%m/%Y %H:%M"),
                 self.tr("Lunar") if ev.kind == "lunar" else self.tr("Solar"),

@@ -184,6 +184,8 @@ class SkyEngine:
 
     # -- observador ------------------------------------------------------
     def set_location(self, loc: ObserverLocation) -> None:
+        from .localtime import set_timezone
+
         self.topos = wgs84.latlon(
             latitude_degrees=loc.latitude,
             longitude_degrees=loc.longitude,
@@ -192,6 +194,9 @@ class SkyEngine:
         self._site = self.earth + self.topos
         self._matrix_cache = None
         self._bodies_cache = None
+        # o fuso horário acompanha a localização: todos os horários
+        # exibidos passam a ser os da cidade escolhida
+        set_timezone(getattr(loc, "timezone", ""))
 
     # -- rotação ICRS -> horizontal --------------------------------------
     def horizontal_matrix(self, t) -> np.ndarray:

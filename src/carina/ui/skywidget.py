@@ -14,6 +14,7 @@ from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..core.eclipses import moon_influence_radii
 from ..core.engine import SkyEngine
+from ..core.localtime import to_local
 from ..core.projection import FOV_MAX, FOV_MIN, Camera
 from ..render.glrenderer import GLRenderer
 
@@ -185,6 +186,7 @@ class SkyWidget(QOpenGLWidget):
         self._label_hits: list = []         # (rect lógico, seleção)
         self._path_marks: list = []         # rótulos das trajetórias
         self._moon_marks_screen: list = []  # marcas da previsão da Lua
+        self._frame_m = np.eye(3, dtype=np.float32)  # matriz do quadro atual
         self.fov_shapes: list = []          # campos de equipamentos (item 7)
         self.fov_angle: float = 0.0         # rotação do campo (rad)
         self.fov_follow_selection = True
@@ -366,15 +368,23 @@ class SkyWidget(QOpenGLWidget):
         return self.bortle <= 6
 
     def _mag_limit(self) -> float:
+        """Magnitude-limite das estrelas no quadro atual.
+
+        Quem decide quantas estrelas aparecem é sempre o filtro automático
+        pelo zoom (quanto menor o campo, mais fundo se enxerga — a mesma
+        lógica de uma ocular de maior aumento). O limite manual escolhido
+        no menu é apenas um TETO sobre esse valor: com o teto em 8, um céu
+        bem aberto continua mostrando menos que 8, e ao fechar o campo a
+        exibição cresce até parar em 8. O alcance máximo é 12 (catálogo
+        profundo Tycho-2/ATHYG).
+        """
         fov_deg = math.degrees(self.camera.fov)
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
         # a poluição luminosa corta as estrelas fracas: o desconto é a
         # diferença entre o céu perfeito (Bortle 1) e a classe escolhida
         auto -= self.BORTLE_NELM[1] - self.BORTLE_NELM[self.bortle]
         if self.mag_cap is not None:
-            # o limite manual pode FORÇAR magnitudes além do automático
-            # (até 12, alcance do catálogo profundo)
-            return min(12.0, self.mag_cap)
+            return min(auto, self.mag_cap, 12.0)
         return auto
 
     def set_bortle(self, value: int) -> None:
@@ -413,6 +423,9 @@ class SkyWidget(QOpenGLWidget):
 
         t = self.engine.time.current()
         m = self.engine.horizontal_matrix(t).astype(np.float32)
+        # matriz do quadro à disposição dos rótulos (desenhados depois,
+        # fora do escopo deste método)
+        self._frame_m = m
 
         if self.chart_mode:
             bg, star_fade, day = np.array([1.0, 1.0, 1.0]), 1.0, 0.0
@@ -524,12 +537,17 @@ class SkyWidget(QOpenGLWidget):
             bodies_px = self._draw_bodies(t, m)
 
         # --- trajetórias anuais dos planetas (item 8) ---
-        if self.planet_paths:
+        if self.planet_paths and self.layers.get("planet_paths", True):
             self._draw_planet_paths(m)
+        else:
+            # sem desenho neste quadro, os rótulos também precisam sumir
+            self._path_marks = []
 
         # --- previsão da Lua nos próximos dias (item 6) ---
         if self.moon_forecast and self.layers.get("moon_forecast", True):
             self._draw_moon_forecast(m)
+        else:
+            self._moon_marks_screen = []
 
         # --- zona de influência da Lua para astrofotografia (item 5) ---
         if self.layers["moon_zone"]:
@@ -645,6 +663,19 @@ class SkyWidget(QOpenGLWidget):
             out[below[good], 5] *= factor
         return out
 
+    def _view_cone_icrs(self, m: np.ndarray) -> tuple[np.ndarray, float]:
+        """Cone de visada no frame ICRS para pré-filtros baratos.
+
+        Devolve (direção ICRS, cos do semiângulo). Testar ``xyz @ f > cos``
+        é um único produto matricial sem trigonometria — ordens de grandeza
+        mais barato do que refração + projeção estereográfica, e elimina os
+        pontos do outro lado do céu antes do trabalho caro. O semiângulo
+        cobre a diagonal da tela com folga para a margem e a refração.
+        """
+        f_icrs = m.T.astype(np.float64) @ self.camera._basis[2]
+        half = min(math.pi / 2, self.camera.fov * 0.75 + math.radians(3.0))
+        return f_icrs, math.cos(half)
+
     def _draw_stars(self, m: np.ndarray, fade: float):
         cat = self.stars
         cam = self.camera
@@ -652,11 +683,19 @@ class SkyWidget(QOpenGLWidget):
         n = cat.count_brighter_than(m_lim)
         if n == 0:
             return None
-        vecs = self._refract(cat.xyz[:n] @ m.T)
-        x, y, vis = cam.project(vecs, margin=16.0)
-        idx = np.nonzero(vis)[0]
-        if len(idx) == 0:
+        # pré-filtro pelo cone de visada: em campos fechados evita refração
+        # e projeção de centenas de milhares de estrelas fora da tela
+        f_icrs, cos_half = self._view_cone_icrs(m)
+        near = np.nonzero(cat.xyz[:n] @ f_icrs > cos_half)[0]
+        if len(near) == 0:
             return None
+        vecs = self._refract(cat.xyz[near] @ m.T)
+        x, y, vis = cam.project(vecs, margin=16.0)
+        sub = np.nonzero(vis)[0]
+        if len(sub) == 0:
+            return None
+        # índices no catálogo completo (rótulos e seleção dependem deles)
+        idx = near[sub]
         mag = cat.mag[idx]
         rel = np.maximum(0.0, m_lim - mag)
         # Curva de tamanho bem íngreme: as estrelas mais brilhantes dominam
@@ -664,16 +703,17 @@ class SkyWidget(QOpenGLWidget):
         sizes = np.minimum(26.0, 1.1 + 0.68 * rel ** 1.58).astype(np.float32)
         alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
-        below = vecs[idx, 2] < 0.0
+        below = vecs[sub, 2] < 0.0
         dim_below = 0.45 if self.layers.get("below_horizon", False) else 0.15
         alpha = np.where(below, alpha * dim_below, alpha)
         keep = alpha > 0.02
-        idx = idx[keep]
+        idx = idx[keep]           # índices no catálogo (rótulos/cliques)
+        sub = sub[keep]           # índices nos arrays projetados (x/y/vecs)
         if len(idx) == 0:
             return None
         data = np.empty((len(idx), 7), dtype=np.float32)
-        data[:, 0] = x[idx]
-        data[:, 1] = y[idx]
+        data[:, 0] = x[sub]
+        data[:, 1] = y[sub]
         data[:, 2] = sizes[keep]
         if self.chart_mode:
             data[:, 3:6] = 0.05  # pontos escuros sobre fundo branco
@@ -688,13 +728,21 @@ class SkyWidget(QOpenGLWidget):
         if cat.deep_xyz is not None and m_lim > 8.6:
             nd = cat.deep_count_brighter_than(m_lim)
             if nd:
-                dv = self._refract(cat.deep_xyz[:nd] @ m.T)
+                # mesmo pré-filtro de cone: dos 741 mil só uma fração está
+                # no campo, e o corte barato evita refração/projeção do resto
+                dnear = np.nonzero(
+                    cat.deep_xyz[:nd] @ f_icrs > cos_half
+                )[0]
+                if len(dnear) == 0:
+                    return idx, x[sub], y[sub], below_map
+                dv = self._refract(cat.deep_xyz[dnear] @ m.T)
                 dx, dy, dvis = cam.project(dv, margin=16.0)
                 didx = np.nonzero(dvis)[0]
                 if len(didx):
                     if len(didx) > 60000:      # teto de segurança por quadro
                         didx = didx[:60000]
-                    drel = np.maximum(0.0, m_lim - cat.deep_mag[didx])
+                    dcat = dnear[didx]         # índices no catálogo profundo
+                    drel = np.maximum(0.0, m_lim - cat.deep_mag[dcat])
                     dsize = np.minimum(
                         26.0, 1.1 + 0.68 * drel ** 1.58
                     ).astype(np.float32)
@@ -715,26 +763,44 @@ class SkyWidget(QOpenGLWidget):
                         ddata[:, 3:6] = 0.05
                         ddata[:, 6] = np.clip(dalpha * 1.6, 0.0, 1.0)
                     else:
-                        ddata[:, 3:6] = cat.deep_colors[didx]
+                        ddata[:, 3:6] = cat.deep_colors[dcat]
                         ddata[:, 6] = dalpha
                     self.renderer.draw_points(ddata)
-        return idx, x, y, below_map
+        return idx, x[sub], y[sub], below_map
 
     def _draw_dso_images(self, m: np.ndarray, fade: float) -> None:
-        """Imagens DSS dos objetos visíveis (Messier/Caldwell embarcados)."""
+        """Imagens DSS dos objetos visíveis na tela.
+
+        A pré-seleção acontece em ICRS puro com um único produto matricial:
+        projetar (com refração) os 18 mil objetos do catálogo a cada quadro
+        custava ~4 ms; o teste do cosseno contra a direção de visada custa
+        microssegundos e reduz o conjunto a dezenas antes da projeção real.
+        """
         dso = self.dso
         if len(dso) == 0:
             return
         cam = self.camera
-        vecs = self._refract(dso.xyz @ m.T)
-        _, _, vis = cam.project(vecs, margin=160.0)
+        # direção de visada trazida para o frame ICRS do catálogo:
+        # dot(v_h, f_h) = dot(v_icrs, m.T @ f_h)
+        f_icrs = m.T.astype(np.float64) @ cam._basis[2]
+        half = min(math.pi / 2, cam.fov * 0.75 + math.radians(6.0))
+        near = dso.xyz @ f_icrs > math.cos(half)
         maj_px = self._dso_size_px()
-        # objetos com imagem no pacote (M/C + destaques) e visíveis na tela
+        # objetos com imagem no pacote (M/C + destaques) e grandes na tela
         has_img = dso.is_mc | dso.is_featured
-        candidates = np.nonzero(vis & has_img & (maj_px > 12.0))[0]
+        rough = np.nonzero(near & has_img & (maj_px > 12.0))[0]
+        if len(rough) == 0:
+            return
+        # projeção fina só dos pré-selecionados; os maiores têm prioridade
+        # quando há mais candidatos do que o teto por quadro
+        vecs = self._refract(dso.xyz[rough] @ m.T)
+        _, _, vis = cam.project(vecs, margin=160.0)
+        candidates = rough[vis]
         if len(candidates) == 0:
             return
-        candidates = candidates[:16]
+        if len(candidates) > 16:
+            order = np.argsort(-maj_px[candidates])
+            candidates = candidates[order[:16]]
 
         def project(pts, margin):
             # as imagens já estão no frame ICRS do catálogo: aplica a matriz
@@ -745,6 +811,10 @@ class SkyWidget(QOpenGLWidget):
             self.renderer, cam, project, dso, candidates,
             0.62 * fade * self.sky_dimming(),
         )
+        if self.dso_images.loading():
+            # há decodificações a caminho: repinta logo para as imagens
+            # surgirem sem esperar o tique de 1 s do relógio
+            QTimer.singleShot(90, self.update)
 
     def _dso_size_px(self) -> np.ndarray:
         """Eixo maior de cada objeto em pixels na escala atual."""
@@ -755,27 +825,42 @@ class SkyWidget(QOpenGLWidget):
         if len(dso) == 0:
             return None
         cam = self.camera
-        vecs = self._refract(dso.xyz @ m.T)
-        x, y, vis = cam.project(vecs, margin=48.0)
-        maj_px = self._dso_size_px()
+        # pré-filtro barato pelo cone de visada e pelos critérios de
+        # exibição; só o punhado restante passa por refração/projeção
+        f_icrs, cos_half = self._view_cone_icrs(m)
+        near = dso.xyz @ f_icrs > cos_half
+        maj_px_all = self._dso_size_px()
         dso_lim = self._mag_limit() - 0.3
-        show = vis & ((dso.mag <= dso_lim) | (maj_px >= 14.0))
-        idx = np.nonzero(show)[0]
-        if len(idx) == 0:
+        rough = np.nonzero(
+            near & ((dso.mag <= dso_lim) | (maj_px_all >= 14.0))
+        )[0]
+        if len(rough) == 0:
             return None
-        idx = idx[:400]  # arrays em ordem de magnitude: mantém os brilhantes
+        vecs = self._refract(dso.xyz[rough] @ m.T)
+        x, y, vis = cam.project(vecs, margin=48.0)
+        # arrays do catálogo em ordem de magnitude: o corte de 400 por
+        # quadro mantém os mais brilhantes
+        sub = np.nonzero(vis)[0][:400]
+        if len(sub) == 0:
+            return None
+        idx = rough[sub]              # índices no catálogo (rótulos/cliques)
+        xs = x[sub]
+        ys = y[sub]
+        maj_sel = maj_px_all[idx]
+        below_sel = vecs[sub, 2] < 0.0
 
         pole = np.array([0.0, 0.0, 1.0], dtype=np.float32)
         segs: list[np.ndarray] = []
         cols: list[np.ndarray] = []
-        for i in idx:
+        for k in range(len(idx)):
+            i = int(idx[k])
             code = int(dso.klass[i])
-            below = vecs[i, 2] < 0.0
+            below = bool(below_sel[k])
             alpha = 0.85 * fade * (0.25 if below else 1.0)
             rgb = CHART_COLORS["dso"] if self.chart_mode else DSO_COLORS[code]
             color = np.array([*rgb, alpha], dtype=np.float32)
-            cx, cy = x[i], y[i]
-            big = maj_px[i] > 26.0
+            cx, cy = xs[k], ys[k]
+            big = maj_sel[k] > 26.0
 
             # contorno real da nebulosa, quando existir e couber na tela
             shapes = self.outlines.get(dso.names[i]) if big else None
@@ -821,7 +906,7 @@ class SkyWidget(QOpenGLWidget):
                 pa = math.radians(float(dso.pa[i]))
                 dir_a = math.cos(pa) * n_scr + math.sin(pa) * e_scr
                 dir_b = -math.sin(pa) * n_scr + math.cos(pa) * e_scr
-                a_px = maj_px[i] / 2.0
+                a_px = maj_sel[k] / 2.0
                 b_px = max(
                     dso.minor[i] * math.radians(1 / 60.0) * cam.pixel_scale / 2.0,
                     a_px * 0.35,
@@ -834,7 +919,7 @@ class SkyWidget(QOpenGLWidget):
                 )
                 seg = np.stack([ring[:-1], ring[1:]], axis=1)
             else:
-                r = float(np.clip(maj_px[i] * 0.5, 6.0, 13.0))
+                r = float(np.clip(maj_sel[k] * 0.5, 6.0, 13.0))
                 seg = DSO_TEMPLATES[code] * r + np.array([cx, cy])
             segs.append(seg.astype(np.float32))
             cols.append(np.repeat(color[np.newaxis, :], 2 * len(seg), axis=0))
@@ -845,7 +930,8 @@ class SkyWidget(QOpenGLWidget):
             out[:, :2] = all_seg
             out[:, 2:] = np.concatenate(cols)
             self.renderer.draw_lines(out)
-        return idx, x, y, maj_px, vecs[:, 2] < 0.0
+        # arrays COMPACTOS alinhados: posição k corresponde a idx[k]
+        return idx, xs, ys, maj_sel, below_sel
 
     def set_fov_shapes(self, shapes: list, angle_deg: float = 0.0,
                        follow_selection: bool = True) -> None:
@@ -949,6 +1035,16 @@ class SkyWidget(QOpenGLWidget):
         self.planet_paths = list(paths)
         self.update()
 
+    def _hide_below_ground(self) -> bool:
+        """Com o solo opaco ativo, nada de rastreamento aparece sob ele.
+
+        O usuário pediu explicitamente: caminhos de planetas, previsão da
+        Lua e anéis de influência não devem "vazar" abaixo da linha do
+        horizonte quando a opção solo estiver ligada (e a visão abaixo do
+        horizonte, desligada).
+        """
+        return self.layers["ground"] and not self.layers["below_horizon"]
+
     def _draw_planet_paths(self, m: np.ndarray) -> None:
         """Desenha o caminho anual dos planetas entre as constelações."""
         cam = self.camera
@@ -964,6 +1060,9 @@ class SkyWidget(QOpenGLWidget):
                 continue
             scr = self._refract(pts @ m.T.astype(np.float64))
             x, y, vis = cam.project(scr, margin=64.0)
+            if self._hide_below_ground():
+                # scr[:, 2] é o seno da altitude: negativo = sob o solo
+                vis = vis & (scr[:, 2] > -0.002)
             ok = vis[:-1] & vis[1:]
             idx = np.nonzero(ok)[0]
             if len(idx):
@@ -1010,6 +1109,8 @@ class SkyWidget(QOpenGLWidget):
         pts = np.array([mk.vec for mk in marks], dtype=np.float64)
         scr = self._refract(pts @ m.T.astype(np.float64))
         x, y, vis = cam.project(scr, margin=48.0)
+        if self._hide_below_ground():
+            vis = vis & (scr[:, 2] > -0.002)
 
         # caminho tracejado ligando as posições
         ok = vis[:-1] & vis[1:]
@@ -1094,6 +1195,8 @@ class SkyWidget(QOpenGLWidget):
                 )
             )
             x, y, vis = self._to_screen(ring, margin=32.0)
+            if self._hide_below_ground():
+                vis = vis & (ring[:, 2] > -0.002)
             ok = vis[:-1] & vis[1:]
             idx = np.nonzero(ok)[0]
             idx = idx[idx % 2 == 0]  # tracejado: segmentos alternados
@@ -1249,7 +1352,7 @@ class SkyWidget(QOpenGLWidget):
             font_m = QFont("Segoe UI", 8)
             fm_m = QFontMetrics(font_m)
             for mk, mx, my, mr in self._moon_marks_screen:
-                text = f"{mk.when_utc.astimezone():%d/%m}"
+                text = f"{to_local(mk.when_utc):%d/%m}"
                 if mk.phase_name:
                     text += f" · {EVENT_LABEL.get(mk.phase_name, '')}"
                 else:
@@ -1285,7 +1388,7 @@ class SkyWidget(QOpenGLWidget):
                 )
                 painter.setPen(pen)
                 for i in marks:
-                    when = path.points[i].when_utc.astimezone()
+                    when = to_local(path.points[i].when_utc)
                     text = when.strftime("%d/%m")
                     w_t, h_t = fm_s.horizontalAdvance(text), fm_s.height()
                     tx, ty = int(px[i] / dpr) + 5, int(py[i] / dpr) - 4
@@ -1294,14 +1397,20 @@ class SkyWidget(QOpenGLWidget):
                 # eventos: rótulo destacado
                 painter.setFont(QFont("Segoe UI", 8, QFont.Bold))
                 for ev in path.events:
-                    xe, ye, ve = self.camera.project(
-                        self._refract(ev.vec[np.newaxis, :]), margin=40.0
+                    # ev.vec está em ICRS: aplica a matriz horizontal do
+                    # quadro antes de projetar (B-018)
+                    ev_h = self._refract(
+                        (np.asarray(ev.vec) @ self._frame_m.T.astype(
+                            np.float64))[np.newaxis, :]
                     )
+                    xe, ye, ve = self.camera.project(ev_h, margin=40.0)
                     if not ve[0]:
+                        continue
+                    if self._hide_below_ground() and ev_h[0, 2] < -0.002:
                         continue
                     label = (
                         f"{path.name}: {EVENT_LABEL.get(ev.kind, ev.kind)} "
-                        f"{ev.when_utc.astimezone():%d/%m}"
+                        f"{to_local(ev.when_utc):%d/%m}"
                     )
                     if ev.kind.startswith("elong"):
                         label += f" ({ev.value:.0f}°)"
@@ -1367,6 +1476,9 @@ class SkyWidget(QOpenGLWidget):
 
         # nomes de estrelas
         if self.layers["star_names"] and star_px is not None:
+            # arrays compactos: a posição k dos arrays x/y corresponde ao
+            # índice de catálogo idx[k]; como idx é crescente, a busca por
+            # uma estrela nomeada é um searchsorted em vez de um set
             idx, x, y, below_map = star_px
             cat = self.stars
             name_lim = max(1.6, min(7.5, self._mag_limit() - 5.0))
@@ -1381,20 +1493,20 @@ class SkyWidget(QOpenGLWidget):
             id_set = (
                 cat.proper_idx if self.name_mode == "proper" else cat.bayer_idx
             )
-            on_screen = set(idx.tolist())
             for si in id_set:
                 if cat.mag[si] > name_lim:
                     break
-                if si not in on_screen:
-                    continue
+                k = int(np.searchsorted(idx, si))
+                if k >= len(idx) or idx[k] != si:
+                    continue        # fora da tela neste quadro
                 below = bool(below_map.get(int(si)))
                 if ground_on and below:
                     continue
                 label = cat.label(int(si), self.name_mode)
                 if not label:
                     continue
-                tx = int(x[si] / dpr) + 7
-                ty = int(y[si] / dpr) - 5
+                tx = int(x[k] / dpr) + 7
+                ty = int(y[k] / dpr) - 5
                 w_text, h_text = fm.horizontalAdvance(label), fm.height()
                 if not placer.place(tx, ty, w_text, h_text):
                     continue
@@ -1412,6 +1524,7 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["dso_names"] and dso_px is not None:
             from PySide6.QtCore import QRect
 
+            # arrays compactos alinhados por posição (ver _draw_dso)
             idx, x, y, maj_px, below_arr = dso_px
             dso = self.dso
             label_lim = self._mag_limit() - 1.8
@@ -1430,14 +1543,16 @@ class SkyWidget(QOpenGLWidget):
                 )
             shown = 0
             # duas passadas: M/C primeiro (prioridade), depois os demais
-            order = sorted(idx, key=lambda i: not bool(dso.is_mc[i]))
-            for i in order:
+            order = sorted(range(len(idx)),
+                           key=lambda k: not bool(dso.is_mc[idx[k]]))
+            for k in order:
+                i = int(idx[k])
                 is_mc = bool(dso.is_mc[i])
                 if not is_mc and shown >= 30:
                     continue
-                if not (is_mc or dso.mag[i] <= label_lim or maj_px[i] > 30.0):
+                if not (is_mc or dso.mag[i] <= label_lim or maj_px[k] > 30.0):
                     continue
-                below = bool(below_arr[i])
+                below = bool(below_arr[k])
                 if ground_on and below:
                     continue
                 text = dso.label(
@@ -1445,9 +1560,9 @@ class SkyWidget(QOpenGLWidget):
                 )
                 metrics = fm_mc if is_mc else fm
                 w_text, h_text = metrics.horizontalAdvance(text), metrics.height()
-                off = int(max(8.0, min(14.0, maj_px[i] * 0.5)) / dpr)
-                tx = int(x[i] / dpr) + off
-                ty = int(y[i] / dpr) - off + 4
+                off = int(max(8.0, min(14.0, maj_px[k] * 0.5)) / dpr)
+                tx = int(x[k] / dpr) + off
+                ty = int(y[k] / dpr) - off + 4
                 if not placer.place(tx, ty, w_text, h_text, force=is_mc):
                     continue
                 painter.setFont(font_mc if is_mc else font)
@@ -1579,14 +1694,15 @@ class SkyWidget(QOpenGLWidget):
         if best is None:
             candidates: list[tuple[float, tuple]] = []
             if self._pick_stars is not None:
+                # arrays compactos: x/y correspondem 1:1 a idx
                 idx, x, y = self._pick_stars
-                d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
+                d2 = (x - px) ** 2 + (y - py) ** 2
                 k = int(np.argmin(d2))
                 if d2[k] <= 14.0 ** 2:
                     candidates.append((float(d2[k]), ("star", int(idx[k]))))
             if self._pick_dso is not None:
                 idx, x, y = self._pick_dso
-                d2 = (x[idx] - px) ** 2 + (y[idx] - py) ** 2
+                d2 = (x - px) ** 2 + (y - py) ** 2
                 k = int(np.argmin(d2))
                 if d2[k] <= 16.0 ** 2:
                     candidates.append(
@@ -1685,7 +1801,7 @@ class SkyWidget(QOpenGLWidget):
     def _emit_status(self, t) -> None:
         from ..core.formats import speed_label
 
-        local = self.engine.time.current_datetime().astimezone()
+        local = to_local(self.engine.time.current_datetime())
         fov = math.degrees(self.camera.fov)
         parts = [
             self.location_name,
@@ -1819,14 +1935,15 @@ class SkyWidget(QOpenGLWidget):
         if best is None:
             cands = []
             if self._pick_stars is not None:
+                # arrays compactos: sx/sy já correspondem 1:1 a idx
                 idx, sx, sy = self._pick_stars
-                d2 = (sx[idx] - device_x) ** 2 + (sy[idx] - device_y) ** 2
+                d2 = (sx - device_x) ** 2 + (sy - device_y) ** 2
                 k = int(np.argmin(d2))
                 if d2[k] <= 16.0 ** 2:
                     cands.append((float(d2[k]), ("star", int(idx[k]))))
             if self._pick_dso is not None:
                 idx, sx, sy = self._pick_dso
-                d2 = (sx[idx] - device_x) ** 2 + (sy[idx] - device_y) ** 2
+                d2 = (sx - device_x) ** 2 + (sy - device_y) ** 2
                 k = int(np.argmin(d2))
                 if d2[k] <= 18.0 ** 2:
                     cands.append(

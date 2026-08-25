@@ -68,7 +68,9 @@ def compute_track(engine, selection, label: str, icrs_vec,
     start = info.sunset
     end = info.sunrise
     if start is None or end is None:
-        local = ref_utc.astimezone()
+        from .localtime import to_local
+
+        local = to_local(ref_utc)
         base = local.replace(hour=18, minute=0, second=0, microsecond=0)
         start = base.astimezone(dt.timezone.utc)
         end = start + dt.timedelta(hours=12)

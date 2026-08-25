@@ -40,8 +40,10 @@ class NightInfoDialog(QDialog):
 
     # ------------------------------------------------------------------
     def refresh(self) -> None:
+        from ..core.localtime import to_local
+
         t = self.engine.time.current()
-        when = self.engine.time.current_datetime().astimezone()
+        when = to_local(self.engine.time.current_datetime())
         try:
             info = night_info(self.engine, self.engine.time.current_datetime())
             rows = "".join(

@@ -328,6 +328,14 @@ class MainWindow(QMainWindow):
         act_paths = QAction(self.tr("Caminho dos planetas (365 dias)…"), self)
         act_paths.triggered.connect(self._open_planet_paths)
         m_tools.addAction(act_paths)
+        self.act_paths_layer = QAction(
+            self.tr("Exibir caminhos dos planetas"), self
+        )
+        self.act_paths_layer.setCheckable(True)
+        self.act_paths_layer.setChecked(True)
+        self.act_paths_layer.setShortcut("Shift+P")
+        self.act_paths_layer.toggled.connect(self._toggle_planet_paths)
+        m_tools.addAction(self.act_paths_layer)
         act_clear_paths = QAction(self.tr("Limpar caminhos dos planetas"), self)
         act_clear_paths.triggered.connect(
             lambda: self.sky.set_planet_paths([])
@@ -345,19 +353,47 @@ class MainWindow(QMainWindow):
         m_tools.addAction(self.act_moon_layer)
 
         m_tools.addSeparator()
-        m_plan = m_tools.addMenu(self.tr("Planejar observação"))
-        act_mm = QAction(self.tr("Maratona Messier…"), self)
-        act_mm.triggered.connect(lambda: self._open_marathon("M"))
-        m_plan.addAction(act_mm)
-        act_mc = QAction(self.tr("Maratona Caldwell…"), self)
-        act_mc.triggered.connect(lambda: self._open_marathon("C"))
-        m_plan.addAction(act_mc)
-
-        m_tools.addSeparator()
         act_print = QAction(self.tr("Gerar mapa para impressão…"), self)
         act_print.setShortcut("Ctrl+Shift+P")
         act_print.triggered.connect(self._open_print_map)
         m_tools.addAction(act_print)
+
+        # --- menu Planejar: maratonas de observação visual --------------
+        m_planejar = bar.addMenu(self.tr("&Planejar"))
+        m_visual = m_planejar.addMenu(self.tr("Visual"))
+        for kind, label in (
+            ("M", self.tr("Maratona Messier…")),
+            ("C", self.tr("Maratona Caldwell…")),
+            ("OC", self.tr("Maratona de Aglomerados Abertos…")),
+            ("GC", self.tr("Maratona de Aglomerados Globulares…")),
+            ("NEB", self.tr("Maratona de Nebulosas…")),
+            ("DARK", self.tr("Maratona de Nebulosas Escuras…")),
+        ):
+            act_k = QAction(label, self)
+            act_k.triggered.connect(
+                lambda _=False, k=kind: self._open_marathon(k)
+            )
+            m_visual.addAction(act_k)
+        m_visual.addSeparator()
+        act_best = QAction(self.tr("Melhores Objetos da Noite…"), self)
+        act_best.triggered.connect(lambda: self._open_marathon("BEST"))
+        m_visual.addAction(act_best)
+
+        m_planejar.addSeparator()
+        m_minutes = m_planejar.addMenu(self.tr("Tempo por objeto"))
+        saved_min = int(self.settings.value("marathon/minutes", 4, int))
+        group_min = QActionGroup(self)
+        for minutes in range(3, 11):
+            act_min = QAction(self.tr("{n} minutos").format(n=minutes), self)
+            act_min.setCheckable(True)
+            act_min.setChecked(minutes == saved_min)
+            act_min.triggered.connect(
+                lambda _=False, v=minutes: self.settings.set_value(
+                    "marathon/minutes", v
+                )
+            )
+            group_min.addAction(act_min)
+            m_minutes.addAction(act_min)
 
         m_info = bar.addMenu(self.tr("&Informações"))
         act_night = QAction(self.tr("Crepúsculos e noite…"), self)
@@ -418,7 +454,9 @@ class MainWindow(QMainWindow):
         self.sky.sync_clock()
 
     def _time_goto(self) -> None:
-        current_local = self.engine.time.current_datetime().astimezone()
+        from ..core.localtime import to_local
+
+        current_local = to_local(self.engine.time.current_datetime())
         dlg = TimeDialog(current_local, self)
         if dlg.exec():
             self.engine.time.set_datetime(dlg.datetime_utc())
@@ -464,13 +502,17 @@ class MainWindow(QMainWindow):
         }[kind]()
 
     def _ask_marathon(self) -> None:
+        """Escolha rápida da maratona pelo botão lateral."""
+        from ..core.observing import MARATHON_TITLES
+
+        kinds = ["M", "C", "OC", "GC", "NEB", "DARK", "BEST"]
+        labels = [MARATHON_TITLES[k] for k in kinds]
         choice, ok = QInputDialog.getItem(
             self, self.tr("Planejar observação"), self.tr("Maratona:"),
-            [self.tr("Maratona Messier"), self.tr("Maratona Caldwell")],
-            0, False,
+            labels, 0, False,
         )
         if ok:
-            self._open_marathon("M" if "Messier" in choice else "C")
+            self._open_marathon(kinds[labels.index(choice)])
 
     def _on_chart_mode(self, on: bool) -> None:
         self.sky.set_chart_mode(on)
@@ -703,9 +745,11 @@ class MainWindow(QMainWindow):
         phases = [m for m in marks if m.phase_name]
         from ..core.planetpath import EVENT_LABEL
 
+        from ..core.localtime import to_local
+
         resumo = " · ".join(
             f"{EVENT_LABEL.get(m.phase_name, m.phase_name)} "
-            f"{m.when_utc.astimezone():%d/%m}" for m in phases
+            f"{to_local(m.when_utc):%d/%m}" for m in phases
         )
         self.statusBar().showMessage(
             self.tr("Previsão da Lua: 28 dias · {r}").format(r=resumo), 15000
@@ -719,16 +763,25 @@ class MainWindow(QMainWindow):
         self.side_bar.set_layer_state("moon_forecast", on)
         self.sky.update()
 
-    def _open_marathon(self, catalog: str) -> None:
-        """Planejamento das maratonas Messier/Caldwell (item 8)."""
+    def _toggle_planet_paths(self, on: bool) -> None:
+        """Liga/desliga a EXIBIÇÃO dos caminhos sem descartar o cálculo."""
+        self.sky.layers["planet_paths"] = on
+        self.sky.update()
+
+    def _open_marathon(self, kind: str) -> None:
+        """Planejamento das maratonas de observação (menu Planejar)."""
+        from ..catalogs import skygeometry
+        from ..config import package_data_dir
         from ..core.observing import build_marathon
         from .marathon_window import MarathonWindow
 
+        minutes = int(self.settings.value("marathon/minutes", 4, int))
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
             plan = build_marathon(
-                self.engine, self.dso_catalog, self.star_catalog, catalog,
+                self.engine, self.dso_catalog, self.star_catalog, kind,
                 self.engine.time.current_datetime(), self.const_names,
+                minutes_per_object=minutes,
             )
             plan.location = self.settings.location().name
         finally:
@@ -737,22 +790,33 @@ class MainWindow(QMainWindow):
         if not plan.entries:
             QMessageBox.information(
                 self, "Carina",
-                self.tr("Nenhum objeto deste catálogo fica bem posicionado "
+                self.tr("Nenhum objeto deste tipo fica bem posicionado "
                         "nesta noite. Tente outra data."),
             )
             return
-        win = MarathonWindow(plan, self)
+        # linhas de constelação para as cartas de localização do PDF
+        if not hasattr(self, "_const_lines_cache"):
+            self._const_lines_cache = skygeometry.load_constellation_lines(
+                package_data_dir()
+            )
+        win = MarathonWindow(
+            plan, self.star_catalog, self._const_lines_cache, self
+        )
         win.setAttribute(Qt.WA_DeleteOnClose, True)
         win.gotoRequested.connect(self._goto_by_name)
         self._track_windows.append(win)
         win.show()
 
     def _goto_by_name(self, name: str) -> None:
+        """Centraliza o objeto do roteiro no mapa (duplo clique na lista)."""
         row = self.dso_catalog.cx.execute(
             "SELECT id FROM objects WHERE name = ? LIMIT 1", (name,)
         ).fetchone()
         if row:
             self.sky.goto_object(("dso", int(row["id"])))
+            return
+        # maratona "Melhores Objetos": planetas e a Lua não são DSOs
+        self.sky.goto_object(("body", name))
 
     def _open_print_map(self) -> None:
         """Abre o editor de mapa para impressão com a vista atual."""
@@ -766,8 +830,10 @@ class MainWindow(QMainWindow):
 
         from .print_window import PrintMapWindow
 
+        from ..core.localtime import to_local
+
         loc = self.settings.location().name
-        when = self.engine.time.current_datetime().astimezone()
+        when = to_local(self.engine.time.current_datetime())
         win = PrintMapWindow(
             image, f"{loc} — {when:%d/%m/%Y %H:%M}", self
         )

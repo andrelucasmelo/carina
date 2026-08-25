@@ -60,6 +60,7 @@ class ObserverLocation:
     latitude: float = -22.9068   # graus, sul negativo
     longitude: float = -43.1729  # graus, oeste negativo
     elevation: float = 15.0      # metros
+    timezone: str = "America/Sao_Paulo"  # fuso IANA; vazio = fuso do sistema
 
 
 class Settings:
@@ -75,6 +76,7 @@ class Settings:
             latitude=self._s.value("observer/lat", ObserverLocation.latitude, float),
             longitude=self._s.value("observer/lon", ObserverLocation.longitude, float),
             elevation=self._s.value("observer/elev", ObserverLocation.elevation, float),
+            timezone=self._s.value("observer/tz", ObserverLocation.timezone, str),
         )
 
     def set_location(self, loc: ObserverLocation) -> None:
@@ -82,6 +84,7 @@ class Settings:
         self._s.setValue("observer/lat", loc.latitude)
         self._s.setValue("observer/lon", loc.longitude)
         self._s.setValue("observer/elev", loc.elevation)
+        self._s.setValue("observer/tz", loc.timezone)
 
     # --- camadas visíveis ----------------------------------------------
     def layer(self, key: str, default: bool = True) -> bool:

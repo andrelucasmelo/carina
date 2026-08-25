@@ -43,7 +43,9 @@ def yearly_altitude(engine, icrs_vec, start: dt.datetime,
         if info.astro_dusk and info.astro_dawn:
             ref = info.astro_dusk + (info.astro_dawn - info.astro_dusk) / 2
         else:
-            local = day.astimezone().replace(
+            from ..core.localtime import to_local
+
+            local = to_local(day).replace(
                 hour=0, minute=0, second=0, microsecond=0
             ) + dt.timedelta(days=1)
             ref = local.astimezone(dt.timezone.utc)
@@ -64,7 +66,9 @@ def yearly_altitude(engine, icrs_vec, start: dt.datetime,
             vv = icrs @ mm.T
             best = max(best, math.degrees(math.asin(max(-1.0, min(1.0, vv[2])))))
         alt_max.append(best)
-        dates.append(day.astimezone().date())
+        from ..core.localtime import to_local as _tl
+
+        dates.append(_tl(day).date())
         day = day + dt.timedelta(days=step_days)
     return dates, alt_mid, alt_max
 
