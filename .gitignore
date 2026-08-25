@@ -20,6 +20,9 @@ dist/
 # Dados brutos baixados (regenerar com scripts/build_data.py)
 data/raw/
 
+# Cache de downloads dos scripts de build (GeoNames etc.)
+data/cache/
+
 # Imagens pré-baixadas p/ o instalador (regenerar com scripts/build_images.py)
 data/processed/images/
 
