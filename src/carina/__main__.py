@@ -38,6 +38,10 @@ def _parse_args(argv):
     parser.add_argument("--planet-path", metavar="NOME", default=None,
                         help="traça o caminho anual de um planeta (testes)")
     parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--moon-forecast", action="store_true",
+                        help="calcula a previsão da Lua ao iniciar (testes)")
+    parser.add_argument("--marathon", choices=["M", "C"], default=None,
+                        help="abre o planejamento da maratona (testes)")
     parser.add_argument("--const-names", default=None,
                         choices=["none", "pt", "latin", "abbr"])
     parser.add_argument("--demo-fov", metavar="TEL,CAM", default=None,
@@ -254,6 +258,24 @@ def main(argv=None) -> int:
 
     if args.demo_measure:
         _apply_demo_measure()
+
+    if args.moon_forecast:
+        win._open_moon_forecast()
+        for mk in win.sky.moon_forecast:
+            if mk.phase_name:
+                print(f"  {mk.when_utc.astimezone():%d/%m %H:%M} "
+                      f"{mk.phase_name} ({mk.illumination * 100:.0f}%)")
+
+    if args.marathon:
+        win._open_marathon(args.marathon)
+        if win._track_windows:
+            dialog = win._track_windows[-1]
+            plan = dialog.plan
+            print(f"{plan.title}: {len(plan.entries)} objetos, "
+                  f"{plan.skipped} fora de alcance")
+            for e in plan.entries[:5]:
+                print(f"  {e.when_utc.astimezone():%H:%M} {e.catalog_id:8s} "
+                      f"alt {e.altitude:.0f} {e.constellation}")
 
     if args.demo_fov:
         from .catalogs.equipment import EquipmentStore, compute_camera_fov

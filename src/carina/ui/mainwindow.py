@@ -76,6 +76,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.sky)
         self.sky.statusUpdated.connect(self._on_status)
         self.sky.selectionChanged.connect(self._on_selection)
+        self.sky.contextInfoRequested.connect(self._popup_info)
+        self.sky.contextDetailsRequested.connect(self._open_object_window)
+        self.sky.contextTrackRequested.connect(lambda _s: self._open_track())
 
         self.info_dock = QDockWidget(self.tr("Informações"), self)
         self.info_dock.setObjectName("info_dock")
@@ -216,7 +219,7 @@ class MainWindow(QMainWindow):
             (self.tr("Automática (pelo zoom)"), None), ("3,0", 3.0),
             ("4,0", 4.0), ("4,5", 4.5), ("5,0", 5.0), ("5,5", 5.5),
             ("6,0", 6.0), ("6,5", 6.5), ("7,0", 7.0), ("8,0", 8.0),
-            ("9,0", 9.0), ("10,0", 10.0),
+            ("9,0", 9.0), ("10,0", 10.0), ("11,0", 11.0), ("12,0", 12.0),
         ]:
             act = QAction(label, self)
             act.setCheckable(True)
@@ -330,6 +333,26 @@ class MainWindow(QMainWindow):
             lambda: self.sky.set_planet_paths([])
         )
         m_tools.addAction(act_clear_paths)
+        act_moon = QAction(self.tr("Previsão da Lua (28 dias)…"), self)
+        act_moon.triggered.connect(self._open_moon_forecast)
+        m_tools.addAction(act_moon)
+        self.act_moon_layer = QAction(
+            self.tr("Exibir previsão da Lua no céu"), self
+        )
+        self.act_moon_layer.setCheckable(True)
+        self.act_moon_layer.setShortcut("Shift+M")
+        self.act_moon_layer.toggled.connect(self._toggle_moon_forecast)
+        m_tools.addAction(self.act_moon_layer)
+
+        m_tools.addSeparator()
+        m_plan = m_tools.addMenu(self.tr("Planejar observação"))
+        act_mm = QAction(self.tr("Maratona Messier…"), self)
+        act_mm.triggered.connect(lambda: self._open_marathon("M"))
+        m_plan.addAction(act_mm)
+        act_mc = QAction(self.tr("Maratona Caldwell…"), self)
+        act_mc.triggered.connect(lambda: self._open_marathon("C"))
+        m_plan.addAction(act_mc)
+
         m_tools.addSeparator()
         act_print = QAction(self.tr("Gerar mapa para impressão…"), self)
         act_print.setShortcut("Ctrl+Shift+P")
@@ -435,9 +458,19 @@ class MainWindow(QMainWindow):
             "search": self._open_search,
             "track": self._open_track,
             "fov": self._open_fov,
+            "marathon": self._ask_marathon,
             "print": self._open_print_map,
             "info": self._open_night_info,
         }[kind]()
+
+    def _ask_marathon(self) -> None:
+        choice, ok = QInputDialog.getItem(
+            self, self.tr("Planejar observação"), self.tr("Maratona:"),
+            [self.tr("Maratona Messier"), self.tr("Maratona Caldwell")],
+            0, False,
+        )
+        if ok:
+            self._open_marathon("M" if "Messier" in choice else "C")
 
     def _on_chart_mode(self, on: bool) -> None:
         self.sky.set_chart_mode(on)
@@ -469,6 +502,9 @@ class MainWindow(QMainWindow):
             self.side_bar.btn_chart.setChecked(on)
 
     def _on_panel_layer(self, key: str, value: bool) -> None:
+        if key == "moon_forecast":
+            self.act_moon_layer.setChecked(value)
+            return
         act = self._layer_acts.get(key)
         if act is not None and act.isChecked() != value:
             act.setChecked(value)  # dispara o toggled -> aplica e persiste
@@ -650,6 +686,74 @@ class MainWindow(QMainWindow):
             .format(n=len(paths), e=total_events), 8000,
         )
 
+    def _open_moon_forecast(self) -> None:
+        """Calcula e exibe a previsão da Lua para os próximos 28 dias."""
+        from ..core.planetpath import compute_moon_forecast
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            marks = compute_moon_forecast(
+                self.engine, self.engine.time.current_datetime(), days=28
+            )
+        finally:
+            QApplication.restoreOverrideCursor()
+        self.sky.set_moon_forecast(marks)
+        self.act_moon_layer.setChecked(True)
+        self.side_bar.set_layer_state("moon_forecast", True)
+        phases = [m for m in marks if m.phase_name]
+        from ..core.planetpath import EVENT_LABEL
+
+        resumo = " · ".join(
+            f"{EVENT_LABEL.get(m.phase_name, m.phase_name)} "
+            f"{m.when_utc.astimezone():%d/%m}" for m in phases
+        )
+        self.statusBar().showMessage(
+            self.tr("Previsão da Lua: 28 dias · {r}").format(r=resumo), 15000
+        )
+
+    def _toggle_moon_forecast(self, on: bool) -> None:
+        if on and not self.sky.moon_forecast:
+            self._open_moon_forecast()
+            return
+        self.sky.layers["moon_forecast"] = on
+        self.side_bar.set_layer_state("moon_forecast", on)
+        self.sky.update()
+
+    def _open_marathon(self, catalog: str) -> None:
+        """Planejamento das maratonas Messier/Caldwell (item 8)."""
+        from ..core.observing import build_marathon
+        from .marathon_window import MarathonWindow
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            plan = build_marathon(
+                self.engine, self.dso_catalog, self.star_catalog, catalog,
+                self.engine.time.current_datetime(), self.const_names,
+            )
+            plan.location = self.settings.location().name
+        finally:
+            QApplication.restoreOverrideCursor()
+
+        if not plan.entries:
+            QMessageBox.information(
+                self, "Carina",
+                self.tr("Nenhum objeto deste catálogo fica bem posicionado "
+                        "nesta noite. Tente outra data."),
+            )
+            return
+        win = MarathonWindow(plan, self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.gotoRequested.connect(self._goto_by_name)
+        self._track_windows.append(win)
+        win.show()
+
+    def _goto_by_name(self, name: str) -> None:
+        row = self.dso_catalog.cx.execute(
+            "SELECT id FROM objects WHERE name = ? LIMIT 1", (name,)
+        ).fetchone()
+        if row:
+            self.sky.goto_object(("dso", int(row["id"])))
+
     def _open_print_map(self) -> None:
         """Abre o editor de mapa para impressão com a vista atual."""
         was_chart = self.sky.chart_mode
@@ -671,14 +775,47 @@ class MainWindow(QMainWindow):
         self._track_windows.append(win)
         win.show()
 
-    def _open_object_window(self) -> None:
-        """Janela de detalhes do objeto selecionado (item 3)."""
+    def _popup_info(self, selection) -> None:
+        """Ficha do objeto em popup (item 7, botão direito)."""
+        from ..catalogs import images as image_store
+        from .info_popup import InfoPopup
+
+        if selection is None:
+            return
+
+        def render(sel):
+            return build_info_html(
+                sel, self.engine, self.star_catalog, self.const_names,
+                self.dso_catalog,
+            )
+
+        image_path = None
+        if selection[0] == "dso":
+            data = self.dso_catalog.get(int(selection[1]))
+            if data is not None:
+                image_path = image_store.image_path_for(data["name"])
+        popup = InfoPopup(
+            selection, self.sky.describe_selection(selection),
+            render(selection), image_path, refresh_cb=render, parent=self,
+        )
+        popup.detailsRequested.connect(self._open_object_window)
+        popup.trackRequested.connect(self._track_selection)
+        popup.show()
+
+    def _track_selection(self, selection) -> None:
+        self.sky.selection = selection
+        self.sky.selectionChanged.emit(selection)
+        self._open_track()
+
+    def _open_object_window(self, selection=None) -> None:
+        """Janela de detalhes do objeto (item 3)."""
         import math as _math
 
         from ..catalogs import images as image_store
         from .object_window import ObjectWindow, yearly_altitude
 
-        selection = self.sky.selection
+        if not isinstance(selection, tuple):
+            selection = self.sky.selection
         if selection is None:
             QMessageBox.information(
                 self, "Carina",

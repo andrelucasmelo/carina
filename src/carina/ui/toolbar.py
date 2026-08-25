@@ -120,6 +120,23 @@ def _icon(kind: str) -> QIcon:
         p.setBrush(Qt.NoBrush)
         for x, y, r in ((9, 19, 2.0), (17, 20, 1.6), (13, 17, 1.4)):
             p.drawEllipse(QRectF(x - r / 2, y - r / 2, r, r))
+    elif kind == "moonpath":
+        # luas em fases ao longo de um arco
+        p.drawArc(QRectF(2, 6, 22, 20), 30 * 16, 120 * 16)
+        p.setBrush(fg)
+        p.drawEllipse(QRectF(4, 12, 5, 5))
+        p.drawEllipse(QRectF(19, 12, 5, 5))
+        p.setBrush(Qt.NoBrush)
+        p.drawEllipse(QRectF(11, 6, 6, 6))
+    elif kind == "marathon":
+        # lista com marcadores
+        p.drawLine(9, 7, 22, 7)
+        p.drawLine(9, 13, 22, 13)
+        p.drawLine(9, 19, 22, 19)
+        p.setBrush(fg)
+        for y in (7, 13, 19):
+            p.drawEllipse(QRectF(3, y - 1.6, 3.2, 3.2))
+        p.setBrush(Qt.NoBrush)
     elif kind == "print":
         p.drawRect(QRectF(7, 4, 12, 6))
         p.drawRect(QRectF(4, 10, 18, 8))
@@ -234,10 +251,19 @@ class SideToolBar(QWidget):
         layout.addWidget(btn_below)
         self.layer_buttons["below_horizon"] = btn_below
 
+        btn_moon = self._button(
+            "moonpath", "Previsão da Lua (28 dias)", checkable=True
+        )
+        btn_moon.toggled.connect(
+            lambda on: self.layerToggled.emit("moon_forecast", on)
+        )
+        layout.addWidget(btn_moon)
+        self.layer_buttons["moon_forecast"] = btn_moon
+
         for kind, tip in (
             ("search", "Buscar objeto"), ("track", "Rastrear na noite"),
-            ("fov", "Campo de visão"), ("print", "Mapa para impressão"),
-            ("info", "Crepúsculos e noite"),
+            ("fov", "Campo de visão"), ("marathon", "Planejar maratona"),
+            ("print", "Mapa para impressão"), ("info", "Crepúsculos e noite"),
         ):
             btn = self._button(kind, tip)
             btn.clicked.connect(lambda _c=False, k=kind: self.action.emit(k))

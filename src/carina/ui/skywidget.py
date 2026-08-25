@@ -156,6 +156,9 @@ class _LabelPlacer:
 class SkyWidget(QOpenGLWidget):
     statusUpdated = Signal(str)
     selectionChanged = Signal(object)  # None | ("star", idx) | ("body", nome)
+    contextInfoRequested = Signal(object)
+    contextDetailsRequested = Signal(object)
+    contextTrackRequested = Signal(object)
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
                  data_dir, parent=None):
@@ -174,12 +177,14 @@ class SkyWidget(QOpenGLWidget):
         self.bortle: int = 1                # 1 = céu perfeito … 9 = centro urbano
         self.const_label_mode = "none"      # none | pt | latin | abbr
         self.planet_paths: list = []        # trajetórias anuais (item 8)
+        self.moon_forecast: list = []       # previsão da Lua (item 6)
         self.chart_mode = False             # modo mapa para impressão
         self.mouse_mode = "pan"             # 'pan' | 'measure' | 'zoom_rect'
         self._measure: dict | None = None   # medição angular ativa
         self._rubber: list | None = None    # retângulo de zoom
         self._label_hits: list = []         # (rect lógico, seleção)
         self._path_marks: list = []         # rótulos das trajetórias
+        self._moon_marks_screen: list = []  # marcas da previsão da Lua
         self.fov_shapes: list = []          # campos de equipamentos (item 7)
         self.fov_angle: float = 0.0         # rotação do campo (rad)
         self.fov_follow_selection = True
@@ -345,6 +350,21 @@ class SkyWidget(QOpenGLWidget):
         7: 0.086, 8: 0.115, 9: 0.150,
     }
 
+    def sky_dimming(self) -> float:
+        """Fator de contraste do céu profundo pela poluição luminosa.
+
+        Bortle 1 = 1,0 (nada muda); a partir de Bortle 7 a Via Láctea some,
+        como no céu real, e as nebulosidades ficam residuais.
+        """
+        return {
+            1: 1.00, 2: 0.92, 3: 0.80, 4: 0.62, 5: 0.44, 6: 0.26,
+            7: 0.10, 8: 0.04, 9: 0.00,
+        }[self.bortle]
+
+    def milkyway_visible(self) -> bool:
+        """A Via Láctea deixa de ser visível a partir de Bortle 7."""
+        return self.bortle <= 6
+
     def _mag_limit(self) -> float:
         fov_deg = math.degrees(self.camera.fov)
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
@@ -352,7 +372,9 @@ class SkyWidget(QOpenGLWidget):
         # diferença entre o céu perfeito (Bortle 1) e a classe escolhida
         auto -= self.BORTLE_NELM[1] - self.BORTLE_NELM[self.bortle]
         if self.mag_cap is not None:
-            return min(auto, self.mag_cap)
+            # o limite manual pode FORÇAR magnitudes além do automático
+            # (até 12, alcance do catálogo profundo)
+            return min(12.0, self.mag_cap)
         return auto
 
     def set_bortle(self, value: int) -> None:
@@ -406,8 +428,9 @@ class SkyWidget(QOpenGLWidget):
         r.begin_frame(w, h, bg)
 
         # --- Via Láctea: textura na esfera (mecanismo do Stellarium) ---
+        # a partir de Bortle 7 ela simplesmente não é visível
         if (self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode
-                and self._mw_tex_rgb is not None):
+                and self.milkyway_visible() and self._mw_tex_rgb is not None):
             # A textura é difusa (estrelas do levantamento removidas no
             # build), então permanece visível em qualquer zoom.
             verts, uv, tris = self.mw_mesh
@@ -424,9 +447,11 @@ class SkyWidget(QOpenGLWidget):
                 fov_deg = math.degrees(cam.fov)
                 depth = 0.42 + 0.58 * min(1.0, max(0.0, (fov_deg - 3.0) / 27.0))
                 self.renderer.draw_textured_triangles(
-                    pos, uv[idx], 0.72 * star_fade * depth
+                    pos, uv[idx],
+                    0.72 * star_fade * depth * self.sky_dimming(),
                 )
-        elif self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode:
+        elif (self.layers["milkyway"] and star_fade > 0.1
+                and not self.chart_mode and self.milkyway_visible()):
             mw = self.milkyway
             mw_verts = self._refract(mw.xyz @ m.T)
             wanted = max(8.0, math.radians(1.6) * cam.pixel_scale)
@@ -501,6 +526,10 @@ class SkyWidget(QOpenGLWidget):
         # --- trajetórias anuais dos planetas (item 8) ---
         if self.planet_paths:
             self._draw_planet_paths(m)
+
+        # --- previsão da Lua nos próximos dias (item 6) ---
+        if self.moon_forecast and self.layers.get("moon_forecast", True):
+            self._draw_moon_forecast(m)
 
         # --- zona de influência da Lua para astrofotografia (item 5) ---
         if self.layers["moon_zone"]:
@@ -711,8 +740,10 @@ class SkyWidget(QOpenGLWidget):
             # as imagens já estão no frame ICRS do catálogo: aplica a matriz
             return cam.project(self._refract(pts @ m.T), margin=margin)
 
+        # as imagens do levantamento também sofrem a poluição luminosa
         self.dso_images.draw(
-            self.renderer, cam, project, dso, candidates, 0.62 * fade
+            self.renderer, cam, project, dso, candidates,
+            0.62 * fade * self.sky_dimming(),
         )
 
     def _dso_size_px(self) -> np.ndarray:
@@ -967,6 +998,69 @@ class SkyWidget(QOpenGLWidget):
                 self.renderer.draw_lines(ring)
             self._path_marks.append((path, x, y, vis, color, marks))
 
+    def set_moon_forecast(self, marks: list) -> None:
+        self.moon_forecast = list(marks)
+        self.layers["moon_forecast"] = bool(marks)
+        self.update()
+
+    def _draw_moon_forecast(self, m: np.ndarray) -> None:
+        """Caminho da Lua com o disco na fase de cada dia (item 6)."""
+        cam = self.camera
+        marks = self.moon_forecast
+        pts = np.array([mk.vec for mk in marks], dtype=np.float64)
+        scr = self._refract(pts @ m.T.astype(np.float64))
+        x, y, vis = cam.project(scr, margin=48.0)
+
+        # caminho tracejado ligando as posições
+        ok = vis[:-1] & vis[1:]
+        idx = np.nonzero(ok)[0]
+        if len(idx):
+            sel = idx[idx % 2 == 0]
+            if len(sel):
+                # descarta saltos longos (a Lua dá a volta no céu em 28 dias:
+                # pontos consecutivos podem cair em lados opostos da tela)
+                span = np.hypot(x[sel + 1] - x[sel], y[sel + 1] - y[sel])
+                sel = sel[span < 0.35 * max(cam.width, cam.height)]
+            if len(sel):
+                out = np.empty((2 * len(sel), 6), dtype=np.float32)
+                out[0::2, 0] = x[sel]
+                out[0::2, 1] = y[sel]
+                out[1::2, 0] = x[sel + 1]
+                out[1::2, 1] = y[sel + 1]
+                out[:, 2:] = (0.85, 0.85, 0.75, 0.55)
+                self.renderer.draw_lines(out)
+
+        # disco com a fase de cada marca
+        radius = max(5.0, min(16.0, 0.006 * cam.pixel_scale))
+        self._moon_marks_screen = []
+        for i, mk in enumerate(marks):
+            if not vis[i]:
+                continue
+            cx_, cy_ = float(x[i]), float(y[i])
+            u = np.asarray(mk.vec, dtype=np.float64)
+            n_scr, e_scr = self._screen_north_east(u, m, cx_, cy_)
+            u2 = math.cos(mk.bright_limb) * n_scr + math.sin(mk.bright_limb) * e_scr
+            v2 = np.array([-u2[1], u2[0]])
+            c = np.array([cx_, cy_])
+            ang = np.linspace(-math.pi / 2, math.pi / 2, 19)
+            limb = c + radius * (
+                np.outer(np.cos(ang), u2) + np.outer(np.sin(ang), v2)
+            )
+            ang2 = np.linspace(math.pi / 2, -math.pi / 2, 19)
+            term = (
+                c
+                + np.outer(-radius * math.cos(mk.phase_angle) * np.cos(ang2), u2)
+                + np.outer(radius * np.sin(ang2), v2)
+            )
+            lit = np.vstack([limb, term]).astype(np.float32)
+            ring = np.linspace(0.0, 2.0 * math.pi, 33)
+            disc = np.column_stack(
+                [cx_ + radius * np.cos(ring), cy_ + radius * np.sin(ring)]
+            ).astype(np.float32)
+            self.renderer.fill_polygons([disc], (0.14, 0.15, 0.18, 0.85))
+            self.renderer.fill_polygons([lit], (0.93, 0.92, 0.86, 1.0))
+            self._moon_marks_screen.append((mk, cx_, cy_, radius))
+
     def _draw_moon_zone(self, t) -> None:
         """Anéis da zona de influência da Lua (regra prática por iluminação).
 
@@ -1147,6 +1241,35 @@ class SkyWidget(QOpenGLWidget):
                     placer.place(tx, ty, fm.horizontalAdvance(name),
                                  fm.height(), force=True)
                     painter.drawText(tx, ty, name)
+
+        # rótulos da previsão da Lua (item 6)
+        if self._moon_marks_screen and self.layers.get("moon_forecast", True):
+            from ..core.planetpath import EVENT_LABEL
+
+            font_m = QFont("Segoe UI", 8)
+            fm_m = QFontMetrics(font_m)
+            for mk, mx, my, mr in self._moon_marks_screen:
+                text = f"{mk.when_utc.astimezone():%d/%m}"
+                if mk.phase_name:
+                    text += f" · {EVENT_LABEL.get(mk.phase_name, '')}"
+                else:
+                    text += f" · {mk.illumination * 100:.0f}%"
+                painter.setFont(
+                    QFont("Segoe UI", 8, QFont.Bold) if mk.phase_name else font_m
+                )
+                metrics = QFontMetrics(painter.font())
+                w_t, h_t = metrics.horizontalAdvance(text), metrics.height()
+                tx = int((mx + mr) / dpr) + 4
+                ty = int(my / dpr) - int(mr / dpr) - 2
+                if not placer.place(tx, ty, w_t, h_t, force=bool(mk.phase_name)):
+                    continue
+                painter.setPen(QColor(20, 22, 28))
+                painter.drawText(tx + 1, ty + 1, text)
+                painter.setPen(
+                    QColor(255, 225, 160) if mk.phase_name
+                    else QColor(210, 210, 195)
+                )
+                painter.drawText(tx, ty, text)
 
         # datas e eventos das trajetórias planetárias (item 8)
         if self._path_marks:
@@ -1683,6 +1806,113 @@ class SkyWidget(QOpenGLWidget):
             self.clear_selection()
         else:
             super().keyPressEvent(event)
+
+    # ------------------------------------------------------------------
+    def object_at(self, device_x: float, device_y: float):
+        """Objeto sob o ponto dado, sem alterar a seleção atual."""
+        best = None
+        for b, bx, by, size in self._pick_bodies:
+            r = max(14.0, size / 2.0 + 8.0)
+            d2 = (bx - device_x) ** 2 + (by - device_y) ** 2
+            if d2 <= r * r and (best is None or d2 < best[0]):
+                best = (d2, ("body", b.name))
+        if best is None:
+            cands = []
+            if self._pick_stars is not None:
+                idx, sx, sy = self._pick_stars
+                d2 = (sx[idx] - device_x) ** 2 + (sy[idx] - device_y) ** 2
+                k = int(np.argmin(d2))
+                if d2[k] <= 16.0 ** 2:
+                    cands.append((float(d2[k]), ("star", int(idx[k]))))
+            if self._pick_dso is not None:
+                idx, sx, sy = self._pick_dso
+                d2 = (sx[idx] - device_x) ** 2 + (sy[idx] - device_y) ** 2
+                k = int(np.argmin(d2))
+                if d2[k] <= 18.0 ** 2:
+                    cands.append(
+                        (float(d2[k]), ("dso", int(self.dso.ids[idx[k]])))
+                    )
+            if cands:
+                best = min(cands, key=lambda c: c[0])
+        return best[1] if best else None
+
+    def contextMenuEvent(self, event) -> None:
+        """Menu do botão direito sobre o céu (item 7)."""
+        from PySide6.QtWidgets import QMenu
+
+        dpr = self.devicePixelRatioF()
+        pos = event.pos()
+        target = self.object_at(pos.x() * dpr, pos.y() * dpr)
+        menu = QMenu(self)
+
+        if target is not None:
+            label = self.describe_selection(target)
+            act_info = menu.addAction(
+                self.tr("Informações de {n}").format(n=label)
+            )
+            act_details = menu.addAction(
+                self.tr("Janela de detalhes de {n}…").format(n=label)
+            )
+            act_select = menu.addAction(self.tr("Selecionar e centralizar"))
+            act_track = menu.addAction(self.tr("Rastrear na noite…"))
+            menu.addSeparator()
+        else:
+            act_info = act_details = act_select = act_track = None
+            menu.addAction(self.tr("(nenhum objeto sob o cursor)")).setEnabled(
+                False
+            )
+            menu.addSeparator()
+
+        act_center = menu.addAction(self.tr("Centralizar aqui"))
+        act_measure = menu.addAction(self.tr("Medir a partir daqui"))
+        menu.addSeparator()
+        act_clear = menu.addAction(self.tr("Limpar seleção"))
+
+        chosen = menu.exec(event.globalPos())
+        if chosen is None:
+            return
+        if chosen is act_info:
+            self.contextInfoRequested.emit(target)
+        elif chosen is act_details:
+            self.contextDetailsRequested.emit(target)
+        elif chosen is act_select:
+            self.goto_object(target)
+        elif chosen is act_track:
+            self.selection = target
+            self.selectionChanged.emit(target)
+            self.contextTrackRequested.emit(target)
+        elif chosen is act_center:
+            vec = self.camera.unproject(pos.x() * dpr, pos.y() * dpr)
+            alt = math.asin(max(-1.0, min(1.0, float(vec[2]))))
+            az = math.atan2(float(vec[1]), float(vec[0]))
+            self.camera.set_direction(az, alt)
+            self.update()
+        elif chosen is act_measure:
+            self.set_mouse_mode("measure")
+            p = {"x": pos.x() * dpr, "y": pos.y() * dpr,
+                 "vec": self.camera.unproject(pos.x() * dpr, pos.y() * dpr)}
+            self._measure = {"a": p, "b": None}
+            self.update()
+        elif chosen is act_clear:
+            self.clear_selection()
+
+    def describe_selection(self, selection) -> str:
+        """Nome curto do objeto, para menus e títulos."""
+        kind, key = selection
+        if kind == "body":
+            return str(key)
+        if kind == "star":
+            idx = int(key)
+            return (self.stars.proper.get(idx)
+                    or self.stars.label(idx, "bayer")
+                    or f"HIP {int(self.stars.hip[idx])}")
+        data = self.dso.get(int(key))
+        if data is None:
+            return "objeto"
+        name = data["name"]
+        if data.get("common"):
+            name += f" — {data['common'].split(',')[0]}"
+        return name
 
     def wheelEvent(self, event) -> None:
         delta = event.angleDelta().y()

@@ -131,4 +131,83 @@ def compute_path(engine, name: str, start: dt.datetime, days: int = 365,
 EVENT_LABEL = {
     "oposicao": "oposição", "conjuncao": "conjunção",
     "elong_leste": "elongação máx. leste", "elong_oeste": "elongação máx. oeste",
+    "nova": "Lua nova", "crescente": "Quarto crescente",
+    "cheia": "Lua cheia", "minguante": "Quarto minguante",
 }
+
+
+@dataclass
+class MoonMark:
+    when_utc: dt.datetime
+    vec: np.ndarray          # unitário ICRS
+    illumination: float      # 0..1
+    phase_angle: float       # rad (ângulo Sol-Lua-Terra)
+    bright_limb: float       # ângulo de posição do limbo iluminado (rad)
+    phase_name: str = ""     # preenchido nas fases principais
+
+
+def compute_moon_forecast(engine, start: dt.datetime, days: int = 28,
+                          step_hours: float = 24.0) -> list[MoonMark]:
+    """Posição e fase da Lua ao longo dos próximos dias (item 6).
+
+    Uma marca por passo (padrão: uma por dia) com a fase desenhada, mais a
+    identificação das quatro fases principais pelo instante mais próximo.
+    """
+    n = int(days * 24 / step_hours) + 1
+    times = [start + dt.timedelta(hours=step_hours * i) for i in range(n)]
+    ts = engine.ts.from_datetimes(times)
+
+    obs = engine.site.at(ts)
+    moon = obs.observe(engine.eph["moon"]).apparent()
+    sun = obs.observe(engine.eph["sun"]).apparent()
+    mpos = np.asarray(moon.position.au, dtype=np.float64).T
+    spos = np.asarray(sun.position.au, dtype=np.float64).T
+    mu = mpos / np.linalg.norm(mpos, axis=1, keepdims=True)
+    su = spos / np.linalg.norm(spos, axis=1, keepdims=True)
+
+    # ângulo de fase: Sol visto da Lua × Terra vista da Lua
+    to_sun = spos - mpos
+    to_earth = -mpos
+    cos_i = np.sum(to_sun * to_earth, axis=1) / (
+        np.linalg.norm(to_sun, axis=1) * np.linalg.norm(to_earth, axis=1)
+    )
+    phase = np.arccos(np.clip(cos_i, -1.0, 1.0))
+    illum = (1.0 + np.cos(phase)) / 2.0
+
+    # elongação com sinal para nomear as fases (crescente/minguante)
+    dec_m = np.arcsin(np.clip(mu[:, 2], -1, 1))
+    ra_m = np.arctan2(mu[:, 1], mu[:, 0])
+    dec_s = np.arcsin(np.clip(su[:, 2], -1, 1))
+    ra_s = np.arctan2(su[:, 1], su[:, 0])
+    dra = ra_s - ra_m
+    chi = np.arctan2(
+        np.cos(dec_s) * np.sin(dra),
+        np.sin(dec_s) * np.cos(dec_m) - np.cos(dec_s) * np.sin(dec_m) * np.cos(dra),
+    )
+    # ângulo de fase orientado: 0 = nova, π = cheia, crescendo para leste
+    elong_signed = np.arctan2(
+        np.cos(dec_m) * np.sin(-dra),
+        np.sin(dec_m) * np.cos(dec_s) - np.cos(dec_m) * np.sin(dec_s) * np.cos(dra),
+    )
+    lon_diff = np.mod(np.degrees(-dra), 360.0)   # longitude Lua − Sol
+
+    marks = [
+        MoonMark(times[i], mu[i], float(illum[i]), float(phase[i]),
+                 float(chi[i]))
+        for i in range(n)
+    ]
+
+    # fases principais: instante em que lon_diff cruza 0, 90, 180 e 270
+    targets = {0.0: "nova", 90.0: "crescente", 180.0: "cheia",
+               270.0: "minguante"}
+    for target, label in targets.items():
+        diff = np.mod(lon_diff - target + 180.0, 360.0) - 180.0
+        for i in range(1, n):
+            if diff[i - 1] <= 0 <= diff[i] or diff[i - 1] >= 0 >= diff[i]:
+                if abs(diff[i] - diff[i - 1]) > 180:
+                    continue
+                k = i if abs(diff[i]) < abs(diff[i - 1]) else i - 1
+                if not marks[k].phase_name:
+                    marks[k].phase_name = label
+                break
+    return marks

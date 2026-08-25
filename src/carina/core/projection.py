@@ -18,7 +18,7 @@ import numpy as np
 
 # Limites de campo de visão (radianos)
 FOV_MIN = math.radians(0.25)
-FOV_MAX = math.radians(150.0)
+FOV_MAX = math.radians(100.0)   # limite de zoom out (pedido do usuário)
 
 
 def altaz_to_vec(az: float, alt: float) -> np.ndarray:
