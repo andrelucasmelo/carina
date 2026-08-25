@@ -299,40 +299,50 @@ class SkyWidget(QOpenGLWidget):
             self._clock.setInterval(interval)
         self.update()
 
-    # Camadas que não são independentes: mexer numa implica na outra.
-    # 'ground' e 'below_horizon' são as duas faces da MESMA escolha —
-    # ou o solo é opaco, ou se enxerga o céu sob o horizonte. Mantê-las
-    # como chaves separadas (várias partes do desenho consultam cada
-    # uma), mas com um único controle na interface.
+    # 'ground' e 'below_horizon' são as duas faces da MESMA escolha — ou o
+    # solo é opaco, ou se enxerga o céu sob o horizonte. Continuam como
+    # chaves separadas (partes distintas do desenho consultam cada uma),
+    # com um único controle na interface.
     _GROUND_PAIR = ("ground", "below_horizon")
+
+    # Chave virtual do botão lateral de céu profundo: um "mestre" que
+    # apaga marcações E imagens de uma vez. No menu Exibir as duas seguem
+    # INDEPENDENTES — ver imagens sem os círculos e rótulos por cima é
+    # justamente o que se quer ao apreciar uma nebulosa.
+    DSO_MASTER = "dso_master"
 
     def set_layer(self, key: str, value: bool) -> None:
         """Liga/desliga uma camada de exibição e repinta.
 
-        Duas camadas têm efeitos ligados, para que qualquer via (botão,
-        menu ou linha de comando) produza um estado coerente:
+        Só duas chaves têm efeito além de si mesmas, e ambas existem para
+        que qualquer via de acionamento (botão, menu ou linha de comando)
+        produza um estado coerente:
 
         * ``ground`` ⇄ ``below_horizon``: opostos exatos;
-        * ``dso`` desligado leva junto ``dso_images`` — as imagens do
-          levantamento são o "fundo" dos objetos de céu profundo, não
-          fazia sentido continuarem sozinhas com o céu profundo desligado
-          (o estado anterior das imagens é lembrado e restaurado ao
-          religar o céu profundo).
+        * ``dso_master`` (o botão lateral): apaga marcações e imagens
+          juntas, lembrando o estado das imagens para restaurá-lo quando
+          o céu profundo voltar.
         """
         if key in self._GROUND_PAIR:
             self.layers["ground"] = value if key == "ground" else not value
             self.layers["below_horizon"] = not self.layers["ground"]
-        elif key == "dso":
-            self.layers["dso"] = value
+        elif key == self.DSO_MASTER:
             if not value:
                 self._dso_images_memo = self.layers["dso_images"]
+                self.layers["dso"] = False
                 self.layers["dso_images"] = False
-            elif getattr(self, "_dso_images_memo", False):
-                self.layers["dso_images"] = True
-                self._dso_images_memo = False
+            else:
+                self.layers["dso"] = True
+                self.layers["dso_images"] = getattr(
+                    self, "_dso_images_memo", False
+                )
         else:
             self.layers[key] = value
         self.update()
+
+    def deep_sky_on(self) -> bool:
+        """Estado do controle mestre: há algo de céu profundo na tela?"""
+        return bool(self.layers["dso"] or self.layers["dso_images"])
 
     def set_name_mode(self, mode: str) -> None:
         """Rótulos de estrela: 'proper' (Sirius) ou 'bayer' (α CMa)."""
@@ -605,8 +615,10 @@ class SkyWidget(QOpenGLWidget):
             r.draw_lines(self._segments(self.const_lines, m, col))
 
         # --- imagens do levantamento nos objetos (antes dos símbolos) ---
-        if (self.layers["dso_images"] and self.layers["dso"]
-                and not self.chart_mode and star_fade > 0.15):
+        # independentes das marcações: com "D" desligado e "I" ligado
+        # vê-se a nebulosa limpa, sem círculos nem rótulos por cima
+        if (self.layers["dso_images"] and not self.chart_mode
+                and star_fade > 0.15):
             self._draw_dso_images(m, star_fade)
 
         # --- céu profundo (símbolos e contornos) ---

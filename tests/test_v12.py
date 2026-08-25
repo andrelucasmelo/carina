@@ -209,12 +209,24 @@ def test_best_of_night_includes_planets_and_spans_night(engine, catalogs):
 
 
 def test_minutes_per_object_controls_pacing(engine, catalogs):
-    """Com 10 min por objeto o roteiro termina bem mais tarde que com 3."""
+    """O ritmo espaça as paradas do roteiro.
+
+    Não se mede pelo ÚLTIMO objeto: esse é sempre o que se põe por último
+    e cai no fim da janela em qualquer ritmo. O que o ritmo muda é quanto
+    tempo se leva para percorrer os primeiros alvos.
+    """
     fast = _build(engine, catalogs, "M", minutes=3)
     slow = _build(engine, catalogs, "M", minutes=10)
     assert fast.minutes_per_object == 3
     assert slow.minutes_per_object == 10
-    assert slow.entries[-1].when_utc > fast.entries[-1].when_utc
+
+    k = min(20, len(fast.entries), len(slow.entries)) - 1
+    span_fast = (fast.entries[k].when_utc - fast.entries[0].when_utc)
+    span_slow = (slow.entries[k].when_utc - slow.entries[0].when_utc)
+    assert span_slow > span_fast, (
+        f"com 10 min os {k + 1} primeiros deveriam ocupar mais tempo "
+        f"({span_slow}) do que com 3 min ({span_fast})"
+    )
 
 
 def test_marathon_guides_feed_finder_charts(engine, catalogs):
@@ -236,7 +248,9 @@ class _FakeSky:
     from carina.ui.skywidget import DEFAULT_LAYERS, SkyWidget
 
     _GROUND_PAIR = SkyWidget._GROUND_PAIR
+    DSO_MASTER = SkyWidget.DSO_MASTER
     set_layer = SkyWidget.set_layer
+    deep_sky_on = SkyWidget.deep_sky_on
 
     def __init__(self):
         self.layers = dict(self.DEFAULT_LAYERS)
@@ -262,28 +276,49 @@ def test_ground_and_below_horizon_are_one_choice():
     assert not sky.layers["ground"] and sky.layers["below_horizon"]
 
 
-def test_dso_toggle_carries_images():
-    """Desligar o céu profundo leva junto as imagens do levantamento."""
+def test_dso_master_carries_images():
+    """O botão mestre (barra lateral) apaga marcações e imagens juntas."""
     sky = _FakeSky()
     sky.set_layer("dso", True)
     sky.set_layer("dso_images", True)
 
-    sky.set_layer("dso", False)
-    assert not sky.layers["dso_images"], "imagens deveriam sumir junto"
+    sky.set_layer(sky.DSO_MASTER, False)
+    assert not sky.layers["dso"] and not sky.layers["dso_images"]
 
-    sky.set_layer("dso", True)
-    assert sky.layers["dso_images"], "e voltar ao religar o céu profundo"
+    sky.set_layer(sky.DSO_MASTER, True)
+    assert sky.layers["dso"] and sky.layers["dso_images"], (
+        "religar deve restaurar as imagens como estavam"
+    )
 
 
-def test_dso_toggle_remembers_images_were_off():
+def test_dso_master_remembers_images_were_off():
     """Se as imagens já estavam desligadas, não devem ligar sozinhas."""
     sky = _FakeSky()
     sky.set_layer("dso", True)
     sky.set_layer("dso_images", False)
 
-    sky.set_layer("dso", False)
-    sky.set_layer("dso", True)
+    sky.set_layer(sky.DSO_MASTER, False)
+    sky.set_layer(sky.DSO_MASTER, True)
+    assert sky.layers["dso"]
     assert not sky.layers["dso_images"]
+
+
+def test_menu_layers_dso_and_images_are_independent():
+    """No menu Exibir, "D" e "I" não interferem uma na outra.
+
+    Ver a nebulosa SEM os círculos e rótulos por cima é exatamente o que
+    se quer ao apreciar uma imagem — as duas camadas são independentes.
+    """
+    sky = _FakeSky()
+    sky.set_layer("dso", True)
+    sky.set_layer("dso_images", True)
+
+    sky.set_layer("dso", False)          # tecla D
+    assert sky.layers["dso_images"], "as imagens devem permanecer"
+    assert sky.deep_sky_on(), "o mestre segue aceso enquanto houver imagens"
+
+    sky.set_layer("dso_images", False)   # tecla I
+    assert not sky.deep_sky_on()
 
 
 def test_sidebar_has_single_ground_button():

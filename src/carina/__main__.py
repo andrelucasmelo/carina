@@ -49,7 +49,8 @@ def _parse_args(argv):
                         help="calcula a previsão da Lua ao iniciar (testes)")
     parser.add_argument(
         "--marathon",
-        choices=["M", "C", "OC", "GC", "NEB", "DARK", "BEST"], default=None,
+        choices=["M", "C", "OC", "GC", "NEB", "DARK", "BEST",
+                 "MONTH", "SEASON", "STARS"], default=None,
         help="abre o planejamento da maratona (testes)",
     )
     parser.add_argument("--marathon-pdf", default=None,

@@ -404,21 +404,23 @@ class MainWindow(QMainWindow):
         act_best.triggered.connect(lambda: self._open_marathon("BEST"))
         m_visual.addAction(act_best)
 
-        m_planejar.addSeparator()
-        m_minutes = m_planejar.addMenu(self.tr("Tempo por objeto"))
-        saved_min = int(self.settings.value("marathon/minutes", 4, int))
-        group_min = QActionGroup(self)
-        for minutes in range(3, 11):
-            act_min = QAction(self.tr("{n} minutos").format(n=minutes), self)
-            act_min.setCheckable(True)
-            act_min.setChecked(minutes == saved_min)
-            act_min.triggered.connect(
-                lambda _=False, v=minutes: self.settings.set_value(
-                    "marathon/minutes", v
-                )
+        m_visual.addSeparator()
+        for kind, label in (
+            ("MONTH", self.tr("Destaques do mês…")),
+            ("SEASON", self.tr("Destaques da estação…")),
+            ("STARS", self.tr("Estrelas brilhantes…")),
+        ):
+            act_g = QAction(label, self)
+            act_g.triggered.connect(
+                lambda _=False, k=kind: self._open_marathon(k)
             )
-            group_min.addAction(act_min)
-            m_minutes.addAction(act_min)
+            m_visual.addAction(act_g)
+
+        m_planejar.addSeparator()
+        act_plan_cfg = QAction(self.tr("Configurar planejamento…"), self)
+        act_plan_cfg.setShortcut("Ctrl+Shift+O")
+        act_plan_cfg.triggered.connect(self._open_plan_settings)
+        m_planejar.addAction(act_plan_cfg)
 
         m_info = bar.addMenu(self.tr("&Informações"))
         act_night = QAction(self.tr("Crepúsculos e noite…"), self)
@@ -470,6 +472,11 @@ class MainWindow(QMainWindow):
                 if hasattr(self, "side_bar"):
                     self.side_bar.set_layer_state(key, value)
                 self.settings.set_layer(key, value)
+            if hasattr(self, "side_bar"):
+                # o botão mestre acende enquanto houver marcações OU imagens
+                self.side_bar.set_layer_state(
+                    self.sky.DSO_MASTER, self.sky.deep_sky_on()
+                )
         finally:
             self._syncing = False
 
@@ -558,7 +565,8 @@ class MainWindow(QMainWindow):
         """Escolha rápida da maratona pelo botão lateral."""
         from ..core.observing import MARATHON_TITLES
 
-        kinds = ["M", "C", "OC", "GC", "NEB", "DARK", "BEST"]
+        kinds = ["M", "C", "OC", "GC", "NEB", "DARK", "BEST",
+                 "MONTH", "SEASON", "STARS"]
         labels = [MARATHON_TITLES[k] for k in kinds]
         choice, ok = QInputDialog.getItem(
             self, self.tr("Planejar observação"), self.tr("Maratona:"),
@@ -822,22 +830,57 @@ class MainWindow(QMainWindow):
         self.sky.layers["planet_paths"] = on
         self.sky.update()
 
+    def _plan_settings(self):
+        """Configuração de planejamento salva nas preferências."""
+        from .plan_settings_dialog import load_settings
+
+        return load_settings(self.settings)
+
+    def _open_plan_settings(self) -> None:
+        """Diálogo de configuração pelo menu Planejar (item avulso)."""
+        from .plan_settings_dialog import PlanSettingsDialog, save_settings
+
+        dlg = PlanSettingsDialog(self._plan_settings(), self)
+        if dlg.exec():
+            save_settings(self.settings, dlg.settings())
+
+    def _build_plan(self, kind: str, settings):
+        """Calcula o plano do tipo pedido com a configuração dada."""
+        from ..core.observing import (
+            build_bright_stars, build_marathon, build_period_plan,
+        )
+
+        now = self.engine.time.current_datetime()
+        if kind == "STARS":
+            plan = build_bright_stars(
+                self.engine, self.star_catalog, now, self.const_names,
+                settings=settings,
+            )
+        elif kind in ("MONTH", "SEASON"):
+            plan = build_period_plan(
+                self.engine, self.dso_catalog, self.star_catalog, kind, now,
+                self.const_names, self.settings.location().latitude,
+                settings=settings,
+            )
+        else:
+            plan = build_marathon(
+                self.engine, self.dso_catalog, self.star_catalog, kind, now,
+                self.const_names, settings=settings,
+            )
+        plan.location = self.settings.location().name
+        return plan
+
     def _open_marathon(self, kind: str) -> None:
-        """Planejamento das maratonas de observação (menu Planejar)."""
+        """Abre uma janela de planejamento (menu Planejar → Visual)."""
         from ..catalogs import skygeometry
         from ..config import package_data_dir
-        from ..core.observing import build_marathon
         from .marathon_window import MarathonWindow
+        from .plan_settings_dialog import save_settings
 
-        minutes = int(self.settings.value("marathon/minutes", 4, int))
+        settings = self._plan_settings()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
-            plan = build_marathon(
-                self.engine, self.dso_catalog, self.star_catalog, kind,
-                self.engine.time.current_datetime(), self.const_names,
-                minutes_per_object=minutes,
-            )
-            plan.location = self.settings.location().name
+            plan = self._build_plan(kind, settings)
         finally:
             QApplication.restoreOverrideCursor()
 
@@ -845,7 +888,8 @@ class MainWindow(QMainWindow):
             QMessageBox.information(
                 self, "Carina",
                 self.tr("Nenhum objeto deste tipo fica bem posicionado "
-                        "nesta noite. Tente outra data."),
+                        "com a configuração atual. Tente outra data ou "
+                        "revise Planejar → Configurar planejamento."),
             )
             return
         # linhas de constelação para as cartas de localização do PDF
@@ -853,8 +897,15 @@ class MainWindow(QMainWindow):
             self._const_lines_cache = skygeometry.load_constellation_lines(
                 package_data_dir()
             )
+
+        def recompute(new_settings):
+            """Refaz o plano quando o usuário muda a configuração."""
+            save_settings(self.settings, new_settings)
+            return self._build_plan(kind, new_settings)
+
         win = MarathonWindow(
-            plan, self.star_catalog, self._const_lines_cache, self
+            plan, self.star_catalog, self._const_lines_cache, self,
+            settings=settings, recompute_cb=recompute,
         )
         win.setAttribute(Qt.WA_DeleteOnClose, True)
         win.gotoRequested.connect(self._goto_by_name)

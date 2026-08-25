@@ -163,7 +163,9 @@ class SideToolBar(QWidget):
     LAYER_BUTTONS = [
         ("stars", "Estrelas", "stars"),
         ("planets", "Sistema Solar", "planets"),
-        ("dso", "Céu profundo", "dso"),
+        # mestre: apaga marcações e imagens juntas (no menu Exibir elas
+        # continuam independentes)
+        ("dso_master", "Céu profundo (marcações e imagens)", "dso"),
         ("milkyway", "Via Láctea", "milkyway"),
         ("const_lines", "Constelações", "constellations"),
         ("grid_altaz", "Grade horizontal", "grid"),
