@@ -42,6 +42,9 @@ _RADIUS_KM = {"Sol": 695700.0, "Lua": 1737.4}
 
 @dataclass
 class BodyState:
+    """Fotografia de um corpo do Sistema Solar num instante: posição
+    horizontal, brilho, tamanho aparente e cor de exibição."""
+
     name: str
     az: float                 # radianos
     alt: float                # radianos
@@ -76,9 +79,17 @@ class TimeController:
     # -- leitura ---------------------------------------------------------
     @property
     def speed(self) -> float:
+        """Fator de velocidade (1 = tempo real; 0 = pausado; <0 = para trás)."""
         return self._speed
 
     def current_datetime(self) -> dt.datetime:
+        """Instante simulado AGORA, derivado do relógio de parede.
+
+        Não há acumulador: cada leitura resolve a fórmula base + Δreal ×
+        velocidade, então a simulação nunca "escorrega" com a taxa de
+        quadros. Ao sair da cobertura da efeméride, o relógio congela na
+        borda (a velocidade zera) em vez de deixar o Skyfield lançar erro.
+        """
         real = dt.datetime.now(dt.timezone.utc)
         try:
             sim = self._base_sim + (real - self._base_real) * self._speed
@@ -97,15 +108,19 @@ class TimeController:
 
     # -- controle --------------------------------------------------------
     def _rebase(self) -> None:
+        """Fixa o instante atual como nova base antes de mudar a velocidade
+        (sem isso, mudar a velocidade "teleportaria" a simulação)."""
         sim = self.current_datetime()
         self._base_real = dt.datetime.now(dt.timezone.utc)
         self._base_sim = sim
 
     def set_speed(self, speed: float) -> None:
+        """Define o fator de velocidade, preso a ±1 milhão de vezes."""
         self._rebase()
         self._speed = max(-self.SPEED_MAX, min(self.SPEED_MAX, speed))
 
     def faster(self) -> None:
+        """Acelera 10×; vindo do retrocesso, aproxima de +1× primeiro."""
         s = self._speed
         if s == 0.0:
             new = 1.0
@@ -116,6 +131,7 @@ class TimeController:
         self.set_speed(new)
 
     def slower(self) -> None:
+        """Espelho de faster(): desacelera e eventualmente inverte o tempo."""
         s = self._speed
         if s == 0.0:
             new = -1.0
@@ -126,6 +142,7 @@ class TimeController:
         self.set_speed(new)
 
     def toggle_pause(self) -> None:
+        """Pausa/retoma lembrando a velocidade anterior à pausa."""
         if self._speed == 0.0:
             self.set_speed(self._resume_speed or 1.0)
         else:
@@ -146,6 +163,7 @@ class TimeController:
         )
 
     def to_now(self) -> None:
+        """Volta ao tempo real (agora, velocidade 1×)."""
         self.set_datetime(dt.datetime.now(dt.timezone.utc))
         self._speed = 1.0
 
@@ -159,6 +177,16 @@ class TimeController:
 
 
 class SkyEngine:
+    """Fachada astronômica do aplicativo.
+
+    Reúne a efeméride, a escala de tempo, o relógio da simulação
+    (:class:`TimeController`), a posição do observador e os dois cálculos
+    quentes do renderizador: a matriz ICRS→horizontal do instante e o
+    estado dos corpos do Sistema Solar. Ambos são cacheados com resolução
+    de meio segundo — vários subsistemas pedem os mesmos valores dentro de
+    um quadro.
+    """
+
     def __init__(self, ephem_dir: Path) -> None:
         self._loader = Loader(str(ephem_dir), verbose=False)
         self.ts = self._loader.timescale(builtin=True)
@@ -184,6 +212,11 @@ class SkyEngine:
 
     # -- observador ------------------------------------------------------
     def set_location(self, loc: ObserverLocation) -> None:
+        """Muda o observador (lat/lon/elevação) e o fuso horário exibido.
+
+        Invalida os caches — a matriz horizontal e as posições alt/az
+        dependem inteiramente do lugar de observação.
+        """
         from .localtime import set_timezone
 
         self.topos = wgs84.latlon(
@@ -219,6 +252,15 @@ class SkyEngine:
 
     # -- Sistema Solar ---------------------------------------------------
     def bodies(self, t) -> list[BodyState]:
+        """Estado aparente de Sol, Lua e planetas no instante ``t``.
+
+        Cada corpo passa pelo caminho completo observe().apparent() do
+        Skyfield (aberração e deflexão da luz incluídas) — são só nove, o
+        custo é irrelevante. As magnitudes planetárias vêm do modelo de
+        Mallama; Sol e Lua usam valores fixos típicos. O ângulo de fase da
+        Lua sai da geometria Sol–Lua–Terra e alimenta o desenho do
+        terminadouro.
+        """
         key = round(t.tt * 172800.0)
         if self._bodies_cache is not None and self._bodies_cache[0] == key:
             return self._bodies_cache[1]

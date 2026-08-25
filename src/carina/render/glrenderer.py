@@ -119,6 +119,8 @@ void main() {
 
 
 def _compile(vs_src: str, fs_src: str) -> int:
+    """Compila e linka um par vertex+fragment; erros viram RuntimeError com
+    o log do driver (é onde os typos de GLSL aparecem)."""
     def shader(src, kind):
         s = GL.glCreateShader(kind)
         GL.glShaderSource(s, src)
@@ -161,16 +163,28 @@ class _Batch:
         GL.glBindVertexArray(0)
 
     def upload(self, data: np.ndarray) -> None:
+        """Envia os vértices do quadro (STREAM_DRAW: dados descartáveis)."""
         data = np.ascontiguousarray(data, dtype=np.float32)
         GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
         GL.glBufferData(GL.GL_ARRAY_BUFFER, data.nbytes, data, GL.GL_STREAM_DRAW)
 
 
 class GLRenderer:
+    """Todas as chamadas OpenGL do aplicativo passam por aqui.
+
+    A API é imediata e em pixels: o SkyWidget projeta tudo para coordenadas
+    de tela e entrega arrays intercalados; este renderizador só faz upload
+    e dispara os draw calls. Quatro programas: pontos (sprites redondos),
+    linhas, preenchimento por stencil (polígonos côncavos sem triangulação)
+    e triângulos texturizados (Via Láctea, imagens de levantamento).
+    """
+
     def __init__(self) -> None:
         self._ready = False
 
     def initialize(self) -> None:
+        """Compila os shaders e cria os batches — requer contexto GL atual
+        (chamado a partir do initializeGL do widget)."""
         self.prog_points = _compile(_POINTS_VS, _POINTS_FS)
         self.prog_lines = _compile(_LINES_VS, _LINES_FS)
         self.prog_fill = _compile(_FILL_VS, _FILL_FS)
@@ -194,6 +208,7 @@ class GLRenderer:
 
     # ------------------------------------------------------------------
     def begin_frame(self, width: int, height: int, clear_rgb) -> None:
+        """Abre o quadro: viewport, blending alfa e limpeza de cor/stencil."""
         self._w, self._h = float(width), float(height)
         GL.glViewport(0, 0, int(width), int(height))
         GL.glDisable(GL.GL_DEPTH_TEST)
@@ -205,6 +220,7 @@ class GLRenderer:
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT)
 
     def end_frame(self) -> None:
+        """Solta VAO/programa para o QPainter do overlay assumir o estado."""
         GL.glBindVertexArray(0)
         GL.glUseProgram(0)
 
@@ -259,6 +275,7 @@ class GLRenderer:
         return int(tex)
 
     def delete_texture(self, tex: int) -> None:
+        """Libera uma textura da GPU (usado pela evicção do cache LRU)."""
         if tex:
             GL.glDeleteTextures([tex])
 

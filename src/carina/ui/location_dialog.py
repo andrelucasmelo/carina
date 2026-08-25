@@ -35,6 +35,9 @@ def load_cities() -> list[dict]:
 
 
 class LocationDialog(QDialog):
+    """Escolha do local: lista pesquisável de 745 cidades + campos manuais
+    (ver a doc do módulo)."""
+
     def __init__(self, loc: ObserverLocation, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Localização do observador"))

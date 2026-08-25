@@ -22,6 +22,9 @@ AU_KM = 149_597_870.7
 
 
 class InfoPanel(QScrollArea):
+    """Painel lateral de informações do objeto selecionado (a ficha HTML é
+    montada por :func:`build_info_html`, compartilhada com o popup)."""
+
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setWidgetResizable(True)

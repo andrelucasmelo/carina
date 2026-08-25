@@ -42,6 +42,7 @@ COL_TEXT = QColor(60, 64, 72)
 
 
 def _unit(ra: float, dec: float) -> np.ndarray:
+    """(AR, declinação) em radianos → vetor unitário ICRS."""
     cd = math.cos(dec)
     return np.array([cd * math.cos(ra), cd * math.sin(ra), math.sin(dec)])
 
@@ -71,6 +72,7 @@ class _Gnomonic:
         self.half = size_px / 2.0
 
     def xy(self, v: np.ndarray) -> tuple[float, float] | None:
+        """Vetor ICRS → pixels da carta (None se fora do hemisfério útil)."""
         t = float(v @ self.c)
         if t < 0.15:                     # atrás/na borda do plano tangente
             return None

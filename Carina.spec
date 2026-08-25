@@ -10,7 +10,11 @@ datas = [
 ]
 hiddenimports = []
 datas += collect_data_files('skyfield')
+# tzdata: o Windows não tem a base IANA — o zoneinfo precisa dela para os
+# fusos horários das cidades (base local de localização do observador)
+datas += collect_data_files('tzdata')
 hiddenimports += collect_submodules('OpenGL')
+hiddenimports += collect_submodules('tzdata')
 
 
 a = Analysis(

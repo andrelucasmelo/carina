@@ -14,6 +14,10 @@ from ..core.twilight import format_night_summary, night_info
 
 
 class NightInfoDialog(QDialog):
+    """Popup de crepúsculos: horários do Sol e das três faixas de
+    crepúsculo da noite atual, mais a situação da Lua — atualizado ao
+    vivo enquanto a simulação anda."""
+
     def __init__(self, engine, location_name: str, parent=None) -> None:
         super().__init__(parent)
         self.engine = engine

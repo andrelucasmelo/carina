@@ -46,10 +46,21 @@ TYPE_PT = {
 
 
 def type_label(code: str) -> str:
+    """Código de tipo do banco ('Gx', 'OpC'…) → rótulo em português."""
     return TYPE_PT.get(code, code or "Objeto")
 
 
 class DsoCatalog:
+    """Catálogo de céu profundo sobre SQLite, com CRUD e arrays de render.
+
+    O banco EMBARCADO é copiado para a pasta do usuário na primeira
+    execução; todas as edições (objetos próprios, habilitar/desabilitar,
+    categorias) acontecem na cópia — uma reinstalação nunca destrói dados
+    do usuário. Depois de qualquer mutação chama-se :meth:`reload`, que
+    reconstrói os arrays NumPy ordenados por magnitude usados pelo
+    renderizador (a ordenação permite cortes de brilho por fatiamento).
+    """
+
     def __init__(self, bundled_db: Path, user_db: Path,
                  visible_catalogs: set[str] | None = None) -> None:
         self.bundled_db = bundled_db
@@ -77,6 +88,7 @@ class DsoCatalog:
         )
 
     def set_catalog_visible(self, catalog: str, visible: bool) -> None:
+        """Liga/desliga um catálogo INTEIRO (tela de configuração)."""
         if visible:
             self.visible_catalogs.add(catalog)
         else:
@@ -87,6 +99,13 @@ class DsoCatalog:
     # Arrays para renderização (somente objetos habilitados)
     # ------------------------------------------------------------------
     def reload(self) -> None:
+        """Reconstrói os arrays de renderização a partir do banco.
+
+        Só entram objetos habilitados cujos catálogos estão visíveis (um
+        objeto criado pelo usuário, ou sem designação, aparece sempre).
+        A ordem é por magnitude crescente — é isso que permite ao
+        renderizador manter "os N mais brilhantes" com um simples corte.
+        """
         sql = (
             "SELECT id, name, klass, ra, dec, mag, maj, min, pa, common"
             " FROM objects o WHERE enabled = 1"
@@ -157,6 +176,7 @@ class DsoCatalog:
         return len(self.ids)
 
     def row_of(self, object_id: int) -> int | None:
+        """Posição do objeto nos arrays de render (None se filtrado)."""
         return self._id_to_row.get(int(object_id))
 
     def label(self, i: int, mode: str = "number",
@@ -179,6 +199,7 @@ class DsoCatalog:
     # Consulta / CRUD
     # ------------------------------------------------------------------
     def get(self, object_id: int) -> dict | None:
+        """Ficha completa de um objeto: campos + designações + categorias."""
         row = self.cx.execute(
             "SELECT * FROM objects WHERE id = ?", (object_id,)
         ).fetchone()
@@ -202,6 +223,12 @@ class DsoCatalog:
 
     def search(self, text: str = "", catalog: str = "", category: str = "",
                only_enabled: bool = False, limit: int = 500) -> list[dict]:
+        """Busca administrativa (gerenciador de DSOs e diálogo de busca).
+
+        Filtros combináveis: substring no nome/nome próprio, catálogo
+        ('user' = criados pelo usuário), categoria e habilitação. Sempre
+        ordenada por magnitude para os melhores virem primeiro.
+        """
         sql = (
             "SELECT DISTINCT o.id, o.name, o.type, o.mag, o.maj, o.con,"
             " o.common, o.enabled, o.user_added FROM objects o"
@@ -232,9 +259,11 @@ class DsoCatalog:
         return [dict(r) for r in self.cx.execute(sql, params)]
 
     def count(self, **kw) -> int:
+        """Total de objetos que casam com os filtros de :meth:`search`."""
         return len(self.search(limit=10 ** 9, **kw))
 
     def set_enabled(self, object_id: int, enabled: bool) -> None:
+        """Habilita/desabilita um objeto (chame :meth:`reload` depois)."""
         self.cx.execute(
             "UPDATE objects SET enabled = ? WHERE id = ?",
             (1 if enabled else 0, object_id),
@@ -242,6 +271,7 @@ class DsoCatalog:
         self.cx.commit()
 
     def upsert(self, data: dict, object_id: int | None = None) -> int:
+        """Cria (marcando ``user_added``) ou atualiza um objeto do usuário."""
         fields = (
             "name", "type", "klass", "ra", "dec", "mag", "maj", "min", "pa",
             "con", "common", "enabled", "notes",
@@ -263,6 +293,7 @@ class DsoCatalog:
         return object_id
 
     def delete(self, object_id: int) -> None:
+        """Remove um objeto; as designações caem via chave estrangeira."""
         self.cx.execute("DELETE FROM objects WHERE id = ?", (object_id,))
         self.cx.commit()
 
@@ -270,6 +301,7 @@ class DsoCatalog:
     # Categorias (item 6)
     # ------------------------------------------------------------------
     def categories(self) -> list[str]:
+        """Todas as categorias existentes, em ordem alfabética."""
         return [
             r["name"] for r in self.cx.execute(
                 "SELECT name FROM categories ORDER BY name"
@@ -277,16 +309,19 @@ class DsoCatalog:
         ]
 
     def add_category(self, name: str) -> None:
+        """Garante a existência de uma categoria (idempotente)."""
         self.cx.execute(
             "INSERT OR IGNORE INTO categories (name) VALUES (?)", (name.strip(),)
         )
         self.cx.commit()
 
     def remove_category(self, name: str) -> None:
+        """Apaga a categoria e seus vínculos (os objetos permanecem)."""
         self.cx.execute("DELETE FROM categories WHERE name = ?", (name,))
         self.cx.commit()
 
     def set_categories(self, object_id: int, names: list[str]) -> None:
+        """Substitui o conjunto de categorias de um objeto pelo dado."""
         self.cx.execute(
             "DELETE FROM object_categories WHERE object_id = ?", (object_id,)
         )

@@ -173,6 +173,9 @@ class PlanEntry:
 
 @dataclass
 class ObservingPlan:
+    """O roteiro completo de uma maratona: janela da noite, entradas em
+    ordem cronológica e o contexto (local, Lua, tempo por objeto)."""
+
     title: str
     night_start: dt.datetime | None
     night_end: dt.datetime | None

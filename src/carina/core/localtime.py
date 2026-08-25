@@ -49,6 +49,7 @@ def to_local(value: dt.datetime) -> dt.datetime:
 
 
 def now_local() -> dt.datetime:
+    """O "agora" já convertido para a hora do observador."""
     return dt.datetime.now(dt.timezone.utc).astimezone(_TZ)
 
 

@@ -19,6 +19,9 @@ INNER = {"Mercúrio", "Vênus"}
 
 @dataclass
 class PathPoint:
+    """Posição diária do planeta sobre o fundo de estrelas (em ICRS, para
+    o caminho ficar fixo entre as constelações enquanto o céu gira)."""
+
     when_utc: dt.datetime
     vec: np.ndarray      # unitário ICRS (equatorial, fixo no céu)
     elongation: float    # separação angular ao Sol (rad)
@@ -27,6 +30,8 @@ class PathPoint:
 
 @dataclass
 class PathEvent:
+    """Evento notável do caminho: oposição, conjunção ou elongação máxima."""
+
     when_utc: dt.datetime
     kind: str            # 'oposicao' | 'conjuncao' | 'elong_leste' | 'elong_oeste'
     value: float         # elongação (graus)
@@ -35,6 +40,9 @@ class PathEvent:
 
 @dataclass
 class PlanetPath:
+    """Caminho anual de um planeta: pontos diários, marcas de data e
+    eventos, prontos para o desenho sobre o mapa."""
+
     name: str
     points: list[PathPoint] = field(default_factory=list)
     events: list[PathEvent] = field(default_factory=list)
@@ -140,6 +148,9 @@ EVENT_LABEL = {
 
 @dataclass
 class MoonMark:
+    """Uma marca diária da previsão da Lua: posição, fração iluminada e a
+    geometria necessária para desenhar o disco na fase correta."""
+
     when_utc: dt.datetime
     vec: np.ndarray          # unitário ICRS
     illumination: float      # 0..1

@@ -93,6 +93,7 @@ def format_night_summary(info: NightInfo) -> list[tuple[str, str]]:
     from .localtime import to_local
 
     def hm(value: dt.datetime | None) -> str:
+        """HH:MM na hora do observador; travessão quando o evento não ocorre."""
         return to_local(value).strftime("%H:%M") if value else "—"
 
     return [

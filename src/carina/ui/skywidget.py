@@ -82,11 +82,13 @@ DSO_COLORS = [
 
 
 def _circle_pts(n: int) -> np.ndarray:
+    """Círculo unitário fechado com n lados (para os símbolos de DSO)."""
     a = np.linspace(0.0, 2.0 * math.pi, n + 1)
     return np.column_stack([np.cos(a), np.sin(a)])
 
 
 def _polyline_segs(pts: np.ndarray, dashed: bool = False) -> np.ndarray:
+    """Polilinha → pares de segmentos GL_LINES; dashed pula um sim, um não."""
     seg = np.stack([pts[:-1], pts[1:]], axis=1)  # (S,2,2)
     if dashed:
         seg = seg[::2]
@@ -94,6 +96,14 @@ def _polyline_segs(pts: np.ndarray, dashed: bool = False) -> np.ndarray:
 
 
 def _make_templates() -> dict[int, np.ndarray]:
+    """Gabaritos dos símbolos de céu profundo em coordenadas unitárias.
+
+    A convenção segue os atlas impressos: elipse = galáxia, círculo
+    tracejado = aglomerado aberto, círculo com cruz = globular, quadrado =
+    nebulosa, círculo com traços = planetária, quadrado tracejado =
+    nebulosa escura, losango = os demais. Na hora de desenhar, o gabarito
+    é só escalado pelo tamanho aparente e somado à posição de tela.
+    """
     circle = _polyline_segs(_circle_pts(16))
     circle_dash = _polyline_segs(_circle_pts(20), dashed=True)
     sq = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]], float) * 0.85
@@ -128,6 +138,7 @@ DSO_TEMPLATES = _make_templates()
 
 
 def _wrap_pi(a: float) -> float:
+    """Normaliza um ângulo para (−π, π]."""
     return (a + math.pi) % (2.0 * math.pi) - math.pi
 
 
@@ -143,6 +154,11 @@ class _LabelPlacer:
 
     def place(self, x: float, y_baseline: float, w: float, h: float,
               force: bool = False) -> bool:
+        """Tenta reservar o retângulo do rótulo; False = colidiu, não desenhe.
+
+        ``force`` reserva mesmo colidindo (rótulos prioritários — Messier/
+        Caldwell — passam por cima, e os posteriores desviam DELES).
+        """
         top = y_baseline - h
         pad = 2.0
         if not force:
@@ -155,6 +171,21 @@ class _LabelPlacer:
 
 
 class SkyWidget(QOpenGLWidget):
+    """O céu propriamente dito: renderização, interação e estado de vista.
+
+    Papel central no aplicativo — recebe o motor astronômico e os
+    catálogos, projeta tudo para a tela via :class:`Camera` e desenha em
+    duas passadas por quadro: o conteúdo em OpenGL (estrelas, linhas,
+    texturas) e os rótulos/ferramentas num overlay QPainter. O fluxo de um
+    quadro está no :meth:`paintGL`.
+
+    Interação: arrastar gira a vista, roda dá zoom, clique seleciona,
+    botão direito abre o menu de contexto; modos alternativos de mouse
+    (medição angular, zoom por retângulo) trocados pela barra lateral.
+    O relógio da simulação dispara uma repintura por segundo; interações
+    repintam imediatamente.
+    """
+
     statusUpdated = Signal(str)
     selectionChanged = Signal(object)  # None | ("star", idx) | ("body", nome)
     contextInfoRequested = Signal(object)
@@ -270,23 +301,29 @@ class SkyWidget(QOpenGLWidget):
 
     # ------------------------------------------------------------------
     def set_layer(self, key: str, value: bool) -> None:
+        """Liga/desliga uma camada de exibição e repinta."""
         self.layers[key] = value
         self.update()
 
     def set_name_mode(self, mode: str) -> None:
+        """Rótulos de estrela: 'proper' (Sirius) ou 'bayer' (α CMa)."""
         self.name_mode = mode
         self.update()
 
     def set_dso_name_mode(self, mode: str) -> None:
+        """Rótulos de céu profundo: 'number' (M 42) ou 'name' (Nb. de Órion)."""
         self.dso_name_mode = mode
         self.update()
 
     def set_prefer_caldwell(self, value: bool) -> None:
+        """Rotular objetos Caldwell como 'C 14' em vez do NGC equivalente."""
         self.prefer_caldwell = value
         self.update()
 
     # ------------------------------------------------------------------
     def initializeGL(self) -> None:
+        """Ponto de entrada GL do Qt: compila shaders e sobe texturas
+        pré-carregadas (a Via Láctea é lida do disco antes do contexto)."""
         self.renderer.initialize()
         if self._mw_tex_rgb is not None:
             self.renderer.set_mw_texture(self._mw_tex_rgb)
@@ -388,23 +425,30 @@ class SkyWidget(QOpenGLWidget):
         return auto
 
     def set_bortle(self, value: int) -> None:
+        """Classe de poluição luminosa (1–9): afeta magnitude-limite, brilho
+        do fundo, Via Láctea e imagens de levantamento."""
         self.bortle = max(1, min(9, int(value)))
         self.update()
 
     def set_const_label_mode(self, mode: str) -> None:
+        """Nomes das constelações: 'none', 'pt', 'latin' ou 'abbr'."""
         self.const_label_mode = mode
         self.layers["const_names"] = mode != "none"
         self.update()
 
     def set_mag_cap(self, value: float | None) -> None:
+        """Teto manual de magnitude (None = só o automático pelo zoom)."""
         self.mag_cap = value
         self.update()
 
     def set_chart_mode(self, on: bool) -> None:
+        """Modo mapa para impressão: fundo branco, traços escuros, sem
+        atmosfera nem imagens de levantamento."""
         self.chart_mode = on
         self.update()
 
     def set_mouse_mode(self, mode: str) -> None:
+        """Ferramenta do mouse: 'pan', 'measure' ou 'zoom_rect'."""
         self.mouse_mode = mode
         self._measure = None
         self._rubber = None
@@ -415,6 +459,21 @@ class SkyWidget(QOpenGLWidget):
 
     # ------------------------------------------------------------------
     def paintGL(self) -> None:
+        """Um quadro completo, na ordem de pintura (de trás para frente):
+
+        1. fundo/atmosfera e Via Láctea (textura ou splats);
+        2. grades, eclíptica/meridiano, linhas e limites de constelação;
+        3. imagens de levantamento → símbolos de DSO → estrelas → corpos;
+        4. trajetórias de planetas, previsão da Lua, zona lunar, campos
+           de equipamento;
+        5. solo opaco (cobre o que está abaixo do horizonte);
+        6. overlay QPainter: rótulos (com anti-colisão), seleção e
+           ferramentas (medição, retângulo de zoom).
+
+        Toda projeção usa a MESMA matriz horizontal ``m`` do instante — é o
+        que garante que estrelas, imagens e rótulos nunca desalinhem entre
+        si dentro de um quadro.
+        """
         cam = self.camera
         dpr = self.devicePixelRatioF()
         w = max(1, int(self.width() * dpr))
@@ -677,6 +736,18 @@ class SkyWidget(QOpenGLWidget):
         return f_icrs, math.cos(half)
 
     def _draw_stars(self, m: np.ndarray, fade: float):
+        """Estrelas do quadro em um único draw call de sprites.
+
+        Fluxo: corte por magnitude (prefixo do catálogo ordenado) → cone de
+        visada (barato) → refração + projeção (caras, só nos candidatos) →
+        tamanho/alfa pela magnitude relativa ao limite (compensação de
+        brilho por tamanho, pedido do usuário) → upload. O catálogo
+        profundo repete o processo quando o zoom pede mais que mag 8,6.
+
+        Retorna ``(idx, x, y, below_map)`` — arrays COMPACTOS alinhados
+        (posição k ↔ estrela idx[k] do catálogo) usados pelos rótulos e
+        pelo picking do clique.
+        """
         cat = self.stars
         cam = self.camera
         m_lim = self._mag_limit()
@@ -821,6 +892,15 @@ class SkyWidget(QOpenGLWidget):
         return self.dso.maj * (math.radians(1.0 / 60.0) * self.camera.pixel_scale)
 
     def _draw_dso(self, m: np.ndarray, fade: float):
+        """Símbolos e contornos do céu profundo (até 400 por quadro).
+
+        Cada objeto vira: o contorno REAL da nebulosa (quando curado em
+        outlines.json e grande na tela), OU uma elipse orientada pelo
+        ângulo de posição (objetos grandes), OU o gabarito do seu tipo
+        (círculo tracejado, quadrado…) escalado pelo tamanho aparente.
+        Tudo é acumulado numa única lista de segmentos e desenhado de uma
+        vez. Retorna arrays compactos alinhados, como `_draw_stars`.
+        """
         dso = self.dso
         if len(dso) == 0:
             return None
@@ -935,6 +1015,7 @@ class SkyWidget(QOpenGLWidget):
 
     def set_fov_shapes(self, shapes: list, angle_deg: float = 0.0,
                        follow_selection: bool = True) -> None:
+        """Aplica os campos de equipamento a desenhar (do FovDialog)."""
         self.fov_shapes = list(shapes)
         self.fov_angle = math.radians(angle_deg)
         self.fov_follow_selection = follow_selection
@@ -1032,6 +1113,7 @@ class SkyWidget(QOpenGLWidget):
                 self.renderer.draw_lines(seg)
 
     def set_planet_paths(self, paths: list) -> None:
+        """Define as trajetórias anuais a exibir (lista vazia limpa)."""
         self.planet_paths = list(paths)
         self.update()
 
@@ -1098,6 +1180,7 @@ class SkyWidget(QOpenGLWidget):
             self._path_marks.append((path, x, y, vis, color, marks))
 
     def set_moon_forecast(self, marks: list) -> None:
+        """Define a previsão da Lua (28 marcas) e liga a camada."""
         self.moon_forecast = list(marks)
         self.layers["moon_forecast"] = bool(marks)
         self.update()
@@ -1211,8 +1294,12 @@ class SkyWidget(QOpenGLWidget):
             self.renderer.draw_lines(out)
 
     def _draw_bodies(self, t, m: np.ndarray):
+        """Sol, Lua e planetas. Devolve [(corpo, x, y, tamanho)] para
+        rótulos e picking (corpos têm prioridade no clique)."""
         cam = self.camera
         out = []
+        # planetas viram sprites dimensionados pela magnitude; Sol e Lua
+        # são discos de tamanho angular REAL (com halo/fase), separados
         rows = []
         specials = []  # (BodyState, cx, cy) de Sol e Lua, desenhados como discos
         scale = cam.pixel_scale
@@ -1257,6 +1344,7 @@ class SkyWidget(QOpenGLWidget):
         return n_scr, e_scr
 
     def _draw_sun(self, b, cx: float, cy: float) -> None:
+        """Disco solar no tamanho angular real, com um halo suave."""
         radius = max(5.0, b.angular_radius * self.camera.pixel_scale)
         # halo suave + disco
         halo = np.array(
@@ -1322,6 +1410,14 @@ class SkyWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px,
                      dso_px=None, ground_on: bool = False):
+        """Todos os textos do quadro, num único QPainter em pixels lógicos.
+
+        Ordem de prioridade do anti-colisão (:class:`_LabelPlacer`):
+        corpos do Sistema Solar → Messier/Caldwell (forçados, em negrito)
+        → nomes de constelação → estrelas → demais DSOs → previsão da Lua
+        → trajetórias de planetas. Cada rótulo desenhado também alimenta
+        ``_label_hits`` — é o que torna os rótulos clicáveis.
+        """
         from PySide6.QtCore import QRect
         from PySide6.QtGui import QFontMetrics
 
@@ -1601,6 +1697,7 @@ class SkyWidget(QOpenGLWidget):
         return None
 
     def _draw_selection_marker(self, m: np.ndarray) -> None:
+        """Anel laranja em volta do objeto selecionado."""
         pos = self._selection_screen_pos(m)
         if pos is None:
             return
@@ -1678,6 +1775,7 @@ class SkyWidget(QOpenGLWidget):
         self._goto_anim = anim
 
     def clear_selection(self) -> None:
+        """Desfaz a seleção atual (Esc, menu de contexto)."""
         if self.selection is not None:
             self.selection = None
             self.selectionChanged.emit(None)
@@ -1799,6 +1897,8 @@ class SkyWidget(QOpenGLWidget):
 
     # ------------------------------------------------------------------
     def _emit_status(self, t) -> None:
+        """Monta a linha da barra de estado: local, hora do observador,
+        velocidade da simulação, campo de visão e posição do cursor."""
         from ..core.formats import speed_label
 
         local = to_local(self.engine.time.current_datetime())
@@ -1820,11 +1920,14 @@ class SkyWidget(QOpenGLWidget):
     # Interação
     # ------------------------------------------------------------------
     def _device_pos(self, event) -> tuple[float, float]:
+        """Posição do evento em pixels FÍSICOS (a câmera trabalha neles)."""
         dpr = self.devicePixelRatioF()
         p = event.position()
         return p.x() * dpr, p.y() * dpr
 
     def mousePressEvent(self, event) -> None:
+        """Início da interação: fixa pontos de medição, abre o retângulo de
+        zoom ou ancora o arrasto — conforme a ferramenta ativa."""
         if event.button() != Qt.LeftButton:
             return
         if self._goto_anim is not None:
@@ -1849,6 +1952,8 @@ class SkyWidget(QOpenGLWidget):
         self.setCursor(Qt.ClosedHandCursor)
 
     def mouseMoveEvent(self, event) -> None:
+        """Arrasto da vista pela âncora em az/alt (o ponto do céu sob o
+        cursor permanece sob o cursor), prévia da medição e do retângulo."""
         x, y = self._device_pos(event)
         self._cursor_altaz = self.camera.screen_to_altaz(x, y)
 
@@ -1879,6 +1984,9 @@ class SkyWidget(QOpenGLWidget):
             self._emit_status(t)
 
     def mouseReleaseEvent(self, event) -> None:
+        """Fim da interação: aplica o zoom por retângulo ou, se o mouse mal
+        se moveu (≤6 px), trata como CLIQUE — rótulo primeiro, objeto
+        depois — e seleciona."""
         if event.button() != Qt.LeftButton:
             return
         x, y = self._device_pos(event)
@@ -1918,6 +2026,8 @@ class SkyWidget(QOpenGLWidget):
         return None
 
     def keyPressEvent(self, event) -> None:
+        """Esc limpa a seleção; os atalhos de camada são das ACTIONS do
+        menu (com janela ativa), não deste widget."""
         if event.key() == Qt.Key_Escape:
             self.clear_selection()
         else:
@@ -2032,6 +2142,7 @@ class SkyWidget(QOpenGLWidget):
         return name
 
     def wheelEvent(self, event) -> None:
+        """Zoom pela roda: ~18% por clique, entre FOV_MIN e FOV_MAX."""
         delta = event.angleDelta().y()
         if delta == 0:
             return

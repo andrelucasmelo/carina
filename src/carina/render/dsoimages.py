@@ -28,6 +28,8 @@ UPLOADS_PER_FRAME = 3      # texturas enviadas à GPU por quadro (~1 ms cada)
 
 
 def image_fov_deg(maj_arcmin: float | None) -> float:
+    """Campo do recorte em graus para um objeto sem entrada no manifesto
+    (mesma fórmula dos scripts de download — precisa continuar igual)."""
     if not maj_arcmin:
         return FOV_MIN_DEG * 2
     return min(FOV_MAX_DEG, max(FOV_MIN_DEG, maj_arcmin * FOV_FACTOR / 60.0))
@@ -40,6 +42,7 @@ _FADE_CACHE: dict[tuple[int, int], np.ndarray] = {}
 
 
 def _radial_fade(h: int, w: int) -> np.ndarray:
+    """Máscara de desvanecimento radial (cacheada por tamanho de imagem)."""
     fade = _FADE_CACHE.get((h, w))
     if fade is None:
         yy = (np.arange(h) - (h - 1) / 2.0) / (h / 2.0)
@@ -81,6 +84,8 @@ def prepare_rgb(rgb: np.ndarray, floor_percentile: float = 55.0,
 
 @dataclass
 class _Entry:
+    """Registro do cache: id da textura na GPU + tique de último uso (LRU)."""
+
     texture: int
     last_used: int
 
@@ -102,6 +107,8 @@ class DsoImageLayer:
         self._pending: dict[str, object] = {}   # name -> Future
 
     def fov_for(self, name: str, maj_arcmin: float | None) -> float:
+        """Campo do recorte: o do manifesto (verdade absoluta — foi o campo
+        efetivamente baixado) ou a fórmula padrão como reserva."""
         return self.fov_map.get(name) or image_fov_deg(maj_arcmin)
 
     def loading(self) -> bool:
@@ -113,6 +120,7 @@ class DsoImageLayer:
         return bool(self._pending)
 
     def clear(self, renderer) -> None:
+        """Esvazia o cache de GPU (troca de contexto GL, encerramento)."""
         for entry in self._entries.values():
             renderer.delete_texture(entry.texture)
         self._entries.clear()
@@ -188,6 +196,7 @@ class DsoImageLayer:
 
     @classmethod
     def _grid_indices(cls) -> np.ndarray:
+        """Triangulação fixa da grade 5×5 (dois triângulos por célula)."""
         if cls._GRID_IDX is None:
             n = cls._GRID_N
             idx = []

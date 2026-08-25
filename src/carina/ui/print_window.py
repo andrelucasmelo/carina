@@ -35,6 +35,9 @@ TOOLS = [
 
 @dataclass
 class Annotation:
+    """Uma anotação do mapa: texto, seta, linha, retângulo, elipse ou
+    traço livre — com cor, espessura e fonte próprias."""
+
     kind: str
     color: QColor
     width: int = 2
@@ -45,6 +48,7 @@ class Annotation:
     points: list = field(default_factory=list)   # desenho livre
 
     def bounds(self) -> QRectF:
+        """Retângulo envolvente — usado para seleção, arrasto e destaque."""
         if self.kind == "free" and self.points:
             xs = [p.x() for p in self.points]
             ys = [p.y() for p in self.points]
@@ -56,6 +60,8 @@ class Annotation:
         return QRectF(self.p0, self.p1).normalized().adjusted(-6, -6, 6, 6)
 
     def draw(self, p: QPainter) -> None:
+        """Desenha a anotação conforme o tipo (a seta calcula as duas
+        hastes da ponta pela direção da linha)."""
         pen = QPen(self.color, self.width)
         pen.setCapStyle(Qt.RoundCap)
         pen.setJoinStyle(Qt.RoundJoin)
@@ -121,6 +127,8 @@ class AnnotatedCanvas(QWidget):
         p.end()
 
     def draw_annotations(self, p: QPainter, show_selection: bool = False) -> None:
+        """Todas as anotações + o rascunho em andamento; a selecionada
+        ganha o retângulo tracejado azul (só na tela, nunca na exportação)."""
         for i, ann in enumerate(self.annotations):
             ann.draw(p)
             if show_selection and i == self.selected:
@@ -147,6 +155,7 @@ class AnnotatedCanvas(QWidget):
 
     # ------------------------------------------------------------------
     def _hit(self, pos: QPointF) -> int | None:
+        """Anotação sob o ponto (a mais recente vence, como no desenho)."""
         for i in range(len(self.annotations) - 1, -1, -1):
             if self.annotations[i].bounds().contains(pos):
                 return i
@@ -228,6 +237,10 @@ class AnnotatedCanvas(QWidget):
 
 
 class PrintMapWindow(QMainWindow):
+    """Editor do mapa para impressão: recebe a captura do céu em modo
+    carta, permite anotar livremente (textos, setas, desenho) e imprime ou
+    exporta em PNG/PDF/SVG pelo mesmo caminho de renderização."""
+
     def __init__(self, base: QImage, title: str, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Mapa para impressão — anotações"))

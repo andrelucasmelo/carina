@@ -50,6 +50,15 @@ _LAYER_ACTIONS = [
 
 
 class MainWindow(QMainWindow):
+    """Janela principal: monta o aplicativo e liga as pontas.
+
+    Cria o motor, os catálogos e o :class:`SkyWidget`; constrói menus,
+    barra lateral e docks; e implementa os handlers que traduzem ações de
+    interface em chamadas ao núcleo (abrir diálogos, calcular trajetórias,
+    montar maratonas, alternar camadas). Nenhuma astronomia acontece aqui —
+    apenas orquestração.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle(f"Carina {__version__}")
@@ -104,6 +113,14 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------
     def _build_menus(self) -> None:
+        """Constrói a barra de menus inteira.
+
+        Ordem: Arquivo, Tempo, Exibir (camadas/magnitude/constelações/
+        Bortle), Céu profundo, Ferramentas, Planejar (maratonas + tempo
+        por objeto), Informações, Observador e Ajuda. As ações de camada
+        ficam em ``self._layer_acts`` para sincronizarem com a barra
+        lateral e com o QSettings.
+        """
         bar = self.menuBar()
 
         m_file = bar.addMenu(self.tr("&Arquivo"))
@@ -418,12 +435,15 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------
     def _on_layer_toggled(self, key: str, on: bool) -> None:
+        """Ação de camada mudou: aplica na cena, persiste e espelha na
+        barra lateral (menu e botões nunca discordam)."""
         self.sky.set_layer(key, on)
         self.settings.set_layer(key, on)
         if hasattr(self, "side_bar"):
             self.side_bar.set_layer_state(key, on)
 
     def _restore_layers(self) -> None:
+        """Reaplica na inicialização o estado de camadas salvo no QSettings."""
         for key, _title, _sc, default in _LAYER_ACTIONS:
             value = self.settings.layer(key, default)
             act = self._layer_acts[key]
@@ -481,6 +501,7 @@ class MainWindow(QMainWindow):
 
     # --- barra lateral -------------------------------------------------
     def _wire_side_bar(self) -> None:
+        """Conecta os sinais da barra lateral aos handlers da janela."""
         b = self.side_bar
         b.layerToggled.connect(self._on_panel_layer)
         b.mouseModeChanged.connect(self.sky.set_mouse_mode)
@@ -492,6 +513,7 @@ class MainWindow(QMainWindow):
         b.action.connect(self._on_side_action)
 
     def _on_side_action(self, kind: str) -> None:
+        """Despacha os botões de ação da barra lateral para os diálogos."""
         {
             "search": self._open_search,
             "track": self._open_track,
@@ -515,6 +537,7 @@ class MainWindow(QMainWindow):
             self._open_marathon(kinds[labels.index(choice)])
 
     def _on_chart_mode(self, on: bool) -> None:
+        """Modo carta alternado pela barra lateral: sincroniza com o menu."""
         self.sky.set_chart_mode(on)
         if self.act_chart.isChecked() != on:
             self.act_chart.setChecked(on)

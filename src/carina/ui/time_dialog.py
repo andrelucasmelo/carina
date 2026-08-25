@@ -11,6 +11,9 @@ from PySide6.QtWidgets import (
 
 
 class TimeDialog(QDialog):
+    """"Ir para data e hora": edita o instante da simulação na hora local
+    do OBSERVADOR (a cidade escolhida define o fuso)."""
+
     def __init__(self, current_local: dt.datetime, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Ir para data e hora"))

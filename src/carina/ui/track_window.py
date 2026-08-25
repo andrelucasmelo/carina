@@ -71,6 +71,8 @@ class TrackSettings:
     mirror_sky: bool = False
 
     def color_for(self, alt_deg: float, moon_affected: bool) -> QColor:
+        """Cor de um ponto da trajetória: influência da Lua vence; senão a
+        faixa de altitude (limiares configuráveis); senão a cor normal."""
         if moon_affected and self.use_moon_color:
             return self.color_moon
         if self.use_alt_colors:
@@ -84,6 +86,7 @@ class TrackSettings:
 
 
 def _hm(value: dt.datetime | None) -> str:
+    """HH:MM na hora do observador ('—' quando não há o evento)."""
     from ..core.localtime import to_local
 
     return to_local(value).strftime("%H:%M") if value else "—"
@@ -110,6 +113,13 @@ class TrackCanvas(QWidget):
 
     # ------------------------------------------------------------------
     def render_to(self, painter: QPainter, rect: QRectF) -> None:
+        """Renderiza a carta completa num painter arbitrário.
+
+        É o MESMO código para a tela e para as exportações (PNG/PDF/SVG):
+        carta polar com o zênite no centro, anéis de altitude, pontos
+        cardeais (espelháveis), a trajetória com o estilo de linha por
+        faixa de crepúsculo, marcadores de meia hora e a legenda.
+        """
         s = self.settings
         bg = QColor(16, 18, 24) if s.dark_theme else QColor(255, 255, 255)
         fg = QColor(225, 230, 240) if s.dark_theme else QColor(25, 25, 25)
@@ -486,6 +496,10 @@ class TrackSettingsDialog(QDialog):
 
 
 class TrackWindow(QMainWindow):
+    """Janela de rastreamento noturno: carta polar do céu com a trajetória
+    do objeto, estilos por faixa de crepúsculo, cor alterada sob influência
+    da Lua, configurações próprias e exportação PNG/JPG/PDF/SVG."""
+
     def __init__(self, result: TrackResult, location: str, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(

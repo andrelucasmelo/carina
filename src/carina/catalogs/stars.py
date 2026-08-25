@@ -85,6 +85,18 @@ def _bv_to_rgb(bv: np.ndarray) -> np.ndarray:
 
 
 class StarCatalog:
+    """Catálogo estelar em arrays NumPy, ORDENADOS POR MAGNITUDE.
+
+    A ordenação é a decisão estrutural do catálogo: "todas as estrelas até
+    magnitude X" vira um prefixo do array obtido com ``searchsorted`` —
+    sem máscaras, sem cópias. Duas camadas:
+
+    * **HYG v4.1** (~120 mil, até mag ~9): com nomes próprios, Bayer,
+      Flamsteed e constelação — participa de rótulos e seleção;
+    * **profundo** (ATHYG/Tycho-2, ~740 mil, mag 8,5–12): anônimo, só
+      pontos, carregado à parte e desenhado apenas quando o zoom pede.
+    """
+
     def __init__(self, data_dir: Path) -> None:
         npz = np.load(data_dir / "stars_hyg.npz")
         self.xyz: np.ndarray = npz["xyz"].astype(np.float32)     # (N,3) ICRS
@@ -124,6 +136,7 @@ class StarCatalog:
         return True
 
     def deep_count_brighter_than(self, mag_limit: float) -> int:
+        """Prefixo do catálogo profundo até a magnitude dada (0 sem ele)."""
         if getattr(self, "deep_xyz", None) is None:
             return 0
         return int(np.searchsorted(self.deep_mag, mag_limit, side="right"))
@@ -154,6 +167,8 @@ class StarCatalog:
         return self.proper.get(idx)
 
     def full_designation(self, idx: int) -> str:
+        """Todas as designações da estrela numa linha (painel de informações):
+        nome próprio, Bayer por extenso, Flamsteed e número HIP."""
         parts = []
         if idx in self.proper:
             parts.append(self.proper[idx])

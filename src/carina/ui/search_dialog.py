@@ -25,6 +25,9 @@ _CATALOG_PREFIX = {
 
 
 class SearchDialog(QDialog):
+    """Busca unificada (estrelas, céu profundo e corpos do Sistema Solar)
+    com resultados ao digitar; Enter ou duplo clique centraliza no céu."""
+
     goto_requested = Signal(object)  # ("star"|"dso"|"body", chave)
 
     def __init__(self, stars: StarCatalog, dso: DsoCatalog, parent=None):

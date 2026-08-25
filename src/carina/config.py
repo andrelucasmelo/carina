@@ -43,12 +43,14 @@ def ephemeris_dir() -> Path:
 
 
 def user_data_path() -> Path:
+    """Pasta de dados do usuário (banco DSO editável, equipamentos…)."""
     p = Path(user_data_dir(APP_NAME, ORG_NAME))
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def user_cache_path() -> Path:
+    """Cache permanente do usuário (imagens baixadas em uso)."""
     p = Path(user_cache_dir(APP_NAME, ORG_NAME))
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -56,6 +58,9 @@ def user_cache_path() -> Path:
 
 @dataclass
 class ObserverLocation:
+    """Onde o observador está: nome de exibição, coordenadas geográficas,
+    elevação e o fuso horário IANA usado em todos os horários da UI."""
+
     name: str = "Rio de Janeiro, Brasil"
     latitude: float = -22.9068   # graus, sul negativo
     longitude: float = -43.1729  # graus, oeste negativo
@@ -71,6 +76,7 @@ class Settings:
 
     # --- localização do observador -------------------------------------
     def location(self) -> ObserverLocation:
+        """Localização persistida (ou o padrão, Rio de Janeiro)."""
         return ObserverLocation(
             name=self._s.value("observer/name", ObserverLocation.name, str),
             latitude=self._s.value("observer/lat", ObserverLocation.latitude, float),
@@ -88,14 +94,18 @@ class Settings:
 
     # --- camadas visíveis ----------------------------------------------
     def layer(self, key: str, default: bool = True) -> bool:
+        """Estado persistido de uma camada de exibição."""
         return self._s.value(f"layers/{key}", default, bool)
 
     def set_layer(self, key: str, value: bool) -> None:
+        """Grava o estado de uma camada (grupo ``layers/`` do QSettings)."""
         self._s.setValue(f"layers/{key}", value)
 
     # --- genérico --------------------------------------------------------
     def value(self, key: str, default, type_):
+        """Leitura tipada genérica (QSettings devolve strings sem o tipo)."""
         return self._s.value(key, default, type_)
 
     def set_value(self, key: str, value) -> None:
+        """Gravação genérica de uma preferência."""
         self._s.setValue(key, value)

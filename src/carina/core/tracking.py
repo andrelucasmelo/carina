@@ -19,6 +19,9 @@ from .twilight import NightInfo, night_info, sun_altitude_band
 
 @dataclass
 class TrackPoint:
+    """Uma amostra da trajetória noturna: posição horizontal, faixa de
+    crepúsculo em vigor e situação em relação à Lua."""
+
     when_utc: dt.datetime
     az: float          # radianos
     alt: float         # radianos
@@ -29,6 +32,9 @@ class TrackPoint:
 
 @dataclass
 class TrackResult:
+    """Trajetória completa de um objeto ao longo de uma noite, com os
+    momentos-chave (nascer, culminação, ocaso) já destacados."""
+
     label: str
     points: list[TrackPoint] = field(default_factory=list)
     night: NightInfo | None = None
@@ -39,6 +45,7 @@ class TrackResult:
     moon_illum: float = 0.0
 
     def visible(self) -> bool:
+        """O objeto sobe do horizonte em algum momento da noite?"""
         return bool(self.points)
 
 

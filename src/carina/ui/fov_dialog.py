@@ -128,6 +128,11 @@ class ItemDialog(QDialog):
 
 
 class FovDialog(QDialog):
+    """Simulador de campo de visão: combina telescópio + câmera/ocular +
+    acessório, mostra a ficha técnica (ampliação, escala de placa,
+    amostragem) e projeta o retângulo/círculo resultante sobre o céu.
+    A segunda aba gerencia o acervo de equipamentos do usuário."""
+
     fovChanged = Signal(list, float, bool)   # shapes, ângulo, seguir seleção
 
     def __init__(self, store: EquipmentStore, parent=None) -> None:
@@ -195,7 +200,7 @@ class FovDialog(QDialog):
         row.addWidget(self.lbl_angle)
         holder = QWidget()
         holder.setLayout(row)
-        oform.addRow(self.tr("Rotação do campo:"), holder)
+        oform.addRow(self.tr("Rotação do campo (rotacionador):"), holder)
         self.chk_follow = QCheckBox(
             self.tr("Centralizar no objeto selecionado")
         )

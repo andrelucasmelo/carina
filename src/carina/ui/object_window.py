@@ -158,6 +158,9 @@ class AltitudeChart(QWidget):
 
 
 class ObjectWindow(QMainWindow):
+    """Janela de detalhes do objeto: imagem grande, ficha completa e o
+    gráfico anual de altitude (amostrado a cada 10 dias)."""
+
     def __init__(self, title: str, html: str, image_path, dates, alt_mid,
                  alt_max, parent=None) -> None:
         super().__init__(parent)

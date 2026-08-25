@@ -12,6 +12,10 @@ from ..catalogs.dso import ALL_CATALOGS, CATALOG_LABELS, EXTRA_CATALOGS
 
 
 class CatalogDialog(QDialog):
+    """Configuração de catálogos de céu profundo: caixa por catálogo com a
+    contagem de objetos, marcar/desmarcar todos e o padrão de fábrica
+    (clássicos ligados, LDN/Cr/VdB/Abell desligados)."""
+
     changed = Signal()
 
     def __init__(self, dso, parent=None) -> None:

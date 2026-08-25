@@ -20,6 +20,13 @@ from .config import APP_NAME, ORG_NAME
 
 
 def _parse_args(argv):
+    """Linha de comando — quase toda voltada a testes automatizados.
+
+    O padrão do projeto: cada recurso novo ganha uma flag que o aciona ao
+    iniciar, e ``--screenshot`` captura o resultado num PNG sem interação.
+    É assim que as validações visuais e o ``--bench`` de desempenho rodam
+    em CI/desenvolvimento (ver docs/ARQUITETURA.md).
+    """
     parser = argparse.ArgumentParser(prog="carina")
     parser.add_argument("--screenshot", metavar="CAMINHO", default=None)
     parser.add_argument("--at", metavar="ISO", default=None)
@@ -32,7 +39,7 @@ def _parse_args(argv):
     parser.add_argument(
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
-                 "catalogs", "print", "night"],
+                 "catalogs", "print", "night", "location"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -172,6 +179,9 @@ def _run_bench(win, app) -> None:
 
 
 def main(argv=None) -> int:
+    """Ponto de entrada: configura o formato OpenGL (3.3 core, MSAA 4×,
+    stencil de 8 bits — o stencil é essencial para o preenchimento de
+    polígonos côncavos), cria a janela e aplica as flags de teste."""
     import time as _time
 
     t_start = _time.perf_counter()
@@ -358,6 +368,13 @@ def main(argv=None) -> int:
         dialog = NightInfoDialog(
             win.engine, win.settings.location().name, win
         )
+        dialog.show()
+    elif args.dialog == "location":
+        from .ui.location_dialog import LocationDialog
+
+        dialog = LocationDialog(win.settings.location(), win)
+        if args.dialog_text:
+            dialog.search.setText(args.dialog_text)
         dialog.show()
     elif args.dialog == "print":
         win._open_print_map()

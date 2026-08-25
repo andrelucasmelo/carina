@@ -28,14 +28,17 @@ _lock = threading.Lock()
 
 
 def image_filename(name: str) -> str:
+    """Nome do objeto → nome de arquivo ('M 42' → 'M42.jpg')."""
     return name.replace(" ", "").replace("/", "_") + ".jpg"
 
 
 def _bundled_dir() -> Path:
+    """Imagens embarcadas no instalador (baixadas nos scripts de build)."""
     return package_data_dir() / "images"
 
 
 def _cache_dir() -> Path:
+    """Cache permanente do usuário para as imagens baixadas em uso."""
     p = user_cache_path() / "images"
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -52,6 +55,12 @@ def image_path_for(name: str) -> Path | None:
 
 
 def _fov_for(maj_arcmin: float | None) -> float:
+    """Campo do recorte em graus: 2,5× o eixo maior, preso a 0,25°–6°.
+
+    O MESMO enquadramento é usado nos scripts de build; qualquer mudança
+    aqui precisa ser espelhada lá, senão as imagens embarcadas e as
+    baixadas em uso teriam escalas diferentes no céu.
+    """
     if not maj_arcmin:
         return 0.5
     return min(6.0, max(0.25, maj_arcmin * 2.5 / 60.0))
@@ -71,6 +80,8 @@ def request_image(name: str, ra_rad: float, dec_rad: float,
         _inflight.add(fn)
 
     def worker() -> None:
+        """Baixa num thread daemon e grava via arquivo temporário + replace
+        (atômico: nunca fica meio JPEG no cache se o app fechar no meio)."""
         try:
             import requests
 

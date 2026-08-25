@@ -13,6 +13,9 @@ from ..core.eclipses import find_eclipses
 
 
 class EclipseDialog(QDialog):
+    """Tabela de eclipses lunares e solares num intervalo de anos; duplo
+    clique leva a simulação ao instante do máximo e centraliza o astro."""
+
     goto_requested = Signal(object, str)  # (datetime UTC, corpo: 'Lua'|'Sol')
 
     def __init__(self, engine, parent=None) -> None:

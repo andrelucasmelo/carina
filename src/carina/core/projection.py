@@ -22,11 +22,13 @@ FOV_MAX = math.radians(100.0)   # limite de zoom out (pedido do usuário)
 
 
 def altaz_to_vec(az: float, alt: float) -> np.ndarray:
+    """(azimute, altitude) em radianos → vetor unitário no frame horizontal."""
     ca = math.cos(alt)
     return np.array([ca * math.cos(az), ca * math.sin(az), math.sin(alt)])
 
 
 def vec_to_altaz(v: np.ndarray) -> tuple[float, float]:
+    """Vetor unitário horizontal → (azimute em [0, 2π), altitude)."""
     alt = math.asin(max(-1.0, min(1.0, float(v[2]))))
     az = math.atan2(float(v[1]), float(v[0])) % (2.0 * math.pi)
     return az, alt
@@ -46,18 +48,27 @@ class Camera:
 
     # -- estado ----------------------------------------------------------
     def set_viewport(self, width: int, height: int) -> None:
+        """Tamanho do framebuffer em pixels FÍSICOS (multiplicado pelo DPR)."""
         self.width = max(1, width)
         self.height = max(1, height)
 
     def set_direction(self, az: float, alt: float) -> None:
+        """Aponta o centro da vista; a altitude é presa em ±90°."""
         self.az = az % (2.0 * math.pi)
         self.alt = max(-math.pi / 2, min(math.pi / 2, alt))
         self._update_basis()
 
     def zoom(self, factor: float) -> None:
+        """Multiplica o campo de visão (fator < 1 aproxima), com limites."""
         self.fov = max(FOV_MIN, min(FOV_MAX, self.fov * factor))
 
     def _update_basis(self) -> None:
+        """Reconstrói a base ortonormal (right, up, forward) da câmera.
+
+        As três linhas de ``_basis`` formam a matriz que leva um vetor do
+        frame horizontal para o frame da câmera — toda a projeção parte de
+        um único ``vecs @ _basis.T``.
+        """
         f = altaz_to_vec(self.az, self.alt)
         # "direita" no céu: perpendicular ao forward e ao zênite; degenera no
         # zênite, então usamos a direção do azimute como referência.
@@ -139,4 +150,5 @@ class Camera:
         return v / np.linalg.norm(v)
 
     def screen_to_altaz(self, sx: float, sy: float) -> tuple[float, float]:
+        """Pixel → (azimute, altitude): a inversa completa da projeção."""
         return vec_to_altaz(self.unproject(sx, sy))

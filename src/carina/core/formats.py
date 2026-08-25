@@ -26,6 +26,7 @@ def dec_dms(dec_rad: float) -> str:
 
 
 def angle_deg(rad: float, decimals: int = 1) -> str:
+    """Ângulo em radianos formatado como graus decimais ('12.3°')."""
     return f"{math.degrees(rad):.{decimals}f}°"
 
 

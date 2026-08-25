@@ -195,6 +195,10 @@ class DsoEditDialog(QDialog):
 
 
 class DsoManagerDialog(QDialog):
+    """Gerenciador do catálogo de céu profundo (CRUD completo): busca com
+    filtros, habilitar/desabilitar pela caixa de seleção, incluir/editar/
+    excluir objetos do usuário, categorias e restauração do banco padrão."""
+
     def __init__(self, catalog: DsoCatalog, parent=None) -> None:
         super().__init__(parent)
         self.catalog = catalog

@@ -28,6 +28,9 @@ LUNAR_TYPES = {0: "Penumbral", 1: "Parcial", 2: "Total"}
 
 @dataclass
 class EclipseEvent:
+    """Um eclipse previsto, já avaliado do ponto de vista do OBSERVADOR
+    (altitude do astro no máximo decide se o evento é visível dali)."""
+
     kind: str            # 'lunar' | 'solar'
     when_utc: dt.datetime  # instante do máximo
     type_label: str      # Total / Parcial / Anular / Penumbral
@@ -64,6 +67,13 @@ def _disc_overlap_fraction(rs: float, rm: float, d: float) -> float:
 
 def lunar_eclipses(engine, start_utc: dt.datetime,
                    end_utc: dt.datetime) -> list[EclipseEvent]:
+    """Eclipses lunares no intervalo, via ``skyfield.eclipselib``.
+
+    O Skyfield entrega instante, tipo (penumbral/parcial/total) e as
+    magnitudes; acrescentamos a altitude local da Lua no máximo, que é o
+    que decide a visibilidade para o usuário. Datas e magnitudes foram
+    validadas contra o cânone da NASA para 2026–2028.
+    """
     t0 = engine.ts.from_datetime(start_utc)
     t1 = engine.ts.from_datetime(end_utc)
     times, kinds, details = eclipselib.lunar_eclipses(t0, t1, engine.eph)
@@ -91,6 +101,15 @@ def lunar_eclipses(engine, start_utc: dt.datetime,
 
 def solar_eclipses(engine, start_utc: dt.datetime,
                    end_utc: dt.datetime) -> list[EclipseEvent]:
+    """Eclipses solares no intervalo (o Skyfield não traz um pronto).
+
+    Método clássico: em cada Lua nova, calcula o parâmetro gamma — a
+    distância do eixo da sombra lunar ao centro da Terra, em raios
+    terrestres (critério de Meeus). |gamma| < ~1,55 indica eclipse em
+    algum lugar do planeta; o tipo (total/anular/parcial) sai da razão
+    entre os tamanhos aparentes de Sol e Lua, e a obscuração local da
+    fração de sobreposição dos discos vista do observador.
+    """
     ts = engine.ts
     eph = engine.eph
     t0 = ts.from_datetime(start_utc)

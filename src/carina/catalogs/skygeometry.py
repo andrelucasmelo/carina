@@ -26,6 +26,8 @@ class PolylineSet:
 
     @classmethod
     def from_arrays(cls, verts: np.ndarray, counts: np.ndarray) -> "PolylineSet":
+        """Monta o conjunto a partir de vértices concatenados + tamanho de
+        cada polilinha, gerando os pares de índices GL_LINES de uma vez."""
         segs = []
         start = 0
         for c in counts:
@@ -49,6 +51,8 @@ class PolygonSet:
     n_layers: int
 
     def rings(self):
+        """Itera (camada, slice) de cada anel — o preenchimento por stencil
+        processa um anel por vez."""
         start = 0
         for c, ly in zip(self.counts, self.layer):
             c = int(c)
@@ -57,20 +61,24 @@ class PolygonSet:
 
 
 def load_constellation_lines(data_dir: Path) -> PolylineSet:
+    """Traçados das figuras de constelação (d3-celestial, pré-processados)."""
     npz = np.load(data_dir / "const_lines.npz")
     return PolylineSet.from_arrays(npz["verts"], npz["counts"])
 
 
 def load_constellation_bounds(data_dir: Path) -> PolylineSet:
+    """Limites oficiais IAU das 88 constelações."""
     npz = np.load(data_dir / "const_bounds.npz")
     return PolylineSet.from_arrays(npz["verts"], npz["counts"])
 
 
 def load_constellation_info(data_dir: Path) -> list[dict]:
+    """Metadados das constelações: sigla, nomes (latim/PT) e centro."""
     return json.loads((data_dir / "constellations.json").read_text("utf-8"))
 
 
 def load_milkyway(data_dir: Path) -> PolygonSet:
+    """Isofotas vetoriais da Via Láctea (fallback do modo sem textura)."""
     npz = np.load(data_dir / "milkyway.npz")
     return PolygonSet(
         verts=npz["verts"].astype(np.float32),
@@ -89,6 +97,7 @@ class PointCloud:
 
 
 def load_milkyway_points(data_dir: Path) -> PointCloud:
+    """Splats da Via Láctea (modo pontos, usado em zoom fechado)."""
     npz = np.load(data_dir / "milkyway_pts.npz")
     return PointCloud(xyz=npz["xyz"].astype(np.float32), weight=npz["weight"])
 
@@ -98,6 +107,7 @@ def load_milkyway_points(data_dir: Path) -> PointCloud:
 # ---------------------------------------------------------------------------
 
 def _circle_of_latitude(lat: float, step_deg: float) -> np.ndarray:
+    """Paralelo completo na latitude dada, amostrado a cada ``step_deg``."""
     lon = np.radians(np.arange(0.0, 360.0 + step_deg, step_deg))
     cl = math.cos(lat)
     return np.stack(
@@ -107,6 +117,7 @@ def _circle_of_latitude(lat: float, step_deg: float) -> np.ndarray:
 
 
 def _meridian(lon: float, lat_min: float, lat_max: float, step_deg: float) -> np.ndarray:
+    """Arco de meridiano na longitude dada, entre duas latitudes."""
     lat = np.radians(np.arange(math.degrees(lat_min), math.degrees(lat_max) + step_deg, step_deg))
     cl = np.cos(lat)
     return np.stack(
@@ -131,6 +142,7 @@ def build_grid(parallel_step: float = 10.0, meridian_step: float = 15.0,
 
 
 def build_horizon(densify: float = 1.0) -> PolylineSet:
+    """A linha do horizonte: o paralelo de altitude zero no frame horizontal."""
     verts = _circle_of_latitude(0.0, densify).astype(np.float32)
     return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
 
@@ -261,6 +273,7 @@ CARDINALS = [
 
 
 def cardinal_vectors() -> list[tuple[str, np.ndarray]]:
+    """Pontos cardeais como vetores no horizonte, para os rótulos N/S/L/O."""
     out = []
     for name, az_deg in CARDINALS:
         az = math.radians(az_deg)
