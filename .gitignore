@@ -41,3 +41,6 @@ dev-docs/
 # Ícones gerados a partir de assets/ (rode scripts/build_icon.py)
 data/processed/icon.ico
 data/processed/icon*.png
+
+# Pacotes gerados para publicacao (anexados ao Release, nao versionados)
+release/
