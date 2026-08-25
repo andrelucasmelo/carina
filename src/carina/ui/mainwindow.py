@@ -5,7 +5,8 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
-    QApplication, QDockWidget, QFileDialog, QMainWindow, QMessageBox, QWidget,
+    QApplication, QDockWidget, QFileDialog, QInputDialog, QMainWindow,
+    QMessageBox, QWidget,
 )
 
 from .. import __version__
@@ -42,6 +43,7 @@ _LAYER_ACTIONS = [
     ("planet_names", "Nomes dos planetas", None, True),
     ("dso_names", "Rótulos do céu profundo", None, True),
     ("dso_images", "Imagens dos objetos (DSS) no céu", "I", False),
+    ("below_horizon", "Ver o céu abaixo do horizonte", "V", False),
     ("atmosphere", "Atmosfera", "A", True),
     ("refraction", "Refração atmosférica", "R", True),
 ]
@@ -227,6 +229,45 @@ class MainWindow(QMainWindow):
             m_mag.addAction(act)
 
         m_view.addSeparator()
+        m_const = m_view.addMenu(self.tr("Nomes das constelações"))
+        const_group = QActionGroup(self)
+        for label, mode in (
+            (self.tr("Não exibir"), "none"),
+            (self.tr("Português"), "pt"),
+            (self.tr("Latim (oficial)"), "latin"),
+            (self.tr("Abreviado (IAU)"), "abbr"),
+        ):
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(const_group)
+            act.triggered.connect(
+                lambda _c=False, mm=mode: self.sky.set_const_label_mode(mm)
+            )
+            if mode == "none":
+                act.setChecked(True)
+            m_const.addAction(act)
+
+        m_bortle = m_view.addMenu(self.tr("Poluição luminosa (Bortle)"))
+        bortle_group = QActionGroup(self)
+        bortle_desc = {
+            1: "1 — céu perfeito", 2: "2 — céu muito escuro",
+            3: "3 — céu rural", 4: "4 — transição rural/suburbano",
+            5: "5 — céu suburbano", 6: "6 — subúrbio claro",
+            7: "7 — transição subúrbio/cidade", 8: "8 — céu urbano",
+            9: "9 — centro de cidade",
+        }
+        for level, label in bortle_desc.items():
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(bortle_group)
+            act.triggered.connect(
+                lambda _c=False, lv=level: self._set_bortle(lv)
+            )
+            if level == 1:
+                act.setChecked(True)
+            m_bortle.addAction(act)
+
+        m_view.addSeparator()
         self.act_chart = QAction(self.tr("Modo mapa para impressão"), self)
         self.act_chart.setCheckable(True)
         self.act_chart.setShortcut("Ctrl+M")
@@ -242,20 +283,14 @@ class MainWindow(QMainWindow):
         m_dso.addAction(act_manage)
 
         m_dso.addSeparator()
-        m_cat = m_dso.addMenu(self.tr("Catálogos exibidos"))
-        self._catalog_acts = {}
-        for key, label in (
-            ("M", "Messier"), ("C", "Caldwell"), ("NGC", "NGC"), ("IC", "IC"),
-            ("SH2", "Sharpless"), ("B", "Barnard"), ("Mel", "Melotte"),
-        ):
-            act = QAction(label, self)
-            act.setCheckable(True)
-            act.setChecked(True)
-            act.toggled.connect(
-                lambda on, k=key: self._on_catalog_toggled(k, on)
-            )
-            m_cat.addAction(act)
-            self._catalog_acts[key] = act
+        act_cats = QAction(self.tr("Configurar catálogos exibidos…"), self)
+        act_cats.setShortcut("Ctrl+Shift+C")
+        act_cats.triggered.connect(self._open_catalogs)
+        m_dso.addAction(act_cats)
+        act_details = QAction(self.tr("Detalhes do objeto selecionado…"), self)
+        act_details.setShortcut("Ctrl+Shift+D")
+        act_details.triggered.connect(self._open_object_window)
+        m_dso.addAction(act_details)
 
         m_dso.addSeparator()
         self.act_caldwell = QAction(
@@ -286,6 +321,20 @@ class MainWindow(QMainWindow):
         act_track.setShortcut("Ctrl+R")
         act_track.triggered.connect(self._open_track)
         m_tools.addAction(act_track)
+        m_tools.addSeparator()
+        act_paths = QAction(self.tr("Caminho dos planetas (365 dias)…"), self)
+        act_paths.triggered.connect(self._open_planet_paths)
+        m_tools.addAction(act_paths)
+        act_clear_paths = QAction(self.tr("Limpar caminhos dos planetas"), self)
+        act_clear_paths.triggered.connect(
+            lambda: self.sky.set_planet_paths([])
+        )
+        m_tools.addAction(act_clear_paths)
+        m_tools.addSeparator()
+        act_print = QAction(self.tr("Gerar mapa para impressão…"), self)
+        act_print.setShortcut("Ctrl+Shift+P")
+        act_print.triggered.connect(self._open_print_map)
+        m_tools.addAction(act_print)
 
         m_info = bar.addMenu(self.tr("&Informações"))
         act_night = QAction(self.tr("Crepúsculos e noite…"), self)
@@ -386,6 +435,7 @@ class MainWindow(QMainWindow):
             "search": self._open_search,
             "track": self._open_track,
             "fov": self._open_fov,
+            "print": self._open_print_map,
             "info": self._open_night_info,
         }[kind]()
 
@@ -552,6 +602,132 @@ class MainWindow(QMainWindow):
         dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
         dlg.goto_requested.connect(self.sky.goto_object)
         dlg.exec()
+
+    def _set_bortle(self, level: int) -> None:
+        self.sky.set_bortle(level)
+        self.statusBar().showMessage(
+            self.tr("Poluição luminosa: Bortle {n} — mag. limite a olho nu "
+                    "{m:.1f}").format(n=level, m=self.sky.BORTLE_NELM[level]),
+            6000,
+        )
+
+    def _open_catalogs(self) -> None:
+        from .catalog_dialog import CatalogDialog
+
+        dlg = CatalogDialog(self.dso_catalog, self)
+        dlg.changed.connect(self.sky.update)
+        dlg.exec()
+        self.sky.update()
+
+    def _open_planet_paths(self) -> None:
+        """Traça o caminho dos planetas nos próximos 365 dias (item 8)."""
+        from ..core.engine import _BODIES
+        from ..core.planetpath import compute_path
+
+        names = [n for n, _k, _c in _BODIES if n not in ("Sol", "Lua")]
+        chosen, ok = QInputDialog.getItem(
+            self, self.tr("Caminho dos planetas"),
+            self.tr("Planeta (365 dias a partir da data da simulação):"),
+            [self.tr("Todos os planetas")] + names, 0, False,
+        )
+        if not ok:
+            return
+        targets = names if chosen == self.tr("Todos os planetas") else [chosen]
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            start = self.engine.time.current_datetime()
+            paths = [
+                compute_path(self.engine, name, start, days=365)
+                for name in targets
+            ]
+        finally:
+            QApplication.restoreOverrideCursor()
+        self.sky.set_planet_paths(paths)
+        total_events = sum(len(p.events) for p in paths)
+        self.statusBar().showMessage(
+            self.tr("{n} trajetória(s) traçada(s) · {e} evento(s) "
+                    "(oposições, conjunções, elongações)")
+            .format(n=len(paths), e=total_events), 8000,
+        )
+
+    def _open_print_map(self) -> None:
+        """Abre o editor de mapa para impressão com a vista atual."""
+        was_chart = self.sky.chart_mode
+        if not was_chart:
+            self.sky.set_chart_mode(True)
+            self.sky.repaint()
+        image = self.sky.grabFramebuffer()
+        if not was_chart:
+            self.sky.set_chart_mode(False)
+
+        from .print_window import PrintMapWindow
+
+        loc = self.settings.location().name
+        when = self.engine.time.current_datetime().astimezone()
+        win = PrintMapWindow(
+            image, f"{loc} — {when:%d/%m/%Y %H:%M}", self
+        )
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._track_windows.append(win)
+        win.show()
+
+    def _open_object_window(self) -> None:
+        """Janela de detalhes do objeto selecionado (item 3)."""
+        import math as _math
+
+        from ..catalogs import images as image_store
+        from .object_window import ObjectWindow, yearly_altitude
+
+        selection = self.sky.selection
+        if selection is None:
+            QMessageBox.information(
+                self, "Carina",
+                self.tr("Selecione um objeto (clique no céu ou use Ctrl+F)."),
+            )
+            return
+        kind, key = selection
+        html = build_info_html(
+            selection, self.engine, self.star_catalog, self.const_names,
+            self.dso_catalog,
+        )
+        icrs = None
+        title = str(key)
+        image_path = None
+        if kind == "dso":
+            data = self.dso_catalog.get(int(key))
+            if data is None:
+                return
+            title = data["name"]
+            cd = _math.cos(data["dec"])
+            icrs = [cd * _math.cos(data["ra"]), cd * _math.sin(data["ra"]),
+                    _math.sin(data["dec"])]
+            image_path = image_store.image_path_for(data["name"])
+        elif kind == "star":
+            idx = int(key)
+            title = (self.star_catalog.proper.get(idx)
+                     or self.star_catalog.label(idx, "bayer") or f"HIP {idx}")
+            icrs = self.star_catalog.xyz[idx]
+        else:
+            QMessageBox.information(
+                self, "Carina",
+                self.tr("O gráfico anual vale para objetos fixos; corpos do "
+                        "Sistema Solar mudam de posição. Use Ferramentas → "
+                        "Caminho dos planetas."),
+            )
+            return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            dates, alt_mid, alt_max = yearly_altitude(
+                self.engine, icrs, self.engine.time.current_datetime()
+            )
+        finally:
+            QApplication.restoreOverrideCursor()
+        win = ObjectWindow(title, html, image_path, dates, alt_mid, alt_max,
+                           self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._track_windows.append(win)
+        win.show()
 
     def _open_fov(self) -> None:
         """Simulador de campo de visão dos equipamentos (item 7)."""

@@ -95,6 +95,9 @@ class StarCatalog:
         self.dec: np.ndarray = npz["dec"]
         self.colors = _bv_to_rgb(self.ci)                        # (N,3)
 
+        self.deep_xyz = None
+        self.load_deep(data_dir)
+
         names = json.loads((data_dir / "star_names.json").read_text("utf-8"))
         self.proper: dict[int, str] = {i: n for i, n in names["proper"]}
         self.bayer: dict[int, str] = {i: n for i, n in names["bayer"]}
@@ -103,6 +106,27 @@ class StarCatalog:
         # Índices já vêm em ordem de magnitude: os primeiros são os mais brilhantes.
         self.proper_idx = np.array(sorted(self.proper), dtype=np.int64)
         self.bayer_idx = np.array(sorted(self.bayer), dtype=np.int64)
+
+    def load_deep(self, data_dir: Path) -> bool:
+        """Carrega o catálogo profundo (Tycho-2 via ATHYG), se presente.
+
+        São estrelas fracas sem nomes, usadas apenas quando o zoom permite
+        magnitudes além do alcance do HYG.
+        """
+        path = data_dir / "stars_deep.npz"
+        if not path.exists():
+            self.deep_xyz = None
+            return False
+        npz = np.load(path)
+        self.deep_xyz = npz["xyz"].astype(np.float32)
+        self.deep_mag = npz["mag"]
+        self.deep_colors = _bv_to_rgb(npz["ci"])
+        return True
+
+    def deep_count_brighter_than(self, mag_limit: float) -> int:
+        if getattr(self, "deep_xyz", None) is None:
+            return 0
+        return int(np.searchsorted(self.deep_mag, mag_limit, side="right"))
 
     def __len__(self) -> int:
         return len(self.mag)

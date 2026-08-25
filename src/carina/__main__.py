@@ -30,9 +30,16 @@ def _parse_args(argv):
     parser.add_argument("--select", metavar="NOME", default=None,
                         help="seleciona um objeto ao abrir (nome próprio ou corpo)")
     parser.add_argument(
-        "--dialog", choices=["dso", "search", "eclipses", "track", "fov"],
+        "--dialog",
+        choices=["dso", "search", "eclipses", "track", "fov", "object",
+                 "catalogs", "print", "night"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
+    parser.add_argument("--planet-path", metavar="NOME", default=None,
+                        help="traça o caminho anual de um planeta (testes)")
+    parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--const-names", default=None,
+                        choices=["none", "pt", "latin", "abbr"])
     parser.add_argument("--demo-fov", metavar="TEL,CAM", default=None,
                         help="aplica um campo de visão ao céu (testes)")
     parser.add_argument("--dialog-text", default=None,
@@ -82,7 +89,27 @@ def main(argv=None) -> int:
         win.sky.set_layer(layer_name, True)
 
     if args.chart:
-        win.control_panel.btn_chart.setChecked(True)
+        win.side_bar.btn_chart.setChecked(True)
+    if args.bortle:
+        win.sky.set_bortle(args.bortle)
+    if args.const_names:
+        win.sky.set_const_label_mode(args.const_names)
+    if args.planet_path:
+        from .core.planetpath import compute_path
+
+        names = ([args.planet_path] if args.planet_path != "todos"
+                 else ["Mercúrio", "Vênus", "Marte", "Júpiter", "Saturno"])
+        paths = [
+            compute_path(win.engine, n, win.engine.time.current_datetime(),
+                         days=365)
+            for n in names
+        ]
+        for p in paths:
+            print(f"{p.name}: {len(p.points)} pontos, {len(p.marks)} marcas, "
+                  f"{len(p.events)} eventos")
+            for ev in p.events:
+                print(f"   {ev.when_utc:%d/%m/%Y} {ev.kind} {ev.value:.1f}graus")
+        win.sky.set_planet_paths(paths)
 
     def _apply_demo_measure() -> None:
         """Injeta uma medição entre dois objetos (só para testes visuais).
@@ -196,6 +223,24 @@ def main(argv=None) -> int:
         dialog.show()
     elif args.dialog == "track":
         win._open_track()
+        dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "object":
+        win._open_object_window()
+        dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "catalogs":
+        from .ui.catalog_dialog import CatalogDialog
+
+        dialog = CatalogDialog(win.dso_catalog, win)
+        dialog.show()
+    elif args.dialog == "night":
+        from .ui.night_dialog import NightInfoDialog
+
+        dialog = NightInfoDialog(
+            win.engine, win.settings.location().name, win
+        )
+        dialog.show()
+    elif args.dialog == "print":
+        win._open_print_map()
         dialog = win._track_windows[-1] if win._track_windows else None
     elif args.dialog == "fov":
         from .catalogs.equipment import EquipmentStore

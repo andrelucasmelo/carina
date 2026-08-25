@@ -111,6 +111,19 @@ def _icon(kind: str) -> QIcon:
     elif kind == "search":
         p.drawEllipse(QRectF(4, 4, 13, 13))
         p.drawLine(16, 16, 22, 22)
+    elif kind == "below":
+        # horizonte com céu acima e abaixo
+        p.drawLine(3, 13, 23, 13)
+        p.setBrush(fg)
+        for x, y, r in ((8, 7, 2.4), (16, 6, 1.8), (12, 9, 1.6)):
+            p.drawEllipse(QRectF(x - r / 2, y - r / 2, r, r))
+        p.setBrush(Qt.NoBrush)
+        for x, y, r in ((9, 19, 2.0), (17, 20, 1.6), (13, 17, 1.4)):
+            p.drawEllipse(QRectF(x - r / 2, y - r / 2, r, r))
+    elif kind == "print":
+        p.drawRect(QRectF(7, 4, 12, 6))
+        p.drawRect(QRectF(4, 10, 18, 8))
+        p.drawRect(QRectF(7, 17, 12, 6))
     elif kind == "info":
         p.drawEllipse(QRectF(4, 4, 18, 18))
         p.setFont(QFont("Segoe UI", 11, QFont.Bold))
@@ -212,9 +225,19 @@ class SideToolBar(QWidget):
 
         layout.addWidget(self._separator())
 
+        btn_below = self._button(
+            "below", "Ver o céu abaixo do horizonte", checkable=True
+        )
+        btn_below.toggled.connect(
+            lambda on: self.layerToggled.emit("below_horizon", on)
+        )
+        layout.addWidget(btn_below)
+        self.layer_buttons["below_horizon"] = btn_below
+
         for kind, tip in (
             ("search", "Buscar objeto"), ("track", "Rastrear na noite"),
-            ("fov", "Campo de visão"), ("info", "Crepúsculos e noite"),
+            ("fov", "Campo de visão"), ("print", "Mapa para impressão"),
+            ("info", "Crepúsculos e noite"),
         ):
             btn = self._button(kind, tip)
             btn.clicked.connect(lambda _c=False, k=kind: self.action.emit(k))

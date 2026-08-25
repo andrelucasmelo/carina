@@ -47,6 +47,8 @@ DEFAULT_LAYERS = {
     "planet_names": True,
     "atmosphere": True,
     "refraction": True,
+    "below_horizon": False,   # mostrar o céu abaixo do horizonte
+    "const_names": False,
     "dso": True,
     "dso_names": True,
     "dso_images": False,
@@ -169,14 +171,34 @@ class SkyWidget(QOpenGLWidget):
         self.prefer_caldwell = True    # C 14 em vez de NGC 7000
         self.location_name = ""
         self.mag_cap: float | None = None   # limite manual de magnitude
+        self.bortle: int = 1                # 1 = céu perfeito … 9 = centro urbano
+        self.const_label_mode = "none"      # none | pt | latin | abbr
+        self.planet_paths: list = []        # trajetórias anuais (item 8)
         self.chart_mode = False             # modo mapa para impressão
         self.mouse_mode = "pan"             # 'pan' | 'measure' | 'zoom_rect'
         self._measure: dict | None = None   # medição angular ativa
         self._rubber: list | None = None    # retângulo de zoom
         self._label_hits: list = []         # (rect lógico, seleção)
+        self._path_marks: list = []         # rótulos das trajetórias
         self.fov_shapes: list = []          # campos de equipamentos (item 7)
         self.fov_angle: float = 0.0         # rotação do campo (rad)
         self.fov_follow_selection = True
+
+        # centros das constelações para os rótulos (item 5)
+        self.const_info = skygeometry.load_constellation_info(data_dir)
+        self.const_centers = np.array(
+            [
+                [
+                    math.cos(math.radians(c["dec"]))
+                    * math.cos(math.radians(c["ra"])),
+                    math.cos(math.radians(c["dec"]))
+                    * math.sin(math.radians(c["ra"])),
+                    math.sin(math.radians(c["dec"])),
+                ]
+                for c in self.const_info
+            ],
+            dtype=np.float32,
+        ) if self.const_info else np.zeros((0, 3), dtype=np.float32)
 
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
         self.const_bounds = skygeometry.load_constellation_bounds(data_dir)
@@ -276,8 +298,12 @@ class SkyWidget(QOpenGLWidget):
         noon = np.array([0.33, 0.55, 0.83])
         bg = night + (dusk - night) * twilight
         bg = bg + (noon - bg) * day
+        # brilho do céu por poluição luminosa (tom alaranjado das lâmpadas)
+        glow = self.BORTLE_GLOW[self.bortle]
+        if glow:
+            bg = bg + glow * np.array([1.00, 0.72, 0.42])
         fade = max(0.04, 1.0 - 0.85 * twilight - 0.15 * day)
-        return bg, fade, day
+        return np.clip(bg, 0.0, 1.0), fade, day
 
     # ------------------------------------------------------------------
     def _refract(self, vecs: np.ndarray) -> np.ndarray:
@@ -308,12 +334,35 @@ class SkyWidget(QOpenGLWidget):
         """Projeção de conteúdo celeste: refração + câmera."""
         return self.camera.project(self._refract(vecs), margin=margin)
 
+    # Magnitude-limite a olho nu por classe de Bortle (escala clássica) e
+    # brilho do fundo do céu correspondente, usado para simular a poluição.
+    BORTLE_NELM = {
+        1: 7.8, 2: 7.4, 3: 7.0, 4: 6.5, 5: 6.0, 6: 5.5, 7: 5.0, 8: 4.5,
+        9: 4.0,
+    }
+    BORTLE_GLOW = {
+        1: 0.000, 2: 0.006, 3: 0.014, 4: 0.026, 5: 0.042, 6: 0.062,
+        7: 0.086, 8: 0.115, 9: 0.150,
+    }
+
     def _mag_limit(self) -> float:
         fov_deg = math.degrees(self.camera.fov)
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
+        # a poluição luminosa corta as estrelas fracas: o desconto é a
+        # diferença entre o céu perfeito (Bortle 1) e a classe escolhida
+        auto -= self.BORTLE_NELM[1] - self.BORTLE_NELM[self.bortle]
         if self.mag_cap is not None:
             return min(auto, self.mag_cap)
         return auto
+
+    def set_bortle(self, value: int) -> None:
+        self.bortle = max(1, min(9, int(value)))
+        self.update()
+
+    def set_const_label_mode(self, mode: str) -> None:
+        self.const_label_mode = mode
+        self.layers["const_names"] = mode != "none"
+        self.update()
 
     def set_mag_cap(self, value: float | None) -> None:
         self.mag_cap = value
@@ -449,6 +498,10 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["planets"]:
             bodies_px = self._draw_bodies(t, m)
 
+        # --- trajetórias anuais dos planetas (item 8) ---
+        if self.planet_paths:
+            self._draw_planet_paths(m)
+
         # --- zona de influência da Lua para astrofotografia (item 5) ---
         if self.layers["moon_zone"]:
             self._draw_moon_zone(t)
@@ -459,7 +512,8 @@ class SkyWidget(QOpenGLWidget):
         self._pick_dso = dso_px[:3] if dso_px is not None else None
 
         # --- solo opaco (cobre o que está abaixo do horizonte) ---
-        ground_on = self.layers["ground"]
+        # o modo "ver abaixo do horizonte" suprime o solo e marca a divisão
+        ground_on = self.layers["ground"] and not self.layers["below_horizon"]
         if ground_on:
             # descarta triângulos totalmente atrás da câmera: com o clamp da
             # projeção eles se espalhariam cobrindo a tela inteira
@@ -558,7 +612,8 @@ class SkyWidget(QOpenGLWidget):
             below = np.empty(2 * n, dtype=bool)
             below[0::2] = a[:, 2] < 0.0
             below[1::2] = b[:, 2] < 0.0
-            out[below[good], 5] *= 0.3
+            factor = 0.6 if self.layers.get("below_horizon", False) else 0.3
+            out[below[good], 5] *= factor
         return out
 
     def _draw_stars(self, m: np.ndarray, fade: float):
@@ -581,7 +636,8 @@ class SkyWidget(QOpenGLWidget):
         alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
         below = vecs[idx, 2] < 0.0
-        alpha = np.where(below, alpha * 0.15, alpha)
+        dim_below = 0.45 if self.layers.get("below_horizon", False) else 0.15
+        alpha = np.where(below, alpha * dim_below, alpha)
         keep = alpha > 0.02
         idx = idx[keep]
         if len(idx) == 0:
@@ -598,6 +654,41 @@ class SkyWidget(QOpenGLWidget):
             data[:, 6] = alpha[keep]
         self.renderer.draw_points(data)
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
+
+        # --- catálogo profundo (Tycho-2): só quando o zoom pede mag > 8,5 ---
+        if cat.deep_xyz is not None and m_lim > 8.6:
+            nd = cat.deep_count_brighter_than(m_lim)
+            if nd:
+                dv = self._refract(cat.deep_xyz[:nd] @ m.T)
+                dx, dy, dvis = cam.project(dv, margin=16.0)
+                didx = np.nonzero(dvis)[0]
+                if len(didx):
+                    if len(didx) > 60000:      # teto de segurança por quadro
+                        didx = didx[:60000]
+                    drel = np.maximum(0.0, m_lim - cat.deep_mag[didx])
+                    dsize = np.minimum(
+                        26.0, 1.1 + 0.68 * drel ** 1.58
+                    ).astype(np.float32)
+                    dalpha = (
+                        np.clip(0.26 + 0.17 * drel, 0.0, 1.0).astype(np.float32)
+                        * fade
+                    )
+                    dbelow = dv[didx, 2] < 0.0
+                    if self.layers.get("below_horizon", False):
+                        dalpha = np.where(dbelow, dalpha * 0.45, dalpha)
+                    else:
+                        dalpha = np.where(dbelow, dalpha * 0.15, dalpha)
+                    ddata = np.empty((len(didx), 7), dtype=np.float32)
+                    ddata[:, 0] = dx[didx]
+                    ddata[:, 1] = dy[didx]
+                    ddata[:, 2] = dsize
+                    if self.chart_mode:
+                        ddata[:, 3:6] = 0.05
+                        ddata[:, 6] = np.clip(dalpha * 1.6, 0.0, 1.0)
+                    else:
+                        ddata[:, 3:6] = cat.deep_colors[didx]
+                        ddata[:, 6] = dalpha
+                    self.renderer.draw_points(ddata)
         return idx, x, y, below_map
 
     def _draw_dso_images(self, m: np.ndarray, fade: float) -> None:
@@ -823,6 +914,59 @@ class SkyWidget(QOpenGLWidget):
                 seg[:, 2:] = color
                 self.renderer.draw_lines(seg)
 
+    def set_planet_paths(self, paths: list) -> None:
+        self.planet_paths = list(paths)
+        self.update()
+
+    def _draw_planet_paths(self, m: np.ndarray) -> None:
+        """Desenha o caminho anual dos planetas entre as constelações."""
+        cam = self.camera
+        palette = [
+            (0.95, 0.65, 0.35), (0.60, 0.85, 0.95), (0.95, 0.55, 0.55),
+            (0.75, 0.95, 0.60), (0.90, 0.80, 0.45), (0.70, 0.70, 0.95),
+        ]
+        self._path_marks = []
+        for k, path in enumerate(self.planet_paths):
+            color = palette[k % len(palette)]
+            pts = np.array([p.vec for p in path.points], dtype=np.float64)
+            if len(pts) < 2:
+                continue
+            scr = self._refract(pts @ m.T.astype(np.float64))
+            x, y, vis = cam.project(scr, margin=64.0)
+            ok = vis[:-1] & vis[1:]
+            idx = np.nonzero(ok)[0]
+            if len(idx):
+                out = np.empty((2 * len(idx), 6), dtype=np.float32)
+                out[0::2, 0] = x[idx]
+                out[0::2, 1] = y[idx]
+                out[1::2, 0] = x[idx + 1]
+                out[1::2, 1] = y[idx + 1]
+                out[:, 2:5] = color
+                # trechos retrógrados ficam mais tênues
+                retro = np.array(
+                    [path.points[i].retrograde for i in idx], dtype=bool
+                )
+                alpha = np.where(retro, 0.45, 0.9).astype(np.float32)
+                out[0::2, 5] = alpha
+                out[1::2, 5] = alpha
+                self.renderer.draw_lines(out)
+
+            # marcadores de data e eventos (guardados para os rótulos)
+            marks = [i for i in path.marks if vis[i]]
+            for i in marks:
+                cxm, cym = float(x[i]), float(y[i])
+                ring = np.empty((8, 6), dtype=np.float32)
+                pts4 = [(-3, 0, 3, 0), (0, -3, 0, 3)]
+                seg = []
+                for dx0, dy0, dx1, dy1 in pts4:
+                    seg += [[cxm + dx0, cym + dy0], [cxm + dx1, cym + dy1]]
+                ring = np.empty((len(seg), 6), dtype=np.float32)
+                ring[:, :2] = np.asarray(seg, dtype=np.float32)
+                ring[:, 2:5] = color
+                ring[:, 5] = 0.95
+                self.renderer.draw_lines(ring)
+            self._path_marks.append((path, x, y, vis, color, marks))
+
     def _draw_moon_zone(self, t) -> None:
         """Anéis da zona de influência da Lua (regra prática por iluminação).
 
@@ -1003,6 +1147,78 @@ class SkyWidget(QOpenGLWidget):
                     placer.place(tx, ty, fm.horizontalAdvance(name),
                                  fm.height(), force=True)
                     painter.drawText(tx, ty, name)
+
+        # datas e eventos das trajetórias planetárias (item 8)
+        if self._path_marks:
+            from ..core.planetpath import EVENT_LABEL
+
+            font_small = QFont("Segoe UI", 7)
+            painter.setFont(font_small)
+            fm_s = QFontMetrics(font_small)
+            for path, px, py, vis, color, marks in self._path_marks:
+                pen = QColor(
+                    int(color[0] * 255), int(color[1] * 255),
+                    int(color[2] * 255),
+                )
+                painter.setPen(pen)
+                for i in marks:
+                    when = path.points[i].when_utc.astimezone()
+                    text = when.strftime("%d/%m")
+                    w_t, h_t = fm_s.horizontalAdvance(text), fm_s.height()
+                    tx, ty = int(px[i] / dpr) + 5, int(py[i] / dpr) - 4
+                    if placer.place(tx, ty, w_t, h_t):
+                        painter.drawText(tx, ty, text)
+                # eventos: rótulo destacado
+                painter.setFont(QFont("Segoe UI", 8, QFont.Bold))
+                for ev in path.events:
+                    xe, ye, ve = self.camera.project(
+                        self._refract(ev.vec[np.newaxis, :]), margin=40.0
+                    )
+                    if not ve[0]:
+                        continue
+                    label = (
+                        f"{path.name}: {EVENT_LABEL.get(ev.kind, ev.kind)} "
+                        f"{ev.when_utc.astimezone():%d/%m}"
+                    )
+                    if ev.kind.startswith("elong"):
+                        label += f" ({ev.value:.0f}°)"
+                    tx, ty = int(xe[0] / dpr) + 8, int(ye[0] / dpr) + 14
+                    painter.setPen(QColor(20, 22, 28))
+                    painter.drawText(tx + 1, ty + 1, label)
+                    painter.setPen(pen)
+                    painter.drawText(tx, ty, label)
+                painter.setFont(font_small)
+
+        # nomes das constelações (item 5: português, latim ou abreviado)
+        if (self.layers.get("const_names") and self.const_label_mode != "none"
+                and len(self.const_centers)):
+            from ..catalogs.constnames import label_for
+
+            m_const = self.engine.horizontal_matrix(
+                self.engine.time.current()
+            ).astype(np.float32)
+            cv = self.const_centers @ m_const.T
+            cx_, cy_, cvis = self.camera.project(cv, margin=40.0)
+            font = QFont("Segoe UI", 10, QFont.DemiBold)
+            painter.setFont(font)
+            fm = QFontMetrics(font)
+            pen = (QColor(70, 90, 120) if self.chart_mode
+                   else QColor(120, 150, 190))
+            painter.setPen(pen)
+            for i, info in enumerate(self.const_info):
+                if not cvis[i]:
+                    continue
+                if ground_on and cv[i, 2] < 0:
+                    continue
+                text = label_for(
+                    info.get("id", ""), self.const_label_mode,
+                    info.get("name", ""),
+                )
+                w_text, h_text = fm.horizontalAdvance(text), fm.height()
+                tx = int(cx_[i] / dpr) - w_text // 2
+                ty = int(cy_[i] / dpr)
+                if placer.place(tx, ty, w_text, h_text):
+                    painter.drawText(tx, ty, text)
 
         # nomes dos corpos do Sistema Solar
         if self.layers["planet_names"] and bodies_px:

@@ -18,6 +18,17 @@ import numpy as np
 # Ordem de preferência da designação principal
 CATALOG_ORDER = ["M", "NGC", "IC", "C", "SH2", "B", "Mel"]
 
+# Catálogos acrescentados depois: entram DESABILITADOS por padrão
+EXTRA_CATALOGS = ["LDN", "Cr", "VdB", "Abell"]
+ALL_CATALOGS = CATALOG_ORDER + EXTRA_CATALOGS
+
+CATALOG_LABELS = {
+    "M": "Messier", "NGC": "NGC", "IC": "IC", "C": "Caldwell",
+    "SH2": "Sharpless (SH2)", "B": "Barnard", "Mel": "Melotte",
+    "LDN": "Lynds Dark Nebulae (LDN)", "Cr": "Collinder (Cr)",
+    "VdB": "van den Bergh (vdB)", "Abell": "Abell",
+}
+
 KLASS_CODES = {"GAL": 0, "OC": 1, "GC": 2, "NEB": 3, "PN": 4, "DARK": 5, "OTHER": 6}
 
 TYPE_PT = {
@@ -43,7 +54,8 @@ class DsoCatalog:
                  visible_catalogs: set[str] | None = None) -> None:
         self.bundled_db = bundled_db
         self.user_db = user_db
-        # filtro de exibição por catálogo inteiro (M, C, NGC, IC, SH2, B, Mel)
+        # filtro de exibição por catálogo inteiro; os catálogos acrescentados
+        # depois (LDN, Cr, VdB, Abell) nascem desligados
         self.visible_catalogs: set[str] = (
             set(CATALOG_ORDER) if visible_catalogs is None
             else set(visible_catalogs)
@@ -80,7 +92,7 @@ class DsoCatalog:
             " FROM objects o WHERE enabled = 1"
         )
         params: list = []
-        if self.visible_catalogs != set(CATALOG_ORDER):
+        if self.visible_catalogs != set(ALL_CATALOGS):
             marks = ",".join("?" * len(self.visible_catalogs)) or "''"
             # visível se: adicionado pelo usuário, sem designação alguma, ou
             # com ao menos uma designação de catálogo habilitado
