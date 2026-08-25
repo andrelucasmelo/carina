@@ -222,6 +222,39 @@ class GLRenderer:
         GL.glBindVertexArray(self.batch_lines.vao)
         GL.glDrawArrays(GL.GL_LINES, 0, len(interleaved))
 
+    def create_texture(self, rgb: np.ndarray, wrap_s=None) -> int:
+        """Cria uma textura RGB8 na GPU e devolve seu identificador."""
+        h, w, _ = rgb.shape
+        rgb = np.ascontiguousarray(rgb, dtype=np.uint8)
+        tex = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
+        prev_align = int(GL.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        GL.glTexImage2D(
+            GL.GL_TEXTURE_2D, 0, GL.GL_RGB8, w, h, 0,
+            GL.GL_RGB, GL.GL_UNSIGNED_BYTE, rgb,
+        )
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, prev_align)
+        GL.glGenerateMipmap(GL.GL_TEXTURE_2D)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER,
+            GL.GL_LINEAR_MIPMAP_LINEAR,
+        )
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR
+        )
+        wrap = wrap_s if wrap_s is not None else GL.GL_CLAMP_TO_EDGE
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, wrap)
+        GL.glTexParameteri(
+            GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE
+        )
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        return int(tex)
+
+    def delete_texture(self, tex: int) -> None:
+        if tex:
+            GL.glDeleteTextures([tex])
+
     def set_mw_texture(self, rgb: np.ndarray) -> None:
         """Envia a textura da Via Láctea (H,W,3 uint8) para a GPU."""
         h, w, _ = rgb.shape
@@ -256,12 +289,16 @@ class GLRenderer:
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
 
     def draw_textured_triangles(self, pos: np.ndarray, uv: np.ndarray,
-                                alpha: float) -> None:
-        """Triângulos texturizados com blending ADITIVO (céu: soma luz).
+                                alpha: float, texture: int | None = None,
+                                additive: bool = False) -> None:
+        """Triângulos texturizados.
 
         pos (3T,2) px · uv (3T,2) — trincas consecutivas formam triângulos.
+        ``additive`` soma luz ao fundo (usado nas imagens de céu profundo,
+        onde o preto do levantamento simplesmente não contribui).
         """
-        if len(pos) == 0 or not self.mw_texture:
+        tex_id = self.mw_texture if texture is None else texture
+        if len(pos) == 0 or not tex_id:
             return
         data = np.concatenate(
             [pos.astype(np.float32), uv.astype(np.float32)], axis=1
@@ -276,10 +313,14 @@ class GLRenderer:
         GL.glUniform2f(self.u_vp_tex, self._w, self._h)
         GL.glUniform1i(self.u_tex_sampler, 0)
         GL.glUniform1f(self.u_tex_alpha, float(alpha))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.mw_texture)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, tex_id)
+        if additive:
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE)
         self.batch_tex.upload(data)
         GL.glBindVertexArray(self.batch_tex.vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(data))
+        if additive:
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
 
         GL.glBindTexture(GL.GL_TEXTURE_2D, prev_tex)
         GL.glActiveTexture(prev_unit)

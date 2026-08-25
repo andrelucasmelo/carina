@@ -135,6 +135,60 @@ def build_horizon(densify: float = 1.0) -> PolylineSet:
     return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
 
 
+def load_outlines(data_dir: Path) -> dict[str, list[np.ndarray]]:
+    """Contornos reais de nebulosas: {nome: [ (N,3) vetores ICRS, ... ]}."""
+    path = data_dir / "outlines.json"
+    if not path.exists():
+        return {}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    out: dict[str, list[np.ndarray]] = {}
+    for name, polys in raw.items():
+        shapes = []
+        for poly in polys:
+            arr = np.asarray(poly, dtype=np.float64)
+            ra = np.radians(arr[:, 0])
+            dec = np.radians(arr[:, 1])
+            cd = np.cos(dec)
+            pts = np.stack([cd * np.cos(ra), cd * np.sin(ra), np.sin(dec)],
+                           axis=1)
+            # fecha o anel
+            if not np.allclose(pts[0], pts[-1]):
+                pts = np.vstack([pts, pts[:1]])
+            shapes.append(pts.astype(np.float32))
+        if shapes:
+            out[name] = shapes
+    return out
+
+
+def build_meridian(densify: float = 0.5) -> PolylineSet:
+    """Meridiano local: círculo máximo N → zênite → S → nadir (frame horizontal)."""
+    ang = np.radians(np.arange(0.0, 360.0 + densify, densify))
+    verts = np.stack(
+        [np.cos(ang), np.zeros_like(ang), np.sin(ang)], axis=1
+    ).astype(np.float32)
+    return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
+
+
+def build_ecliptic(densify: float = 0.5) -> PolylineSet:
+    """Eclíptica em coordenadas ICRS (obliquidade J2000 = 23,4393°)."""
+    eps = math.radians(23.439291)
+    lon = np.radians(np.arange(0.0, 360.0 + densify, densify))
+    x = np.cos(lon)
+    y = np.sin(lon) * math.cos(eps)
+    z = np.sin(lon) * math.sin(eps)
+    verts = np.stack([x, y, z], axis=1).astype(np.float32)
+    return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
+
+
+def build_equator(densify: float = 0.5) -> PolylineSet:
+    """Equador celeste (ICRS)."""
+    lon = np.radians(np.arange(0.0, 360.0 + densify, densify))
+    verts = np.stack(
+        [np.cos(lon), np.sin(lon), np.zeros_like(lon)], axis=1
+    ).astype(np.float32)
+    return PolylineSet.from_arrays(verts, np.array([len(verts)], dtype=np.int32))
+
+
 def build_sphere_mesh(n_ra: int = 96, n_dec: int = 48):
     """Malha triangular da esfera celeste com UVs para textura equirretangular.
 

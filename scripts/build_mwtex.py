@@ -48,7 +48,79 @@ def array_to_qimage(arr: np.ndarray) -> QImage:
     return img.copy()  # desacopla do buffer numpy
 
 
-def build(out_w: int, out_h: int, flip_l: bool) -> None:
+def _rank_filter(a: np.ndarray, k: int, op) -> np.ndarray:
+    """Mínimo/máximo local separável (janela k×k).
+
+    Longitude é periódica (roll); latitude usa roll também — aceitável aqui
+    porque as bordas polares da textura são regiões escuras e uniformes.
+    """
+    r = k // 2
+    out = a
+    for axis in (1, 0):
+        acc = out
+        for s in range(1, r + 1):
+            acc = op(acc, np.roll(out, s, axis=axis))
+            acc = op(acc, np.roll(out, -s, axis=axis))
+        out = acc
+    return out
+
+
+def _min_filter(a: np.ndarray, k: int) -> np.ndarray:
+    return _rank_filter(a, k, np.minimum)
+
+
+def _max_filter(a: np.ndarray, k: int) -> np.ndarray:
+    return _rank_filter(a, k, np.maximum)
+
+
+def _box_blur(a: np.ndarray, radius: int) -> np.ndarray:
+    """Box blur separável via soma acumulada (wrap em X, clamp em Y)."""
+    if radius < 1:
+        return a
+    k = 2 * radius + 1
+    # eixo X (longitude): periódico
+    pad = np.concatenate([a[:, -radius:], a, a[:, :radius]], axis=1)
+    cs = np.cumsum(pad, axis=1, dtype=np.float32)
+    cs = np.concatenate([np.zeros((a.shape[0], 1, a.shape[2]), np.float32), cs],
+                        axis=1)
+    a = (cs[:, k:, :] - cs[:, :-k, :]) / k
+    # eixo Y (latitude): replica as bordas
+    pad = np.concatenate(
+        [np.repeat(a[:1], radius, axis=0), a,
+         np.repeat(a[-1:], radius, axis=0)], axis=0
+    )
+    cs = np.cumsum(pad, axis=0, dtype=np.float32)
+    cs = np.concatenate([np.zeros((1, a.shape[1], a.shape[2]), np.float32), cs],
+                        axis=0)
+    return (cs[k:, :, :] - cs[:-k, :, :]) / k
+
+
+def gaussian_blur(a: np.ndarray, sigma: float) -> np.ndarray:
+    """Gaussiano aproximado por três box blurs (teorema do limite central)."""
+    radius = max(1, int(round(sigma * 3 / 2)))
+    out = a.astype(np.float32)
+    for _ in range(3):
+        out = _box_blur(out, radius)
+    return out
+
+
+def remove_stars(rgb: np.ndarray, window: int = 17,
+                 sigma: float = 1.6) -> np.ndarray:
+    """Remove fontes pontuais (estrelas do levantamento) preservando o difuso.
+
+    Abertura morfológica (erosão seguida de dilatação): picos menores que a
+    janela desaparecem; a nebulosidade extensa da Via Láctea permanece. Um
+    gaussiano leve fecha as bordas duras deixadas pela morfologia.
+    """
+    a = rgb.astype(np.float32)
+    opened = _max_filter(_min_filter(a, window), window)
+    # o difuso nunca deve ficar mais claro que o original
+    opened = np.minimum(opened, a)
+    return gaussian_blur(opened, sigma)
+
+
+def build(out_w: int, out_h: int, flip_l: bool, clean: bool = True,
+          sigma: float = 2.2, window: int = 17) -> None:
     if not SRC.exists():
         raise SystemExit(f"Panorâmica não encontrada: {SRC}")
     src = qimage_to_array(QImage(str(SRC)))
@@ -90,9 +162,19 @@ def build(out_w: int, out_h: int, flip_l: bool) -> None:
         + s[y1, x0] * (1 - fx) * fy
         + s[y1, x1] * fx * fy
     )
+    out = np.clip(out, 0, 255)
+    if clean:
+        before = out.mean(axis=2)
+        out = remove_stars(out, window=window, sigma=sigma)
+        after = out.mean(axis=2)
+        print(
+            f"limpeza: janela={window}px sigma={sigma} · "
+            f"pico {before.max():.0f} -> {after.max():.0f} · "
+            f"média {before.mean():.1f} -> {after.mean():.1f}"
+        )
     img = array_to_qimage(np.clip(out, 0, 255).astype(np.uint8))
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    img.save(str(OUT), "JPG", 88)
+    img.save(str(OUT), "JPG", 90)
     print(f"gravado: {OUT} ({OUT.stat().st_size:,} bytes)")
 
 
@@ -101,9 +183,14 @@ def main() -> int:
     parser.add_argument("--size", default="4096x2048")
     parser.add_argument("--flip", action="store_true",
                         help="inverte o sentido da longitude galáctica")
+    parser.add_argument("--raw", action="store_true",
+                        help="não remove estrelas nem suaviza")
+    parser.add_argument("--sigma", type=float, default=2.2)
+    parser.add_argument("--window", type=int, default=17)
     args = parser.parse_args()
     w, h = (int(v) for v in args.size.lower().split("x"))
-    build(w, h, args.flip)
+    build(w, h, args.flip, clean=not args.raw, sigma=args.sigma,
+          window=args.window)
     return 0
 
 

@@ -66,6 +66,9 @@ class TrackSettings:
     marker_every_min: int = 30      # marcadores (item C)
     show_year: bool = True          # item G
     dark_theme: bool = True
+    # False = bússola (N em cima, L à direita, sentido horário N→L→S→O);
+    # True  = vista do céu (L à esquerda), como um planisfério erguido.
+    mirror_sky: bool = False
 
     def color_for(self, alt_deg: float, moon_affected: bool) -> QColor:
         if moon_affected and self.use_moon_color:
@@ -142,11 +145,15 @@ class TrackCanvas(QWidget):
         cx = rect.center().x()
         cy = (top + bottom) / 2.0
 
+        # raio ∝ (90° − altitude): centro = zênite, borda = horizonte.
+        # ângulo = azimute a partir do N (topo); o sentido depende da
+        # convenção escolhida (bússola por padrão).
+        side = -1.0 if s.mirror_sky else 1.0
+
         def to_xy(az_rad: float, alt_deg: float) -> QPointF:
             r = radius * (1.0 - max(0.0, min(90.0, alt_deg)) / 90.0)
-            # N no topo, L à esquerda (vista do céu, não do mapa do chão)
             return QPointF(
-                cx - r * math.sin(az_rad), cy - r * math.cos(az_rad)
+                cx + side * r * math.sin(az_rad), cy - r * math.cos(az_rad)
             )
 
         # --- círculos de altitude ---
@@ -188,7 +195,7 @@ class TrackCanvas(QWidget):
                 ("S", 180), ("SO", 225), ("O", 270), ("NO", 315),
             ):
                 ar = math.radians(az_deg)
-                px = cx - (radius + 22) * math.sin(ar)
+                px = cx + side * (radius + 22) * math.sin(ar)
                 py = cy - (radius + 22) * math.cos(ar)
                 box = QRectF(px - 16, py - 10, 32, 20)
                 taken.append(box)
@@ -403,6 +410,13 @@ class TrackSettingsDialog(QDialog):
         self.chk_year.setChecked(self.s.show_year)
         self.chk_dark = QCheckBox(self.tr("Tema escuro"))
         self.chk_dark.setChecked(self.s.dark_theme)
+        self.chk_mirror = QCheckBox(
+            self.tr("Vista do céu (Leste à esquerda, como um planisfério)")
+        )
+        self.chk_mirror.setToolTip(
+            self.tr("Desmarcado: orientação de bússola (Leste à direita)")
+        )
+        self.chk_mirror.setChecked(self.s.mirror_sky)
         gform.addRow(self.chk_alt_grid)
         gform.addRow(self.tr("Passo de altitude:"), self.spin_alt_step)
         gform.addRow(self.chk_az_grid)
@@ -412,6 +426,7 @@ class TrackSettingsDialog(QDialog):
         gform.addRow(self.tr("Horários a cada:"), self.combo_label)
         gform.addRow(self.chk_year)
         gform.addRow(self.chk_dark)
+        gform.addRow(self.chk_mirror)
         layout.addWidget(grid)
 
         buttons = QDialogButtonBox(
@@ -460,6 +475,7 @@ class TrackSettingsDialog(QDialog):
         s.label_every_min = int(self.combo_label.currentData())
         s.show_year = self.chk_year.isChecked()
         s.dark_theme = self.chk_dark.isChecked()
+        s.mirror_sky = self.chk_mirror.isChecked()
         self.accept()
 
 

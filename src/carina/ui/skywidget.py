@@ -23,6 +23,9 @@ COL_GRID_EQ = (0.30, 0.40, 0.65, 0.42)
 COL_CONST_LINES = (0.35, 0.55, 0.80, 0.65)
 COL_CONST_BOUNDS = (0.62, 0.52, 0.26, 0.50)
 COL_HORIZON = (0.80, 0.45, 0.18, 0.95)
+COL_MERIDIAN = (0.55, 0.80, 0.60, 0.75)
+COL_ECLIPTIC = (0.85, 0.72, 0.30, 0.80)
+COL_EQUATOR = (0.45, 0.60, 0.90, 0.70)
 COL_MILKYWAY = (0.58, 0.64, 0.80)
 
 DEFAULT_LAYERS = {
@@ -33,6 +36,9 @@ DEFAULT_LAYERS = {
     "const_bounds": False,
     "grid_altaz": True,
     "grid_eq": False,
+    "meridian": False,
+    "ecliptic": False,
+    "equator": False,
     "milkyway": True,
     "horizon": True,
     "ground": True,
@@ -43,6 +49,7 @@ DEFAULT_LAYERS = {
     "refraction": True,
     "dso": True,
     "dso_names": True,
+    "dso_images": False,
 }
 
 COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
@@ -176,11 +183,18 @@ class SkyWidget(QOpenGLWidget):
         self.milkyway = skygeometry.load_milkyway_points(data_dir)
         self.grid = skygeometry.build_grid()
         self.horizon = skygeometry.build_horizon()
+        self.meridian = skygeometry.build_meridian()
+        self.ecliptic = skygeometry.build_ecliptic()
+        self.equator = skygeometry.build_equator()
         self.cardinals = skygeometry.cardinal_vectors()
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
         self._goto_anim = None
 
         # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
+        from ..render.dsoimages import DsoImageLayer
+
+        self.dso_images = DsoImageLayer()
+        self.outlines = skygeometry.load_outlines(data_dir)
         self.mw_mesh = skygeometry.build_sphere_mesh()
         self._mw_tex_rgb = None
         tex_path = data_dir / "milkyway_tex.jpg"
@@ -336,23 +350,24 @@ class SkyWidget(QOpenGLWidget):
         # --- Via Láctea: textura na esfera (mecanismo do Stellarium) ---
         if (self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode
                 and self._mw_tex_rgb is not None):
-            # A textura tem ~5′/pixel: em campos pequenos não há detalhe e ela
-            # viraria um borrão cinza, então some progressivamente no zoom.
-            fov_deg = math.degrees(cam.fov)
-            zoom_fade = min(1.0, max(0.0, (fov_deg - 8.0) / 22.0))
-            if zoom_fade > 0.01:
-                verts, uv, tris = self.mw_mesh
-                vh = self._refract(verts @ m.T)
-                fwd = cam.forward_component(vh)
-                keep = (fwd[tris] > -0.05).any(axis=1)
-                tri = tris[keep]
-                if len(tri):
-                    px, py = cam.project_clamped(vh)
-                    idx = tri.ravel()
-                    pos = np.column_stack([px, py])[idx]
-                    self.renderer.draw_textured_triangles(
-                        pos, uv[idx], 0.40 * star_fade * zoom_fade
-                    )
+            # A textura é difusa (estrelas do levantamento removidas no
+            # build), então permanece visível em qualquer zoom.
+            verts, uv, tris = self.mw_mesh
+            vh = self._refract(verts @ m.T)
+            fwd = cam.forward_component(vh)
+            keep = (fwd[tris] > -0.05).any(axis=1)
+            tri = tris[keep]
+            if len(tri):
+                px, py = cam.project_clamped(vh)
+                idx = tri.ravel()
+                pos = np.column_stack([px, py])[idx]
+                # em campos pequenos a textura vira um véu uniforme (tem
+                # ~5′/pixel): reduz o peso sem apagá-la
+                fov_deg = math.degrees(cam.fov)
+                depth = 0.42 + 0.58 * min(1.0, max(0.0, (fov_deg - 3.0) / 27.0))
+                self.renderer.draw_textured_triangles(
+                    pos, uv[idx], 0.72 * star_fade * depth
+                )
         elif self.layers["milkyway"] and star_fade > 0.1 and not self.chart_mode:
             mw = self.milkyway
             mw_verts = self._refract(mw.xyz @ m.T)
@@ -389,6 +404,14 @@ class SkyWidget(QOpenGLWidget):
             col = CHART_COLORS["grid_eq"] if chart else COL_GRID_EQ
             r.draw_lines(self._segments(self.grid, m, col))
 
+        # --- círculos de referência ---
+        if self.layers["equator"]:
+            r.draw_lines(self._segments(self.equator, m, COL_EQUATOR))
+        if self.layers["ecliptic"]:
+            r.draw_lines(self._segments(self.ecliptic, m, COL_ECLIPTIC))
+        if self.layers["meridian"]:
+            r.draw_lines(self._segments(self.meridian, None, COL_MERIDIAN))
+
         # --- constelações ---
         if self.layers["const_bounds"]:
             col = CHART_COLORS["const_bounds"] if chart else COL_CONST_BOUNDS
@@ -396,6 +419,11 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["const_lines"]:
             col = CHART_COLORS["const_lines"] if chart else COL_CONST_LINES
             r.draw_lines(self._segments(self.const_lines, m, col))
+
+        # --- imagens do levantamento nos objetos (antes dos símbolos) ---
+        if (self.layers["dso_images"] and self.layers["dso"]
+                and not self.chart_mode and star_fade > 0.15):
+            self._draw_dso_images(m, star_fade)
 
         # --- céu profundo (símbolos e contornos) ---
         dso_px = None
@@ -467,24 +495,61 @@ class SkyWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def _segments(self, pset: skygeometry.PolylineSet, m: np.ndarray | None,
                   color, dim_below: bool = True) -> np.ndarray:
+        """Projeta polilinhas em segmentos de tela, com clipping correto.
+
+        Segmentos que cruzam o plano da câmera são cortados por interpolação
+        esférica (slerp) até um pouco à frente dela; sem isso, um vértice
+        atrás do observador é projetado a um raio enorme e a linha atravessa
+        a tela — era a origem das deformações em zoom (B-015).
+        """
+        cam = self.camera
         # Conteúdo equatorial (m fornecida) sofre refração; referências
         # horizontais (grade alt-az, horizonte) não.
         verts = pset.verts if m is None else self._refract(pset.verts @ m.T)
-        x, y, vis = self.camera.project(verts)
+        verts = np.asarray(verts, dtype=np.float64)
+        fwd = cam.forward_component(verts)          # cos do ângulo ao centro
         seg = pset.segments
-        ok = vis[seg[:, 0]] & vis[seg[:, 1]]
-        s = seg[ok]
-        out = np.empty((2 * len(s), 6), dtype=np.float32)
-        out[0::2, 0] = x[s[:, 0]]
-        out[0::2, 1] = y[s[:, 0]]
-        out[1::2, 0] = x[s[:, 1]]
-        out[1::2, 1] = y[s[:, 1]]
+        f0, f1 = fwd[seg[:, 0]], fwd[seg[:, 1]]
+
+        eps = 0.02          # ~88,9° do centro da vista
+        keep = (f0 > eps) | (f1 > eps)
+        s = seg[keep]
+        if len(s) == 0:
+            return np.zeros((0, 6), dtype=np.float32)
+        a = verts[s[:, 0]].copy()
+        b = verts[s[:, 1]].copy()
+        fa, fb = fwd[s[:, 0]].copy(), fwd[s[:, 1]].copy()
+
+        # corta a extremidade que está atrás do plano da câmera
+        for src, dst, f_src, f_dst in ((a, b, fa, fb), (b, a, fb, fa)):
+            bad = f_src <= eps
+            if bad.any():
+                t = (eps - f_src[bad]) / (f_dst[bad] - f_src[bad])
+                t = np.clip(t, 0.0, 1.0)[:, None]
+                mixed = src[bad] * (1.0 - t) + dst[bad] * t
+                norm = np.linalg.norm(mixed, axis=1, keepdims=True)
+                src[bad] = mixed / np.maximum(norm, 1e-12)
+
+        pts = np.concatenate([a, b])
+        x, y, _ = cam.project(pts, margin=1e9)
+        n = len(a)
+        out = np.empty((2 * n, 6), dtype=np.float32)
+        out[0::2, 0] = x[:n]
+        out[0::2, 1] = y[:n]
+        out[1::2, 0] = x[n:]
+        out[1::2, 1] = y[n:]
         out[:, 2:] = color
+
+        # descarta segmentos que continuam absurdamente longos (numérico)
+        span = np.hypot(out[1::2, 0] - out[0::2, 0], out[1::2, 1] - out[0::2, 1])
+        limit = 6.0 * max(cam.width, cam.height)
+        good = np.repeat(span < limit, 2)
+        out = out[good]
         if dim_below:
-            below = np.empty(2 * len(s), dtype=bool)
-            below[0::2] = verts[s[:, 0], 2] < 0.0
-            below[1::2] = verts[s[:, 1], 2] < 0.0
-            out[below, 5] *= 0.3
+            below = np.empty(2 * n, dtype=bool)
+            below[0::2] = a[:, 2] < 0.0
+            below[1::2] = b[:, 2] < 0.0
+            out[below[good], 5] *= 0.3
         return out
 
     def _draw_stars(self, m: np.ndarray, fade: float):
@@ -526,6 +591,29 @@ class SkyWidget(QOpenGLWidget):
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
         return idx, x, y, below_map
 
+    def _draw_dso_images(self, m: np.ndarray, fade: float) -> None:
+        """Imagens DSS dos objetos visíveis (Messier/Caldwell embarcados)."""
+        dso = self.dso
+        if len(dso) == 0:
+            return
+        cam = self.camera
+        vecs = self._refract(dso.xyz @ m.T)
+        _, _, vis = cam.project(vecs, margin=160.0)
+        maj_px = self._dso_size_px()
+        # só objetos com imagem no pacote (M/C) e grandes o bastante na tela
+        candidates = np.nonzero(vis & dso.is_mc & (maj_px > 12.0))[0]
+        if len(candidates) == 0:
+            return
+        candidates = candidates[:12]
+
+        def project(pts, margin):
+            # as imagens já estão no frame ICRS do catálogo: aplica a matriz
+            return cam.project(self._refract(pts @ m.T), margin=margin)
+
+        self.dso_images.draw(
+            self.renderer, cam, project, dso, candidates, 0.62 * fade
+        )
+
     def _dso_size_px(self) -> np.ndarray:
         """Eixo maior de cada objeto em pixels na escala atual."""
         return self.dso.maj * (math.radians(1.0 / 60.0) * self.camera.pixel_scale)
@@ -556,6 +644,28 @@ class SkyWidget(QOpenGLWidget):
             color = np.array([*rgb, alpha], dtype=np.float32)
             cx, cy = x[i], y[i]
             big = maj_px[i] > 26.0
+
+            # contorno real da nebulosa, quando existir e couber na tela
+            shapes = self.outlines.get(dso.names[i]) if big else None
+            if shapes:
+                for poly in shapes:
+                    pts = self._refract(poly @ m.T)
+                    px, py, vis_o = cam.project(pts, margin=96.0)
+                    ok = vis_o[:-1] & vis_o[1:]
+                    sel = np.nonzero(ok)[0]
+                    if len(sel) == 0:
+                        continue
+                    seg = np.empty((2 * len(sel), 2), dtype=np.float32)
+                    seg[0::2, 0] = px[sel]
+                    seg[0::2, 1] = py[sel]
+                    seg[1::2, 0] = px[sel + 1]
+                    seg[1::2, 1] = py[sel + 1]
+                    segs.append(seg.reshape(-1, 2, 2))
+                    cols.append(
+                        np.repeat(color[np.newaxis, :], 2 * len(sel), axis=0)
+                    )
+                continue
+
             if big:
                 # contorno elíptico orientado pelo ângulo de posição (PA)
                 u = dso.xyz[i].astype(np.float64)

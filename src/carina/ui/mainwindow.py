@@ -31,6 +31,9 @@ _LAYER_ACTIONS = [
     ("const_bounds", "Fronteiras das constelações", "B", False),
     ("grid_altaz", "Grade horizontal (Alt-Az)", "Z", True),
     ("grid_eq", "Grade equatorial", "E", False),
+    ("meridian", "Meridiano local", None, False),
+    ("ecliptic", "Eclíptica", None, False),
+    ("equator", "Equador celeste", None, False),
     ("milkyway", "Via Láctea", "M", True),
     ("horizon", "Linha do horizonte", "H", True),
     ("ground", "Solo (oculta o que está abaixo do horizonte)", "G", True),
@@ -38,6 +41,7 @@ _LAYER_ACTIONS = [
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
     ("dso_names", "Rótulos do céu profundo", None, True),
+    ("dso_images", "Imagens dos objetos (DSS) no céu", "I", False),
     ("atmosphere", "Atmosfera", "A", True),
     ("refraction", "Refração atmosférica", "R", True),
 ]
