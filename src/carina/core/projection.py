@@ -89,6 +89,25 @@ class Camera:
         r_edge = 2.0 * math.tan(self.fov / 4.0)
         return (self.height / 2.0) / r_edge
 
+    def max_view_angle(self, margin_px: float = 0.0) -> float:
+        """Semiângulo do cone que contém TODA a tela, cantos inclusive.
+
+        É a inversa exata da projeção aplicada ao canto mais distante:
+        um ponto a θ do centro cai em r = 2·tan(θ/2) unidades do plano
+        estereográfico, logo θ = 2·atan(r_px / (2·escala)).
+
+        Usar o campo de visão (que é o VERTICAL) como se fosse o raio do
+        cone recortaria os cantos — a diagonal é bem maior que a altura.
+        Quem filtra por este cone precisa deste valor, não do fov.
+
+        O teto de 120° corresponde ao descarte que :meth:`project` já faz
+        (componente frontal < −0,5); acima disso o filtro não teria efeito.
+        """
+        r_max = math.hypot(self.width / 2.0 + margin_px,
+                           self.height / 2.0 + margin_px)
+        theta = 2.0 * math.atan(r_max / (2.0 * self.pixel_scale))
+        return min(theta, math.radians(120.0))
+
     # -- projeção vetorizada ---------------------------------------------
     def project(self, vecs: np.ndarray, margin: float = 64.0):
         """Projeta vetores unitários (N,3) do frame horizontal para pixels.

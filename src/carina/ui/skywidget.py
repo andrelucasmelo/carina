@@ -722,17 +722,25 @@ class SkyWidget(QOpenGLWidget):
             out[below[good], 5] *= factor
         return out
 
-    def _view_cone_icrs(self, m: np.ndarray) -> tuple[np.ndarray, float]:
+    def _view_cone_icrs(self, m: np.ndarray,
+                        margin_px: float = 64.0) -> tuple[np.ndarray, float]:
         """Cone de visada no frame ICRS para pré-filtros baratos.
 
         Devolve (direção ICRS, cos do semiângulo). Testar ``xyz @ f > cos``
         é um único produto matricial sem trigonometria — ordens de grandeza
         mais barato do que refração + projeção estereográfica, e elimina os
-        pontos do outro lado do céu antes do trabalho caro. O semiângulo
-        cobre a diagonal da tela com folga para a margem e a refração.
+        pontos do outro lado do céu antes do trabalho caro.
+
+        O semiângulo vem de :meth:`Camera.max_view_angle`, que mede até o
+        CANTO da tela. Estimá-lo a partir do campo de visão vertical
+        recortava o céu num círculo inscrito, deixando os cantos vazios
+        (B-019). A folga extra de 1° cobre o deslocamento da refração
+        junto ao horizonte.
         """
         f_icrs = m.T.astype(np.float64) @ self.camera._basis[2]
-        half = min(math.pi / 2, self.camera.fov * 0.75 + math.radians(3.0))
+        half = self.camera.max_view_angle(margin_px) + math.radians(1.0)
+        if half >= math.pi:
+            return f_icrs, -1.1          # tudo passa: nada a filtrar
         return f_icrs, math.cos(half)
 
     def _draw_stars(self, m: np.ndarray, fade: float):
@@ -851,11 +859,10 @@ class SkyWidget(QOpenGLWidget):
         if len(dso) == 0:
             return
         cam = self.camera
-        # direção de visada trazida para o frame ICRS do catálogo:
-        # dot(v_h, f_h) = dot(v_icrs, m.T @ f_h)
-        f_icrs = m.T.astype(np.float64) @ cam._basis[2]
-        half = min(math.pi / 2, cam.fov * 0.75 + math.radians(6.0))
-        near = dso.xyz @ f_icrs > math.cos(half)
+        # mesmo cone da pré-seleção de estrelas, com margem maior: uma
+        # imagem cujo CENTRO caiu fora da tela ainda pode ter borda visível
+        f_icrs, cos_half = self._view_cone_icrs(m, margin_px=200.0)
+        near = dso.xyz @ f_icrs > cos_half
         maj_px = self._dso_size_px()
         # objetos com imagem no pacote (M/C + destaques) e grandes na tela
         has_img = dso.is_mc | dso.is_featured

@@ -135,6 +135,45 @@ def test_mag_cap_is_ceiling_not_forcing():
     assert SkyWidget._mag_limit(f) > 12.0  # auto sem teto vai além
 
 
+# --- cone de visada dos pré-filtros (B-019) -------------------------------
+
+@pytest.mark.parametrize("fov_deg", [100.0, 60.0, 20.0, 5.0, 1.0, 0.3])
+@pytest.mark.parametrize("size", [(1250, 820), (2560, 1080), (900, 1200),
+                                  (3840, 1080)])
+def test_view_cone_covers_screen_corners(fov_deg, size):
+    """O cone dos pré-filtros precisa alcançar o CANTO da tela.
+
+    Regressão do B-019: estimar o raio a partir do campo de visão
+    (que é o vertical) recortava o céu num círculo inscrito e deixava
+    os cantos sem estrelas — muito visível em telas panorâmicas.
+    """
+    import numpy as np
+
+    from carina.core.projection import Camera
+
+    cam = Camera(fov=math.radians(fov_deg))
+    cam.set_viewport(*size)
+    cone = cam.max_view_angle(64.0)
+
+    # ângulo real dos quatro cantos, pela inversa da projeção
+    for px, py in ((0.0, 0.0), (size[0], 0.0), (0.0, size[1]), size):
+        v = cam.unproject(float(px), float(py))
+        real = math.acos(max(-1.0, min(1.0, float(np.dot(v, cam._basis[2])))))
+        assert cone >= min(real, math.radians(120.0)) - 1e-9, (
+            f"cone {math.degrees(cone):.1f}° não cobre o canto "
+            f"a {math.degrees(real):.1f}° (fov {fov_deg}°, tela {size})"
+        )
+
+
+def test_view_cone_still_filters_when_zoomed_in():
+    """O cone precisa continuar ESTREITO em zoom — é o que dá o ganho."""
+    from carina.core.projection import Camera
+
+    cam = Camera(fov=math.radians(2.0))
+    cam.set_viewport(1600, 900)
+    assert math.degrees(cam.max_view_angle(64.0)) < 6.0
+
+
 # --- maratonas expandidas -------------------------------------------------
 
 def _build(engine, catalogs, kind, minutes=4):
