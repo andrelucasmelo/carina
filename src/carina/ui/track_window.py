@@ -69,6 +69,14 @@ class TrackSettings:
     # False = bússola (N em cima, L à direita, sentido horário N→L→S→O);
     # True  = vista do céu (L à esquerda), como um planisfério erguido.
     mirror_sky: bool = False
+    # --- tipografia e legenda ---
+    font_scale: float = 1.0         # multiplica TODOS os textos da carta
+    show_legend: bool = True
+    legend_position: str = "bottom"  # bottom | top | left | right
+
+    def font_size(self, base: float) -> float:
+        """Tamanho de fonte em pontos, já com a escala do usuário."""
+        return max(4.0, base * self.font_scale)
 
     def color_for(self, alt_deg: float, moon_affected: bool) -> QColor:
         """Cor de um ponto da trajetória: influência da Lua vence; senão a
@@ -129,7 +137,7 @@ class TrackCanvas(QWidget):
         pts = self.result.points
         if not pts:
             painter.setPen(fg)
-            painter.setFont(QFont("Segoe UI", 12))
+            painter.setFont(QFont("Segoe UI", s.font_size(12)))
             painter.drawText(
                 rect, Qt.AlignCenter,
                 self.tr("O objeto não fica acima do horizonte nesta noite."),
@@ -151,10 +159,17 @@ class TrackCanvas(QWidget):
         """
         s = self.settings
         pts = self.result.points
-        top = rect.top() + 74.0
-        bottom = rect.bottom() - 118.0
-        radius = max(40.0, min(rect.width() / 2 - 40.0, (bottom - top) / 2))
-        cx = rect.center().x()
+
+        # Espaço reservado para a legenda, conforme a posição escolhida.
+        # A carta é sempre um círculo: o que muda é de que lado ela cede
+        # espaço para a legenda caber sem cobrir o desenho.
+        legend_room = self._legend_room()
+        left = rect.left() + 40.0 + legend_room.get("left", 0.0)
+        right = rect.right() - 40.0 - legend_room.get("right", 0.0)
+        top = rect.top() + 74.0 + legend_room.get("top", 0.0)
+        bottom = rect.bottom() - 118.0 - legend_room.get("bottom", 0.0)
+        radius = max(40.0, min((right - left) / 2, (bottom - top) / 2))
+        cx = (left + right) / 2.0
         cy = (top + bottom) / 2.0
 
         # raio ∝ (90° − altitude): centro = zênite, borda = horizonte.
@@ -169,7 +184,7 @@ class TrackCanvas(QWidget):
             )
 
         # --- círculos de altitude ---
-        painter.setFont(QFont("Segoe UI", 8))
+        painter.setFont(QFont("Segoe UI", s.font_size(8)))
         if s.show_alt_grid:
             alt = 0.0
             while alt < 90.0:
@@ -199,7 +214,7 @@ class TrackCanvas(QWidget):
         # --- pontos cardeais na borda (reservam espaço antes dos horários) ---
         taken: list[QRectF] = []
         if s.show_cardinals:
-            painter.setFont(QFont("Segoe UI", 10, QFont.Bold))
+            painter.setFont(QFont("Segoe UI", s.font_size(10), QFont.Bold))
             painter.setPen(QColor(230, 140, 60) if s.dark_theme
                            else QColor(170, 80, 20))
             for name, az_deg in (
@@ -230,7 +245,7 @@ class TrackCanvas(QWidget):
             )
 
         # --- marcadores e horários (item C) ---
-        painter.setFont(QFont("Segoe UI", 8))
+        painter.setFont(QFont("Segoe UI", s.font_size(8)))
         from ..core.localtime import to_local
 
         for p in pts:
@@ -266,15 +281,14 @@ class TrackCanvas(QWidget):
                     placed, Qt.AlignCenter, local.strftime("%H:%M")
                 )
 
-        # legenda no rodapé, abaixo do "S" (não cobre o círculo nem o "N")
-        self._draw_legend(painter, QRectF(
-            rect.left() + 40, bottom + 44, rect.width() - 80, 20,
-        ), fg)
+        # legenda no lugar escolhido (padrão: rodapé, abaixo do "S")
+        if s.show_legend:
+            self._draw_legend(painter, rect, cx, cy, radius, fg)
 
     # ------------------------------------------------------------------
-    def _draw_legend(self, painter: QPainter, plot: QRectF, fg: QColor) -> None:
+    def _legend_items(self) -> list[tuple]:
+        """Entradas da legenda: (estilo de linha, cor, texto)."""
         s = self.settings
-        painter.setFont(QFont("Segoe UI", 8))
         items = [
             (Qt.DotLine, s.color_normal, "noite civil"),
             (Qt.DashLine, s.color_normal, "noite náutica"),
@@ -288,20 +302,75 @@ class TrackCanvas(QWidget):
                 (Qt.SolidLine, s.color_low30, f"alt < {s.thr_mid:.0f}°"),
                 (Qt.SolidLine, s.color_low45, f"alt < {s.thr_high:.0f}°"),
             ]
+        return items
+
+    def _legend_room(self) -> dict[str, float]:
+        """Quanto espaço a legenda toma de cada lado da carta.
+
+        Nas laterais a legenda é uma coluna e precisa de largura; em cima
+        e embaixo ela é uma faixa e precisa de altura. Reservar o espaço
+        ANTES de calcular o raio é o que impede a legenda de cobrir o
+        círculo quando o usuário muda a posição ou aumenta a fonte.
+        """
+        s = self.settings
+        if not s.show_legend:
+            return {}
+        scale = s.font_scale
+        if s.legend_position in ("left", "right"):
+            width = 150.0 * scale
+            return {s.legend_position: width}
+        if s.legend_position == "top":
+            return {"top": 30.0 * scale}
+        return {}          # 'bottom' cabe na margem inferior já existente
+
+    def _draw_legend(self, painter: QPainter, rect: QRectF, cx: float,
+                     cy: float, radius: float, fg: QColor) -> None:
+        """Desenha a legenda na posição configurada."""
+        s = self.settings
+        painter.setFont(QFont("Segoe UI", s.font_size(8)))
+        items = self._legend_items()
         fm = QFontMetricsF(painter.font())
-        x = plot.left()
-        y = plot.top() - 22
+        line_h = fm.height() + 6
+        sample = 26.0 * s.font_scale
+        gap = 6.0 * s.font_scale
+
+        if s.legend_position in ("left", "right"):
+            # coluna vertical ao lado da carta
+            x = (rect.left() + 12.0 if s.legend_position == "left"
+                 else rect.right() - 12.0 - self._legend_room()["right"]
+                 + 12.0)
+            y = cy - (len(items) * line_h) / 2.0
+            for style, color, text in items:
+                pen = QPen(color, 2.2)
+                pen.setStyle(style)
+                painter.setPen(pen)
+                painter.drawLine(QPointF(x, y), QPointF(x + sample, y))
+                painter.setPen(fg)
+                painter.drawText(
+                    QPointF(x + sample + gap, y + fm.ascent() / 2.0 - 1), text
+                )
+                y += line_h
+            return
+
+        # faixa horizontal, com quebra de linha quando não cabe
+        left = rect.left() + 40.0
+        right = rect.right() - 40.0
+        y = (cy - radius - 44.0 * s.font_scale
+             if s.legend_position == "top" else cy + radius + 44.0)
+        x = left
         for style, color, text in items:
-            width = 42 + fm.horizontalAdvance(text)
-            if x + width > plot.right():   # quebra de linha na legenda
-                x = plot.left()
-                y -= 16
+            width = sample + gap + fm.horizontalAdvance(text) + 10.0
+            if x + width > right:
+                x = left
+                y += line_h
             pen = QPen(color, 2.2)
             pen.setStyle(style)
             painter.setPen(pen)
-            painter.drawLine(QPointF(x, y), QPointF(x + 26, y))
+            painter.drawLine(QPointF(x, y), QPointF(x + sample, y))
             painter.setPen(fg)
-            painter.drawText(QPointF(x + 32, y + 4), text)
+            painter.drawText(
+                QPointF(x + sample + gap, y + fm.ascent() / 2.0 - 1), text
+            )
             x += width
 
     def _draw_borders(self, painter: QPainter, rect: QRectF, fg: QColor) -> None:
@@ -309,7 +378,7 @@ class TrackCanvas(QWidget):
         s = self.settings
         res = self.result
         painter.setPen(fg)
-        painter.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        painter.setFont(QFont("Segoe UI", s.font_size(12), QFont.Bold))
         painter.drawText(
             QRectF(rect.left() + 12, rect.top() + 8, rect.width() - 24, 22),
             Qt.AlignLeft | Qt.AlignVCenter, res.label,
@@ -322,7 +391,7 @@ class TrackCanvas(QWidget):
             from ..core.localtime import to_local
 
             night_txt = f"Noite de {to_local(night.sunset).strftime(fmt)}"
-        painter.setFont(QFont("Segoe UI", 9))
+        painter.setFont(QFont("Segoe UI", s.font_size(9)))
         painter.drawText(
             QRectF(rect.left() + 12, rect.top() + 30, rect.width() - 24, 18),
             Qt.AlignLeft | Qt.AlignVCenter,
@@ -347,7 +416,7 @@ class TrackCanvas(QWidget):
         gen = stamp.strftime(
             "%d/%m/%Y %H:%M" if s.show_year else "%d/%m %H:%M"
         )
-        painter.setFont(QFont("Segoe UI", 8))
+        painter.setFont(QFont("Segoe UI", s.font_size(8)))
         painter.drawText(
             QRectF(rect.left() + 12, rect.bottom() - 22, rect.width() - 24, 16),
             Qt.AlignLeft | Qt.AlignVCenter,
@@ -445,6 +514,39 @@ class TrackSettingsDialog(QDialog):
         gform.addRow(self.chk_mirror)
         layout.addWidget(grid)
 
+        # --- tipografia e legenda ---------------------------------------
+        typo = QGroupBox(self.tr("Texto e legenda"))
+        tyform = QFormLayout(typo)
+        self.spin_font = QDoubleSpinBox()
+        self.spin_font.setRange(0.6, 2.5)
+        self.spin_font.setSingleStep(0.1)
+        self.spin_font.setDecimals(1)
+        self.spin_font.setSuffix("×")
+        self.spin_font.setValue(self.s.font_scale)
+        self.spin_font.setToolTip(self.tr(
+            "Multiplica o tamanho de todos os textos da carta."
+        ))
+        tyform.addRow(self.tr("Tamanho da fonte:"), self.spin_font)
+
+        self.chk_legend = QCheckBox(self.tr("Exibir a legenda"))
+        self.chk_legend.setChecked(self.s.show_legend)
+        tyform.addRow(self.chk_legend)
+
+        self.combo_legend = QComboBox()
+        for label, val in (
+            (self.tr("Abaixo da carta"), "bottom"),
+            (self.tr("Acima da carta"), "top"),
+            (self.tr("À esquerda"), "left"),
+            (self.tr("À direita"), "right"),
+        ):
+            self.combo_legend.addItem(label, val)
+        idx = self.combo_legend.findData(self.s.legend_position)
+        self.combo_legend.setCurrentIndex(max(0, idx))
+        self.chk_legend.toggled.connect(self.combo_legend.setEnabled)
+        self.combo_legend.setEnabled(self.s.show_legend)
+        tyform.addRow(self.tr("Posição da legenda:"), self.combo_legend)
+        layout.addWidget(typo)
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self
         )
@@ -492,6 +594,9 @@ class TrackSettingsDialog(QDialog):
         s.show_year = self.chk_year.isChecked()
         s.dark_theme = self.chk_dark.isChecked()
         s.mirror_sky = self.chk_mirror.isChecked()
+        s.font_scale = float(self.spin_font.value())
+        s.show_legend = self.chk_legend.isChecked()
+        s.legend_position = str(self.combo_legend.currentData())
         self.accept()
 
 
@@ -565,38 +670,52 @@ class TrackWindow(QMainWindow):
         if not path:
             return
         try:
+            # A carta é redonda: a saída sai QUADRADA para não desperdiçar
+            # faixas vazias dos dois lados (e para caber bem em qualquer
+            # lugar onde a imagem seja reaproveitada). O lado acompanha a
+            # maior dimensão da janela, para não perder resolução.
+            side = float(max(self.canvas.width(), self.canvas.height()))
+            square = QRectF(0.0, 0.0, side, side)
+
             if fmt in ("png", "jpg"):
                 scale = 2
-                pix = QPixmap(self.canvas.width() * scale,
-                              self.canvas.height() * scale)
+                pix = QPixmap(int(side * scale), int(side * scale))
                 pix.fill(Qt.transparent)
                 painter = QPainter(pix)
                 painter.scale(scale, scale)
                 painter.setRenderHint(QPainter.Antialiasing)
-                self.canvas.render_to(painter, QRectF(self.canvas.rect()))
+                painter.setRenderHint(QPainter.TextAntialiasing)
+                self.canvas.render_to(painter, square)
                 painter.end()
                 pix.save(path, fmt.upper(), 95)
             elif fmt == "pdf":
                 writer = QPdfWriter(path)
                 writer.setPageSize(QPageSize(QPageSize.A4))
-                writer.setPageOrientation(QPageLayout.Landscape)
-                writer.setPageMargins(QMarginsF(8, 8, 8, 8), QPageLayout.Millimeter)
+                writer.setPageOrientation(QPageLayout.Portrait)
+                writer.setPageMargins(QMarginsF(10, 10, 10, 10),
+                                      QPageLayout.Millimeter)
                 writer.setResolution(300)
                 painter = QPainter(writer)
-                page = QRectF(0, 0, writer.width(), writer.height())
-                self.canvas.render_to(painter, page)
+                # área quadrada centrada na página
+                page_side = float(min(writer.width(), writer.height()))
+                ox = (writer.width() - page_side) / 2.0
+                oy = (writer.height() - page_side) / 2.0
+                self.canvas.render_to(
+                    painter, QRectF(ox, oy, page_side, page_side)
+                )
                 painter.end()
             else:  # svg
+                from PySide6.QtCore import QRect, QSize
                 from PySide6.QtSvg import QSvgGenerator
 
                 gen = QSvgGenerator()
                 gen.setFileName(path)
-                gen.setSize(self.canvas.size())
-                gen.setViewBox(self.canvas.rect())
+                gen.setSize(QSize(int(side), int(side)))
+                gen.setViewBox(QRect(0, 0, int(side), int(side)))
                 gen.setTitle(self.canvas.result.label)
                 gen.setDescription("Carina — rastreamento noturno")
                 painter = QPainter(gen)
-                self.canvas.render_to(painter, QRectF(self.canvas.rect()))
+                self.canvas.render_to(painter, square)
                 painter.end()
         except Exception as exc:  # noqa: BLE001
             QMessageBox.warning(

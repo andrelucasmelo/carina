@@ -84,8 +84,33 @@ def compute_track(engine, selection, label: str, icrs_vec,
     if end <= start:
         end = start + dt.timedelta(hours=12)
 
-    n = max(2, int((end - start).total_seconds() / (step_minutes * 60.0)) + 1)
-    times_utc = [start + dt.timedelta(minutes=step_minutes * i) for i in range(n)]
+    # A grade de amostragem é ancorada nos minutos REDONDOS da hora local,
+    # não no instante do pôr do sol (B-020). Ancorada no pôr do sol, um
+    # ocaso às 17:31 gerava amostras 17:41, 17:51, 18:01… — minutos que
+    # nunca são múltiplos de 30, de modo que os marcadores de meia hora
+    # do gráfico simplesmente não existiam. O primeiro e o último
+    # instantes são preservados para a linha cobrir a noite inteira.
+    from .localtime import to_local
+
+    step = dt.timedelta(minutes=step_minutes)
+    local_start = to_local(start)
+    minute_of_day = local_start.hour * 60 + local_start.minute
+    offset = (-minute_of_day) % step_minutes
+    first = start.replace(second=0, microsecond=0) + dt.timedelta(
+        minutes=offset
+    )
+    if first < start:
+        first += step
+
+    times_utc = [start]
+    cursor = first
+    while cursor < end:
+        if cursor > times_utc[-1]:
+            times_utc.append(cursor)
+        cursor += step
+    if end > times_utc[-1]:
+        times_utc.append(end)
+    n = len(times_utc)
     ts = engine.ts.from_datetimes(times_utc)
 
     obs = engine.site.at(ts)
