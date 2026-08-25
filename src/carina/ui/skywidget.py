@@ -193,7 +193,16 @@ class SkyWidget(QOpenGLWidget):
         # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
         from ..render.dsoimages import DsoImageLayer
 
-        self.dso_images = DsoImageLayer()
+        featured: dict[str, dict] = {}
+        manifest_path = data_dir / "featured_images.json"
+        if manifest_path.exists():
+            import json
+
+            featured = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.dso_images = DsoImageLayer(
+            {name: info["fov"] for name, info in featured.items()}
+        )
+        self.dso.set_featured_names(set(featured))
         self.outlines = skygeometry.load_outlines(data_dir)
         self.mw_mesh = skygeometry.build_sphere_mesh()
         self._mw_tex_rgb = None
@@ -600,11 +609,12 @@ class SkyWidget(QOpenGLWidget):
         vecs = self._refract(dso.xyz @ m.T)
         _, _, vis = cam.project(vecs, margin=160.0)
         maj_px = self._dso_size_px()
-        # só objetos com imagem no pacote (M/C) e grandes o bastante na tela
-        candidates = np.nonzero(vis & dso.is_mc & (maj_px > 12.0))[0]
+        # objetos com imagem no pacote (M/C + destaques) e visíveis na tela
+        has_img = dso.is_mc | dso.is_featured
+        candidates = np.nonzero(vis & has_img & (maj_px > 12.0))[0]
         if len(candidates) == 0:
             return
-        candidates = candidates[:12]
+        candidates = candidates[:16]
 
         def project(pts, margin):
             # as imagens já estão no frame ICRS do catálogo: aplica a matriz

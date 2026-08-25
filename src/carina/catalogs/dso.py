@@ -54,7 +54,15 @@ class DsoCatalog:
         self.cx = sqlite3.connect(str(user_db))
         self.cx.row_factory = sqlite3.Row
         self.cx.execute("PRAGMA foreign_keys = ON")
+        self.featured_names: set[str] = set()
         self.reload()
+
+    def set_featured_names(self, names: set[str]) -> None:
+        """Objetos com imagem destacada (manifesto) — recalcula a máscara."""
+        self.featured_names = set(names)
+        self.is_featured = np.array(
+            [n in self.featured_names for n in self.names], dtype=bool
+        )
 
     def set_catalog_visible(self, catalog: str, visible: bool) -> None:
         if visible:
@@ -121,6 +129,9 @@ class DsoCatalog:
         }
         self.is_mc = np.array(
             [int(oid) in mc_ids for oid in self.ids], dtype=bool
+        )
+        self.is_featured = np.array(
+            [n in self.featured_names for n in self.names], dtype=bool
         )
         # designação Caldwell (objetos C costumam ter nome principal NGC/IC)
         cald = {

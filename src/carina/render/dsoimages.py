@@ -64,10 +64,15 @@ class _Entry:
 class DsoImageLayer:
     """Cache de texturas das imagens de céu profundo, por nome do objeto."""
 
-    def __init__(self) -> None:
+    def __init__(self, fov_map: dict[str, float] | None = None) -> None:
         self._entries: dict[str, _Entry] = {}
         self._missing: set[str] = set()
         self._tick = 0
+        # campos por objeto do manifesto de destaques (mesmo FOV do download)
+        self.fov_map: dict[str, float] = dict(fov_map or {})
+
+    def fov_for(self, name: str, maj_arcmin: float | None) -> float:
+        return self.fov_map.get(name) or image_fov_deg(maj_arcmin)
 
     def clear(self, renderer) -> None:
         for entry in self._entries.values():
@@ -98,7 +103,13 @@ class DsoImageLayer:
         w, h = img.width(), img.height()
         buf = np.frombuffer(img.constBits(), dtype=np.uint8)
         rgb = buf.reshape(h, img.bytesPerLine())[:, : w * 3].reshape(h, w, 3)
-        tex = renderer.create_texture(prepare_rgb(rgb.copy()))
+        # campos grandes (Nuvens de Magalhães): o objeto ocupa boa parte do
+        # recorte, então o piso de fundo precisa ser mais baixo
+        fov = self.fov_map.get(name, 0.0)
+        floor = 30.0 if fov > 6.0 else 55.0
+        tex = renderer.create_texture(
+            prepare_rgb(rgb.copy(), floor_percentile=floor)
+        )
 
         if len(self._entries) >= MAX_TEXTURES:
             oldest = min(self._entries.items(), key=lambda kv: kv[1].last_used)
@@ -122,7 +133,7 @@ class DsoImageLayer:
             tex = self._texture_for(renderer, name)
             if tex is None:
                 continue
-            half = math.radians(image_fov_deg(float(dso.maj[i])) / 2.0)
+            half = math.radians(self.fov_for(name, float(dso.maj[i])) / 2.0)
             u = np.asarray(dso.xyz[i], dtype=np.float64)
             u /= np.linalg.norm(u)
             north = pole - np.dot(pole, u) * u
@@ -132,13 +143,16 @@ class DsoImageLayer:
             east = np.cross(pole, u)
             east /= max(np.linalg.norm(east), 1e-9)
 
-            # grade 5×5 para acompanhar a curvatura da projeção
+            # grade 5×5 para acompanhar a curvatura da projeção.
+            # Convenção do recorte (hips2fits/TAN): norte em cima e LESTE À
+            # ESQUERDA — logo a borda esquerda da textura (gx=-1) precisa
+            # cair no lado LESTE do céu (sinal negativo no termo leste).
             n = 5
             ts = np.linspace(-1.0, 1.0, n)
             gx, gy = np.meshgrid(ts, ts)
             offs = (
                 u[None, None, :]
-                + np.tan(half) * gx[..., None] * east[None, None, :]
+                - np.tan(half) * gx[..., None] * east[None, None, :]
                 - np.tan(half) * gy[..., None] * north[None, None, :]
             )
             offs /= np.linalg.norm(offs, axis=2, keepdims=True)
