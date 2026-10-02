@@ -477,7 +477,7 @@ class SkyWidget(QOpenGLWidget):
         exibição cresce até parar em 8. O alcance máximo é 12 (catálogo
         profundo Tycho-2/ATHYG).
         """
-        if self.mag_fixed is not None:          # gerador de carta: valor exato
+        if getattr(self, "mag_fixed", None) is not None:   # gerador de carta: valor exato
             return min(float(self.mag_fixed), 12.0)
         fov_deg = math.degrees(self.camera.fov)
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))

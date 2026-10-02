@@ -58,8 +58,10 @@ def test_size_and_red_theme(tmp_path):
 def test_light_theme_is_paper(tmp_path):
     img = _run(tmp_path, "light", "--offscreen-theme", "light", "--offscreen-scale", "1.5")
     assert (img.width(), img.height()) == (600, 450)
-    corner = img.pixelColor(5, 5)
-    assert corner.lightness() > 230
+    # papel: a grande maioria dos pixels é branca (estrelas são discos pretos)
+    pixels = [img.pixelColor(x, y).lightness()
+              for y in range(0, img.height(), 6) for x in range(0, img.width(), 6)]
+    assert sum(1 for v in pixels if v > 230) / len(pixels) > 0.8
 
 
 def test_layers_off_leave_empty_sky(tmp_path):
