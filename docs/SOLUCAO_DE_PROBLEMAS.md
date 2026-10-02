@@ -74,10 +74,25 @@ Três causas possíveis:
 
 ### Um objeto não aparece
 
-- O **catálogo** dele pode estar desligado (`Ctrl+Shift+C`);
+- O **filtro de exibição** pode estar escondendo o catálogo, o tipo, a
+  faixa de magnitude ou de tamanho dele (`Ctrl+Shift+C` — o rodapé da
+  tela diz quantos objetos passam; o botão *Padrão* volta ao normal);
+- Regiões gigantes (Sharpless, Barnard, LDN) podem estar em "só o rótulo"
+  ou "ocultar em campo aberto" — aproxime ou mude o tratamento no filtro;
 - O **objeto** pode estar desabilitado no gerenciador (`Ctrl+D`);
 - Ele pode estar **abaixo do horizonte** — desmarque *Solo opaco* (`G`)
   para ver o céu inteiro.
+
+---
+
+### "A base de céu profundo foi atualizada" ao abrir
+
+É esperado depois de instalar uma versão nova com catálogos a mais: a
+sua cópia do banco recebeu os objetos que faltavam, sem perder edições.
+O backup da cópia anterior fica ao lado dela (`dso.vN.bak.sqlite`, em
+`%LOCALAPPDATA%\Carina\Carina`). Se algo parecer errado, feche o
+Carina, apague `dso.sqlite` e renomeie o backup — ou use *Restaurar
+padrão* no gerenciador para recomeçar do banco embarcado.
 
 ---
 

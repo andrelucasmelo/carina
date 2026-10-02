@@ -85,11 +85,21 @@ está por nascer.
 | **Sharpless** | 313 | Regiões HII |
 | **Collinder** | 171 | Aglomerados abertos |
 | **van den Bergh** | 158 | Nebulosas de reflexão |
-| **Melotte** | 74 | Aglomerados |
+| **Melotte** | 77 | Aglomerados |
 
 Os quatro últimos acrescentados (LDN, Collinder, vdB e Abell) vêm
-**desligados** de fábrica, para não poluir a tela — ligue-os em *Céu
-profundo → Configurar catálogos exibidos* (`Ctrl+Shift+C`).
+**desligados** de fábrica, para não poluir a tela — ligue-os em *Exibir
+→ Filtros do céu profundo* (`Ctrl+Shift+C`).
+
+### Filtro de exibição
+
+Uma tela única decide o que aparece no mapa: catálogos, tipos, faixa de
+magnitude, faixa de tamanho angular, só nomeados, só Messier/Caldwell e
+o tratamento das **regiões gigantes** (Sharpless, Barnard, LDN):
+contorno tracejado, só o rótulo, ocultar em campo aberto ou normal.
+Presets prontos (Binóculo, Astrofoto de grande campo…) e presets seus.
+Os nomes populares aparecem em **português** (ou no inglês original, ou
+em latim), inclusive na busca. Ver [CATALOGOS.md](CATALOGOS.md).
 
 ### Símbolos e contornos
 
@@ -216,12 +226,20 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 - **Zoom por área**: arraste um retângulo para enquadrar exatamente;
 - **Busca** (`Ctrl+F`): estrelas, objetos de céu profundo e corpos do
   Sistema Solar, com ir-para animado.
+- **Navegação**: zoom ancorado no cursor, duplo clique para centralizar,
+  setas e `+`/`−`, tooltip ao pairar, **seguir objeto** (`F`), voltar à
+  vista anterior (`Backspace`), "Qual constelação é esta?" e "Ir para a
+  melhor hora desta noite" no botão direito, barra de estado clicável;
+- **Tempo ▸ Ir para**: pôr do sol, noite astronômica, meia-noite,
+  amanhecer e nascer do sol com um clique;
+- **Persistência**: direção, campo, Bortle, magnitude, rótulos, filtro e
+  geometria da janela voltam como você deixou.
 
 ---
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.13.2 **não há**:
+Para não criar expectativa errada, na versão 0.14.0 **não há**:
 
 - cometas e asteroides;
 - satélites artificiais (ISS, Starlink);

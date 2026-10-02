@@ -71,17 +71,38 @@ A tela *Ajuda → Sobre o Carina* lista todas as fontes.
 
 ## Escolhendo o que aparece
 
-### Catálogos inteiros
+### Filtros de exibição
 
-*Céu profundo → Configurar catálogos exibidos* (`Ctrl+Shift+C`).
+*Exibir → Filtros do céu profundo…* (`Ctrl+Shift+C`) é uma tela única,
+não modal — o mapa reage a cada mudança — que decide o que aparece:
 
-Cada catálogo tem uma caixa e a contagem de objetos. Quatro vêm
-**desligados de fábrica** — LDN, Collinder, van den Bergh e Abell —
-porque somam mais de 4.800 objetos, na maioria fracos, e poluiriam a
-tela sem acrescentar muito para observação visual.
+- **Catálogos**: uma caixa por catálogo, com a contagem. Quatro vêm
+  **desligados de fábrica** — LDN, Collinder, van den Bergh e Abell —
+  porque somam mais de 4.800 objetos, na maioria fracos;
+- **Tipos**: galáxias, aglomerados abertos e globulares, nebulosas
+  difusas, planetárias, escuras e outros;
+- **Brilho e tamanho**: faixa de magnitude (com a opção de incluir os
+  objetos sem magnitude, como as nebulosas escuras) e faixa de tamanho
+  angular em minutos de arco;
+- **Só objetos com nome comum** e **só Messier e Caldwell**;
+- **Regiões gigantes** (Sharpless, Barnard, LDN com mais de 2°): contorno
+  fino tracejado (padrão), só o rótulo, ocultar quando o campo passar de
+  X° ou desenhar como os demais. É o que impede o Barnard's Loop de
+  engolir Órion em campo aberto;
+- **Presets**: Padrão, Binóculo, Astrofoto de grande campo, Só Messier e
+  Caldwell, Tudo, Limpo — e os seus, com *Salvar como…*.
 
-Os botões **Marcar todos**, **Desmarcar todos** e **Padrão** ajudam a
-voltar atrás.
+A linha de rodapé diz quantos objetos passam no filtro. O filtro vale
+para símbolos, imagens e rótulos; a busca e os roteiros continuam vendo
+o catálogo inteiro.
+
+### Idioma dos nomes
+
+Os nomes populares vêm da base em inglês; o Carina traz uma tabela
+curada com mais de 200 nomes em **português** ("Nebulosa da Lagoa",
+"Aglomerado do Pato Selvagem"). *Exibir → Rótulos → Idioma dos nomes dos
+objetos* escolhe entre português, inglês original e latim (para os poucos
+que têm forma latina, como *Praesepe*). A busca aceita qualquer um deles.
 
 ### Objeto por objeto
 
@@ -130,7 +151,11 @@ O banco embarcado é **copiado para o seu perfil** na primeira execução:
 ```
 
 Todas as edições vão para essa cópia. **Atualizar o programa não apaga
-seus dados.** Se quiser recomeçar do zero, o gerenciador tem
+seus dados.** Quando uma versão nova traz catálogos ou objetos a mais, a
+cópia é **atualizada sozinha** na abertura seguinte: o Carina faz um
+backup (`dso.vN.bak.sqlite`, na mesma pasta), acrescenta o que faltava e
+avisa quantos objetos entraram — sem tocar no que você editou,
+desabilitou ou criou. Se quiser recomeçar do zero, o gerenciador tem
 **Restaurar padrão** — o que descarta suas edições.
 
 ---

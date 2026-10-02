@@ -76,10 +76,15 @@ melhor descobrir isso aqui do que depois de montar o telescópio.**
 
 | Ação | Como |
 |---|---|
-| Girar a vista | Arraste com o botão esquerdo |
-| Aproximar e afastar | Roda do mouse |
+| Girar a vista | Arraste com o botão esquerdo, ou use as **setas** |
+| Aproximar e afastar | Roda do mouse (o ponto sob o cursor fica parado), `+` e `−` |
+| Centralizar um ponto | **Duplo clique** nele |
+| Saber o que é aquilo | **Pare o mouse** em cima: aparece nome, magnitude e altitude |
 | Selecionar um objeto | Clique nele (ou no rótulo) |
 | Ver as opções de um objeto | Clique com o botão **direito** |
+| Seguir um objeto com o tempo | `F` (ou botão direito → *Seguir*) |
+| Voltar à vista anterior | `Backspace` |
+| Saber a constelação | Botão direito no céu → **Qual constelação é esta?** |
 | Cancelar a seleção | `Esc` |
 
 Experimente afastar até o campo chegar a 100°, o máximo — a visão fica

@@ -11,8 +11,8 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.13.2-blue)](#estado-do-projeto)
-[![testes](https://img.shields.io/badge/testes-130%20passando-brightgreen)](#qualidade)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.14.0-blue)](#estado-do-projeto)
+[![testes](https://img.shields.io/badge/testes-185%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
 
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.13.2 — **em desenvolvimento**
+> ### Versão 0.14.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -49,7 +49,7 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | | Recurso | Resumo |
 |---|---|---|
 | 🌌 | **Céu realista** | 860 mil estrelas, Via Láctea fotográfica, atmosfera, refração e simulação de poluição luminosa (Bortle 1–9) |
-| 🔭 | **Céu profundo** | 18.632 objetos de 11 catálogos, com 1.179 imagens reais do levantamento DSS embarcadas |
+| 🔭 | **Céu profundo** | 18.632 objetos de 11 catálogos, filtro de exibição por catálogo/tipo/magnitude/tamanho, nomes em português e 1.179 imagens reais do levantamento DSS embarcadas |
 | 🪐 | **Sistema Solar** | Planetas, Sol e Lua com fase geométrica; trajetórias anuais, oposições e elongações máximas |
 | 🌑 | **Eclipses** | Previsão de eclipses solares e lunares, com a visibilidade calculada para o seu local |
 | 📋 | **Planejamento** | Dez tipos de roteiro — maratonas Messier e Caldwell, destaques do mês e da estação, melhores objetos da noite |
@@ -140,7 +140,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **130 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **185 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, rastreamento, planejamento e renderização;
 - **eclipses** validados contra o cânone da NASA: datas, tipos e
   magnitudes de 2026–2028 batem exatamente;

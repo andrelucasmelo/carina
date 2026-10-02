@@ -1,78 +1,64 @@
-# Atalhos de teclado
+# Atalhos do teclado e do mouse
 
-> Carina 0.13.2 · folha de referência — imprima e deixe ao lado do
-> telescópio. No macOS, troque `Ctrl` por `Cmd`.
+Esta página é gerada a partir dos menus do programa (Ajuda ▸ Atalhos do
+teclado e do mouse mostra a mesma lista dentro do Carina, com busca e
+botão para copiar). Os atalhos de uma letra (estrelas, grades, solo…)
+valem com a janela principal ativa.
 
-## Camadas do céu — uma tecla
+| Onde | Ação | Atalho |
+|---|---|---|
+| Arquivo | Exportar vista | `Ctrl+S` |
+| Arquivo | Gerar mapa para impressão | `Ctrl+Shift+P` |
+| Exibir ▸ Objetos | Planetas, Sol e Lua | `P` |
+| Exibir ▸ Objetos | Objetos de céu profundo | `D` |
+| Exibir ▸ Objetos | Imagens dos objetos (DSS) no céu | `I` |
+| Exibir ▸ Objetos | Via Láctea | `M` |
+| Exibir ▸ Linhas e grades | Linhas das constelações | `C` |
+| Exibir ▸ Linhas e grades | Fronteiras das constelações | `B` |
+| Exibir ▸ Linhas e grades | Grade horizontal (Alt-Az) | `Z` |
+| Exibir ▸ Linhas e grades | Grade equatorial | `E` |
+| Exibir ▸ Linhas e grades | Linha do horizonte | `H` |
+| Exibir ▸ Linhas e grades | Pontos cardeais | `Q` |
+| Exibir ▸ Rótulos | Nomes das estrelas | `N` |
+| Exibir ▸ Céu | Atmosfera | `A` |
+| Exibir ▸ Céu | Refração atmosférica | `R` |
+| Exibir ▸ Céu | Solo opaco (desmarque para ver abaixo do horizonte) | `G ou V` |
+| Exibir | Filtros do céu profundo | `Ctrl+Shift+C` |
+| Exibir | Modo mapa para impressão | `Ctrl+M` |
+| Exibir | Seguir objeto selecionado | `F` |
+| Exibir | Voltar à vista anterior | `Backspace` |
+| Tempo | Agora | `8` |
+| Tempo | Pausar / continuar | `K` |
+| Tempo | Mais devagar | `J` |
+| Tempo | Mais rápido | `L` |
+| Tempo | Velocidade normal (1x) | `7` |
+| Tempo | Ir para data/hora | `Ctrl+T` |
+| Tempo | Retroceder um passo | `Ctrl+Left` |
+| Tempo | Avançar um passo | `Ctrl+Right` |
+| Local | Localização | `Ctrl+L` |
+| Local | Crepúsculos e noite | `Ctrl+I` |
+| Objetos | Buscar | `Ctrl+F` |
+| Objetos | Informações do objeto selecionado | `Ctrl+J` |
+| Objetos | Detalhes e gráfico anual | `Ctrl+Shift+D` |
+| Objetos | Rastrear na noite | `Ctrl+R` |
+| Objetos | Gerenciar catálogo de céu profundo | `Ctrl+D` |
+| Sistema Solar | Eclipses | `Ctrl+E` |
+| Sistema Solar | Exibir caminhos dos planetas | `Shift+P` |
+| Sistema Solar | Exibir previsão da Lua no céu | `Shift+M` |
+| Sistema Solar | Zona de influência da Lua (astrofoto) | `U` |
+| Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
+| Planejar | Configurar planejamento | `Ctrl+Shift+O` |
+| Ajuda | Documentação | `F1` |
+| Ajuda | Atalhos do teclado e do mouse | `Ctrl+Shift+K` |
 
-| Tecla | Camada | Tecla | Camada |
-|---|---|---|---|
-| `P` | Planetas, Sol e Lua | `M` | Via Láctea |
-| `D` | Objetos de céu profundo | `H` | Linha do horizonte |
-| `I` | Imagens DSS no céu | `G` / `V` | Solo opaco / ver abaixo |
-| `C` | Linhas das constelações | `Q` | Pontos cardeais |
-| `B` | Fronteiras das constelações | `N` | Nomes das estrelas |
-| `Z` | Grade horizontal | `A` | Atmosfera |
-| `E` | Grade equatorial | `R` | Refração atmosférica |
-| `U` | Zona de influência da Lua | | |
-
-## Tempo
-
-| Tecla | Ação |
+| Gesto | Efeito |
 |---|---|
-| `8` | Voltar ao agora |
-| `K` | Pausar / continuar |
-| `J` / `L` | Mais devagar / mais rápido |
-| `7` | Velocidade normal (1×) |
-| `Ctrl+T` | Ir para data e hora |
-| `Ctrl+←` / `Ctrl+→` | Um passo para trás / para frente |
-
-## Ferramentas
-
-| Atalho | Ação |
-|---|---|
-| `Ctrl+F` | Buscar objeto |
-| `Ctrl+E` | Eclipses |
-| `Ctrl+K` | Campo de visão (equipamentos) |
-| `Ctrl+R` | Rastrear objeto na noite |
-| `Ctrl+I` | Crepúsculos e noite |
-| `Ctrl+J` | Painel do objeto selecionado |
-| `Ctrl+L` | Localização do observador |
-| `Shift+P` | Exibir caminhos dos planetas |
-| `Shift+M` | Exibir previsão da Lua |
-
-## Céu profundo
-
-| Atalho | Ação |
-|---|---|
-| `Ctrl+D` | Gerenciar objetos e catálogos |
-| `Ctrl+Shift+C` | Configurar catálogos exibidos |
-| `Ctrl+Shift+D` | Detalhes do objeto selecionado |
-
-## Planejamento e impressão
-
-| Atalho | Ação |
-|---|---|
-| `Ctrl+Shift+O` | Configurar planejamento |
-| `Ctrl+M` | Modo mapa para impressão |
-| `Ctrl+Shift+P` | Gerar mapa para impressão |
-| `Ctrl+S` | Exportar a vista atual |
-
-### Dentro da janela de planejamento
-
-| Atalho | Ação |
-|---|---|
-| `Ctrl+,` | Configurar e recalcular |
-| `Ctrl+Shift+V` | Pré-visualizar o roteiro |
-| `Ctrl+P` | Exportar o PDF de campo |
-| `Ctrl+W` | Fechar |
-
-## Mouse
-
-| Ação | Resultado |
-|---|---|
-| Arrastar | Girar a vista |
-| Roda | Aproximar / afastar |
-| Clique | Selecionar |
-| Clique direito | Menu de contexto |
-| `Esc` | Limpar a seleção |
+| Arrastar com o botão esquerdo | Move a vista (o ponto sob o cursor acompanha o mouse) |
+| Roda do mouse | Zoom ancorado no ponto sob o cursor |
+| Clique | Seleciona a estrela, planeta ou objeto mais próximo (ou o rótulo) |
+| Duplo clique | Centraliza o ponto do céu sob o cursor |
+| Botão direito | Menu de contexto do objeto ou do céu |
+| Pairar o mouse | Tooltip com nome, magnitude e altitude |
+| Setas ← → ↑ ↓ | Desloca a vista |
+| + / − (ou PgUp / PgDn) | Aproxima / afasta |
+| Esc | Limpa a seleção |

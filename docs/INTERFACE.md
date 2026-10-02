@@ -30,29 +30,51 @@ Cada menu, botão e painel, com o que faz e o atalho correspondente.
 | Ação | Resultado |
 |---|---|
 | **Arrastar** com o botão esquerdo | Gira a vista; o ponto sob o cursor acompanha o cursor |
-| **Roda** do mouse | Aproxima e afasta (campo de 0,25° a 100°) |
+| **Roda** do mouse | Aproxima e afasta **ancorado no ponto sob o cursor** (campo de 0,25° a 100°) |
 | **Clique** | Seleciona o objeto — ou o rótulo — mais próximo |
-| **Clique direito** | Menu de contexto do objeto sob o cursor |
+| **Duplo clique** | Centraliza o ponto do céu sob o cursor, com animação |
+| **Pairar** o mouse | Tooltip com nome, magnitude e altitude do objeto |
+| **Clique direito** | Menu de contexto do objeto, ou do céu vazio |
+| **Setas** ← → ↑ ↓ | Deslocam a vista |
+| **`+` `−`** (ou `PgUp` `PgDn`) | Aproximam e afastam |
+| **`Backspace`** | Volta à vista anterior (as últimas 30 ficam guardadas) |
+| **`F`** | Liga e desliga **Seguir objeto**: a câmera acompanha a seleção enquanto o tempo corre (desliga sozinho ao arrastar) |
 | **`Esc`** | Cancela a seleção |
 
 O clique tem prioridades: corpos do Sistema Solar primeiro, depois
-rótulos, depois estrelas e objetos de céu profundo.
+rótulos, depois estrelas e objetos de céu profundo. Ao centralizar um
+objeto que está **abaixo do horizonte**, uma faixa no alto do céu avisa
+e diz a hora em que ele nasce.
 
 ### Menu do botão direito
 
+**Sobre um objeto**
+
 - **Informações de X** — ficha em janela flutuante, atualizada ao vivo
-- **Janela de detalhes de X** — imagem grande e gráfico anual de altitude
-- **Selecionar e centralizar** — leva a câmera até o objeto
-- **Rastrear na noite** — abre o rastreamento noturno
-- **Centralizar aqui** — centra no ponto clicado, sem selecionar nada
-- **Medir a partir daqui** — inicia uma medição angular
-- **Limpar seleção**
+- **Janela de detalhes…** — imagem grande e gráfico anual de altitude
+- **Selecionar e centralizar** · **Seguir X** · **Rastrear na noite…**
+- **Ir para a melhor hora desta noite** — salta o relógio para a maior
+  altitude com céu escuro nas próximas 24 h (e pausa)
+- **Ir para quando nasce** — aparece quando o objeto está sob o horizonte
+- **Enquadrar com equipamento…** — abre o simulador de campo centrado nele
+- **Copiar nome** · **Copiar coordenadas** (AR/Dec J2000 e Az/Alt atuais)
+
+**Sobre o céu vazio**
+
+- **Qual constelação é esta?** — destaca por alguns segundos as linhas e
+  a fronteira da constelação sob o cursor e diz o nome
+- **Centralizar aqui** · **Zoom aqui** · **Medir a partir daqui**
+- **Olhar para** ▸ Norte, Leste, Sul, Oeste, Zênite
+- **Camadas** ▸ interruptores rápidos (estrelas, planetas, céu profundo,
+  imagens, Via Láctea, linhas, fronteiras, grades, solo)
+- **Agora** · **Limpar seleção**
 
 ---
 
 ## Barra lateral
 
-De cima para baixo:
+De cima para baixo (com *Exibir ▸ Rótulos na barra lateral* cada botão
+ganha um texto curto embaixo do ícone):
 
 ### Camadas (botões que acendem quando ativos)
 
@@ -94,12 +116,32 @@ O tamanho do passo sai de *Tempo → Passo dos botões*.
 
 ## Barra de menus
 
+Oito menus, agrupados por tarefa. A lista completa de atalhos está em
+[ATALHOS.md](ATALHOS.md) e em *Ajuda ▸ Atalhos do teclado e do mouse*.
+
 ### Arquivo
 
 | Item | Atalho | O que faz |
 |---|---|---|
 | Exportar vista… | `Ctrl+S` | Salva a tela atual em PNG, JPG ou PDF |
+| Gerar mapa para impressão… | `Ctrl+Shift+P` | Editor de mapa anotado |
 | Sair | | Fecha o programa |
+
+### Exibir
+
+Quatro submenus de camadas e os controles gerais da vista.
+
+| Submenu | Conteúdo |
+|---|---|
+| **Objetos** | Estrelas · Planetas, Sol e Lua (`P`) · Objetos de céu profundo (`D`) · Imagens DSS (`I`) · Via Láctea (`M`) |
+| **Linhas e grades** | Linhas (`C`) e fronteiras (`B`) das constelações · Grade horizontal (`Z`) · Grade equatorial (`E`) · Meridiano · Eclíptica · Equador · Linha do horizonte (`H`) · Pontos cardeais (`Q`) |
+| **Rótulos** | Nomes das estrelas (`N`), dos planetas e do céu profundo · estrelas por nome próprio ou Bayer · céu profundo por número ou nome · Caldwell pela designação C · **Nomes das constelações** (não exibir, português, latim, abreviado) · **Idioma dos nomes dos objetos** (português, inglês original, latim) |
+| **Céu** | Atmosfera (`A`) · Refração (`R`) · Solo opaco (`G`/`V`) · **Poluição luminosa (Bortle)** · **Magnitude máxima das estrelas** |
+
+Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
+[CATALOGOS.md](CATALOGOS.md)), **Modo mapa para impressão** (`Ctrl+M`),
+**Seguir objeto selecionado** (`F`), **Voltar à vista anterior**
+(`Backspace`), **Rótulos na barra lateral** e a exibição dos painéis.
 
 ### Tempo
 
@@ -107,84 +149,58 @@ O tamanho do passo sai de *Tempo → Passo dos botões*.
 |---|---|---|
 | Agora | `8` | Volta ao instante presente, em velocidade normal |
 | Pausar / continuar | `K` | Congela ou retoma o relógio |
-| Mais devagar | `J` | Divide a velocidade por 10 (e inverte, se insistir) |
-| Mais rápido | `L` | Multiplica a velocidade por 10 |
+| Mais devagar / Mais rápido | `J` / `L` | Divide ou multiplica a velocidade por 10 |
 | Velocidade normal | `7` | Volta a 1× |
 | Ir para data/hora… | `Ctrl+T` | Salta para um instante, na **hora do observador** |
+| **Ir para ▸** | | Pôr do sol · Início da noite astronômica · Meia-noite local · Fim da noite astronômica · Nascer do sol (pausa no instante) |
 | Passo dos botões | | De 1 minuto a 1 ano |
 | Retroceder / avançar | `Ctrl+←` `Ctrl+→` | Um passo para trás ou para frente |
 
-### Exibir
-
-**Camadas** — cada uma com seu atalho de uma tecla:
-
-| Camada | Tecla | Camada | Tecla |
-|---|---|---|---|
-| Planetas, Sol e Lua | `P` | Via Láctea | `M` |
-| Objetos de céu profundo | `D` | Linha do horizonte | `H` |
-| Zona de influência da Lua | `U` | Solo opaco | `G` ou `V` |
-| Linhas das constelações | `C` | Pontos cardeais | `Q` |
-| Fronteiras das constelações | `B` | Nomes das estrelas | `N` |
-| Grade horizontal | `Z` | Imagens DSS no céu | `I` |
-| Grade equatorial | `E` | Atmosfera | `A` |
-| | | Refração atmosférica | `R` |
-
-Sem atalho: Estrelas, Meridiano local, Eclíptica, Equador celeste,
-Nomes dos planetas e Rótulos do céu profundo.
-
-**Rótulos**: estrelas por nome próprio ou por designação de Bayer; céu
-profundo por número de catálogo ou por nome.
-
-**Magnitude máxima das estrelas**: *Automática (pelo zoom)* — o padrão —
-ou um teto fixo de 3,0 a 12,0.
-
-**Nomes das constelações**: não exibir, português, latim oficial ou
-abreviação IAU.
-
-**Poluição luminosa (Bortle)**: as nove classes, de "céu perfeito" a
-"centro de cidade".
-
-**Modo mapa para impressão** (`Ctrl+M`) e a exibição dos painéis
-*Informações* e *Ferramentas*.
-
-### Céu profundo
+### Local
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Gerenciar objetos e catálogos… | `Ctrl+D` | CRUD completo, categorias, habilitar/desabilitar |
-| Configurar catálogos exibidos… | `Ctrl+Shift+C` | Liga e desliga catálogos inteiros |
-| Detalhes do objeto selecionado… | `Ctrl+Shift+D` | Imagem grande e gráfico anual |
-| Rotular Caldwell pela designação C | | "C 14" em vez de "NGC 7000" |
+| Localização… | `Ctrl+L` | Escolha da cidade (745 embarcadas) e coordenadas |
+| Crepúsculos e noite… | `Ctrl+I` | Horários do Sol e das três faixas de crepúsculo, Lua |
 
-### Ferramentas
+### Objetos
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Buscar objeto… | `Ctrl+F` | Busca unificada com ir-para |
+| Buscar… | `Ctrl+F` | Busca unificada com ir-para (aceita nomes em português) |
+| Informações do objeto selecionado | `Ctrl+J` | Abre o painel lateral |
+| Detalhes e gráfico anual… | `Ctrl+Shift+D` | Imagem grande e gráfico anual |
+| Rastrear na noite… | `Ctrl+R` | Carta polar da trajetória |
+| Ir para a melhor hora desta noite | | Salta o relógio para a maior altitude com céu escuro |
+| Ir para quando nasce | | Salta o relógio para pouco depois do nascer |
+| Gerenciar catálogo de céu profundo… | `Ctrl+D` | CRUD completo, categorias, habilitar/desabilitar |
+
+### Sistema Solar
+
+| Item | Atalho | O que faz |
+|---|---|---|
 | Eclipses… | `Ctrl+E` | Previsão de eclipses solares e lunares |
-| Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento |
-| Rastrear objeto na noite… | `Ctrl+R` | Carta polar da trajetória |
 | Caminho dos planetas (365 dias)… | | Traça a trajetória anual |
 | Exibir caminhos dos planetas | `Shift+P` | Mostra ou esconde sem recalcular |
 | Limpar caminhos dos planetas | | Descarta os caminhos |
 | Previsão da Lua (28 dias)… | | Calcula o caminho lunar |
 | Exibir previsão da Lua no céu | `Shift+M` | Mostra ou esconde |
-| Gerar mapa para impressão… | `Ctrl+Shift+P` | Editor de mapa anotado |
+| Zona de influência da Lua | `U` | Anéis de prejuízo para astrofotografia |
 
 ### Planejar
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Visual → (dez roteiros) | | Ver [PLANEJAMENTO.md](PLANEJAMENTO.md) |
+| Roteiros ▸ (dez roteiros) | | Ver [PLANEJAMENTO.md](PLANEJAMENTO.md) |
+| Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |
 
-### Informações · Observador · Ajuda
+### Ajuda
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Crepúsculos e noite… | `Ctrl+I` | Horários do Sol e das três faixas de crepúsculo |
-| Objeto selecionado | `Ctrl+J` | Abre o painel lateral de informações |
-| Localização… | `Ctrl+L` | Escolha da cidade e coordenadas |
+| Documentação | `F1` | Abre esta documentação |
+| Atalhos do teclado e do mouse… | `Ctrl+Shift+K` | Tabela pesquisável, lida dos próprios menus |
 | Sobre o Carina | | Versão e créditos dos dados |
 
 ---
@@ -233,6 +249,10 @@ trajetória da noite. Ver [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
 
 ## Barra de estado
 
-Da esquerda para a direita: **local**, **data e hora do observador**,
+Da esquerda para a direita: **local**, **data e hora do observador** com a
 **velocidade do tempo** (ou "pausado"), **campo de visão** e, quando o
-cursor está sobre o céu, o **azimute e a altitude** sob ele.
+cursor está sobre o céu, o **azimute e a altitude** sob ele. Três campos
+são clicáveis: o local abre *Localização*, a hora abre *Ir para
+data/hora* e o campo de visão volta a 90°. Avisos temporários
+(exportações, "objeto abaixo do horizonte, nasce às…") aparecem à
+esquerda.
