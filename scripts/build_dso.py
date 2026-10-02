@@ -543,6 +543,9 @@ def main() -> int:
         (dt.datetime.now(dt.timezone.utc).isoformat(),),
     )
     b.cx.execute("INSERT INTO meta VALUES ('schema_version', '1')")
+    # versão dos DADOS: build_extra_catalogs.py sobe para 2 ao acrescentar
+    # LDN/Cr/vdB/Abell; a cópia do usuário se atualiza por ela (B-023)
+    b.cx.execute("INSERT INTO meta VALUES ('data_version', '1')")
     b.cx.commit()
 
     total = b.cx.execute("SELECT COUNT(*) FROM objects").fetchone()[0]

@@ -236,6 +236,10 @@ def main() -> int:
         print(f"  total {cat}: {n}")
     print("total de objetos:",
           cx.execute("SELECT COUNT(*) c FROM objects").fetchone()["c"])
+    # sobe a versão dos dados: quem já tinha a cópia do banco recebe os
+    # catálogos novos na próxima abertura do aplicativo (B-023)
+    cx.execute("INSERT OR REPLACE INTO meta VALUES ('data_version', '2')")
+    cx.commit()
     cx.close()
     return 0
 

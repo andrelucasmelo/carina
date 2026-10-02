@@ -15,6 +15,8 @@ from pathlib import Path
 
 import numpy as np
 
+from . import names
+
 # Ordem de preferência da designação principal
 CATALOG_ORDER = ["M", "NGC", "IC", "C", "SH2", "B", "Mel"]
 
@@ -43,6 +45,31 @@ TYPE_PT = {
     "GlC": "Aglomerado globular", "As*": "Associação estelar",
     "Cl*": "Aglomerado estelar", "Other": "Outro",
 }
+
+# Versão dos DADOS do banco (chave da tabela ``meta``). Sobe quando o build
+# acrescenta catálogos/objetos; a cópia do usuário se atualiza ao abrir
+# (B-023). Bancos anteriores ao versionamento valem 1.
+DATA_VERSION_KEY = "data_version"
+
+
+def _meta_value(cx: sqlite3.Connection, key: str, default: str) -> str:
+    """Lê uma chave da tabela ``meta`` (``default`` se faltar ou errar)."""
+    try:
+        row = cx.execute(
+            "SELECT value FROM meta WHERE key = ?", (key,)
+        ).fetchone()
+    except sqlite3.Error:
+        return default
+    return default if row is None else str(row[0])
+
+
+def read_data_version(path: Path) -> int:
+    """Versão dos dados de um banco, aberto somente para leitura."""
+    cx = sqlite3.connect(f"{Path(path).resolve().as_uri()}?mode=ro", uri=True)
+    try:
+        return int(_meta_value(cx, DATA_VERSION_KEY, "1"))
+    finally:
+        cx.close()
 
 
 def type_label(code: str) -> str:
@@ -77,8 +104,119 @@ class DsoCatalog:
         self.cx = sqlite3.connect(str(user_db))
         self.cx.row_factory = sqlite3.Row
         self.cx.execute("PRAGMA foreign_keys = ON")
+        # B-023: a cópia do usuário recebe o que o embarcado ganhou desde
+        # que foi copiada (catálogos e designações novos)
+        self.migration_report: dict | None = self._merge_from_bundled()
         self.featured_names: set[str] = set()
         self.reload()
+
+    # ------------------------------------------------------------------
+    # Atualização da cópia do usuário (B-023)
+    # ------------------------------------------------------------------
+    def _merge_from_bundled(self) -> dict | None:
+        """Traz para a cópia do usuário o que o banco embarcado ganhou.
+
+        A cópia é feita uma única vez, na primeira execução. Depois disso
+        o embarcado pode receber catálogos e designações em atualizações
+        do aplicativo e a cópia ficava para trás — foi assim que LDN, Cr,
+        vdB e Abell nunca chegaram a quem instalou antes deles (B-023).
+
+        Regras da mescla:
+
+        * só ACRESCENTA — nunca apaga nem sobrescreve edições do usuário
+          (habilitação, notas, categorias, objetos próprios);
+        * casa objetos pelo NOME, porque os ids podem colidir: um objeto
+          criado pelo usuário pode ocupar o id que o embarcado deu a um
+          objeto novo;
+        * faz cópia de segurança do banco do usuário antes de mexer.
+
+        Devolve um resumo ``{"from", "to", "objects", "designations",
+        "backup"}`` ou ``None`` quando as versões já eram iguais.
+        """
+        try:
+            target = read_data_version(self.bundled_db)
+        except (sqlite3.Error, OSError):
+            return None
+        current = int(_meta_value(self.cx, DATA_VERSION_KEY, "1"))
+        if target <= current:
+            return None
+
+        backup = self.user_db.with_name(
+            f"{self.user_db.stem}.v{current}.bak{self.user_db.suffix}"
+        )
+        shutil.copy2(self.user_db, backup)
+
+        fields = ("name", "type", "klass", "ra", "dec", "mag", "maj", "min",
+                  "pa", "con", "common", "enabled", "notes")
+        self.cx.execute(
+            "ATTACH DATABASE ? AS bundled", (str(self.bundled_db),)
+        )
+        try:
+            # 1) objetos que o usuário ainda não tem (pelo nome)
+            new_rows = self.cx.execute(
+                "SELECT b.* FROM bundled.objects b"
+                " WHERE b.user_added = 0 AND NOT EXISTS"
+                "   (SELECT 1 FROM main.objects o WHERE o.name = b.name)"
+            ).fetchall()
+            id_map: dict[int, int] = {}
+            for r in new_rows:
+                cur = self.cx.execute(
+                    f"INSERT INTO main.objects ({', '.join(fields)},"
+                    f" user_added) VALUES ({', '.join('?' * len(fields))}, 0)",
+                    [r[f] for f in fields],
+                )
+                id_map[int(r["id"])] = int(cur.lastrowid)
+            # 2) designações dos objetos novos, com os ids remapeados
+            n_desig = 0
+            for old_id, new_id in id_map.items():
+                for d in self.cx.execute(
+                    "SELECT catalog, ident FROM bundled.designations"
+                    " WHERE object_id = ?", (old_id,),
+                ).fetchall():
+                    self.cx.execute(
+                        "INSERT OR IGNORE INTO main.designations VALUES (?,?,?)",
+                        (new_id, d["catalog"], d["ident"]),
+                    )
+                    n_desig += 1
+            # 3) designações novas em objetos que já existiam (um NGC que
+            #    ganhou identificador Collinder, por exemplo)
+            before = self.cx.execute(
+                "SELECT COUNT(*) FROM main.designations"
+            ).fetchone()[0]
+            self.cx.execute(
+                "INSERT OR IGNORE INTO main.designations"
+                " (object_id, catalog, ident)"
+                " SELECT o.id, d.catalog, d.ident FROM bundled.designations d"
+                " JOIN bundled.objects b ON b.id = d.object_id"
+                " JOIN main.objects o ON o.name = b.name AND o.user_added = 0"
+            )
+            after = self.cx.execute(
+                "SELECT COUNT(*) FROM main.designations"
+            ).fetchone()[0]
+            n_desig += int(after - before)
+            # 4) nomes comuns que o usuário não tinha
+            self.cx.execute(
+                "UPDATE main.objects SET common ="
+                " (SELECT b.common FROM bundled.objects b"
+                "  WHERE b.name = main.objects.name)"
+                " WHERE common IS NULL AND user_added = 0 AND EXISTS"
+                "  (SELECT 1 FROM bundled.objects b WHERE b.name ="
+                "   main.objects.name AND b.common IS NOT NULL)"
+            )
+            self.cx.execute(
+                "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+                (DATA_VERSION_KEY, str(target)),
+            )
+            self.cx.commit()
+        except Exception:
+            self.cx.rollback()
+            raise
+        finally:
+            self.cx.execute("DETACH DATABASE bundled")
+        return {
+            "from": current, "to": target, "objects": len(id_map),
+            "designations": n_desig, "backup": backup,
+        }
 
     def set_featured_names(self, names: set[str]) -> None:
         """Objetos com imagem destacada (manifesto) — recalcula a máscara."""
@@ -188,7 +326,7 @@ class DsoCatalog:
         vez do NGC/IC correspondente (configurável no menu Exibir).
         """
         if mode == "name" and self.commons[i]:
-            return self.commons[i].split(",")[0].strip()
+            return names.common_label(self.commons[i])
         if prefer_caldwell and not self.names[i].startswith("M "):
             cald = self.caldwell_names[i]
             if cald:
