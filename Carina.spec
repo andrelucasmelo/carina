@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 from PyInstaller.utils.hooks import collect_data_files
 from PyInstaller.utils.hooks import collect_submodules
 
@@ -48,7 +49,9 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='data/processed/icon.ico',
+    # o ícone é gerado por scripts/build_icon.py a partir da imagem do
+    # usuário (ainda pendente); sem o arquivo, o build segue com o padrão
+    icon='data/processed/icon.ico' if os.path.exists('data/processed/icon.ico') else None,
 )
 coll = COLLECT(
     exe,
