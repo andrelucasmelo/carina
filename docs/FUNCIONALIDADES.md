@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -189,7 +189,7 @@ Detalhes completos em [PLANEJAMENTO.md](PLANEJAMENTO.md).
   arrastável; filtros por instrumento, tipo, altitude e Lua; ir para no
   mapa e na hora; reordenar e remover.
 - **Calendário de noites escuras** (`Ctrl+Shift+N`): horas sem Lua de cada
-  noite do mês, com as três melhores destacadas.
+  noite do mês, com as de mais de 8 h destacadas (*Planejar*).
 - **PDF de campo** com o mapa da noite (paradas numeradas por direção e altura), checklist e cartas de
   localização, em tema claro, escuro ou vermelho; exportação em CSV e
   texto.

@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -129,7 +129,7 @@ Oito menus, agrupados por tarefa. A lista completa de atalhos está em
 | Exportar vista… | `Ctrl+S` | Salva a tela atual em PNG, JPG ou PDF |
 | Gerar carta celeste… | `Ctrl+Shift+P` | Carta para imprimir com moldura, perfis e atlas ([IMPRESSAO.md](IMPRESSAO.md)) |
 | Anotar a vista atual… | | Editor de anotações sobre a tela em modo mapa |
-| Preferências… | `Ctrl+,` | Fonte da interface, rótulos do céu, instrumento da nota |
+| Preferências… | `Ctrl+,` | Idioma, fonte da interface, rótulos do céu, instrumento da nota |
 | Sair | | Fecha o programa |
 
 ### Exibir
@@ -138,10 +138,10 @@ Quatro submenus de camadas e os controles gerais da vista.
 
 | Submenu | Conteúdo |
 |---|---|
-| **Objetos** | Estrelas · Planetas, Sol e Lua (`P`) · Objetos de céu profundo (`D`) · Imagens DSS (`I`) · Via Láctea (`M`) |
+| **Objetos** | Estrelas · Planetas, Sol e Lua (`P`) · Objetos de céu profundo (`D`) · Imagens DSS (`I`) · Via Láctea (`M`) · **Catálogos do céu profundo** (liga e desliga Messier, NGC, IC, Caldwell, Sh2, Barnard, Melotte, LDN, Collinder, vdB e Abell, ou todos de uma vez; um objeto em vários catálogos aparece se algum estiver ligado) |
 | **Linhas e grades** | Linhas (`C`) e fronteiras (`B`) das constelações · Grade horizontal (`Z`) · Grade equatorial (`E`) · Meridiano · Eclíptica · Equador · Linha do horizonte (`H`) · Pontos cardeais (`Q`) |
 | **Rótulos** | Nomes das estrelas (`N`), dos planetas e do céu profundo · estrelas por nome próprio ou Bayer · céu profundo por número ou nome · Caldwell pela designação C · **Nomes das constelações** (não exibir, português, latim, abreviado) · **Idioma dos nomes dos objetos** (português, inglês original, latim) |
-| **Céu** | Atmosfera (`A`) · Refração (`R`) · Solo opaco (`G`/`V`) · **Poluição luminosa (Bortle)** · **Magnitude máxima das estrelas** |
+| **Céu** | Atmosfera (`A`) · Refração (`R`) · Solo opaco (`G`/`V`) · **Poluição luminosa (Bortle)** · **Magnitude máxima das estrelas**. Sem atmosfera não há poluição luminosa: o céu é desenhado como Bortle 1, e o Bortle escolhido volta ao religá-la |
 
 Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 [CATALOGOS.md](CATALOGOS.md)), **Modo mapa para impressão** (`Ctrl+M`),
@@ -181,7 +181,6 @@ na barra lateral** e a exibição dos painéis.
 | Velocidade normal | `7` | Volta a 1× |
 | Ir para data/hora… | `Ctrl+T` | Salta para um instante, na **hora do observador** |
 | **Ir para ▸** | | Pôr do sol · Início da noite astronômica · Meia-noite local · Fim da noite astronômica · Nascer do sol (pausa no instante) |
-| Calendário de noites escuras… | `Ctrl+Shift+N` | Horas sem Lua de cada noite do mês; clique leva à data |
 | Passo dos botões | | De 1 minuto a 1 ano |
 | Retroceder / avançar | `Ctrl+←` `Ctrl+→` | Um passo para trás ou para frente |
 
@@ -226,6 +225,7 @@ na barra lateral** e a exibição dos painéis.
 | Item | Atalho | O que faz |
 |---|---|---|
 | Hoje à noite… | `T` | Resumo da noite com os melhores alvos |
+| Calendário de noites escuras… | `Ctrl+Shift+N` | Horas sem Lua de cada noite do mês; destaca as com mais de 8 h; clique leva à data |
 | Roteiros ▸ | | Maratonas, melhores objetos, roteiro da minha lista, destaques ([PLANEJAMENTO.md](PLANEJAMENTO.md)) |
 | Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |

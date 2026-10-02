@@ -37,7 +37,6 @@ valem com a janela principal ativa.
 | Tempo | Mais rápido | `L` |
 | Tempo | Velocidade normal (1x) | `7` |
 | Tempo | Ir para data/hora | `Ctrl+T` |
-| Tempo | Calendário de noites escuras | `Ctrl+Shift+N` |
 | Tempo | Retroceder um passo | `Ctrl+Left` |
 | Tempo | Avançar um passo | `Ctrl+Right` |
 | Local | Localização | `Ctrl+L` |
@@ -55,6 +54,7 @@ valem com a janela principal ativa.
 | Sistema Solar | Exibir previsão da Lua no céu | `Shift+M` |
 | Sistema Solar | Zona de influência da Lua (astrofoto) | `U` |
 | Planejar | Hoje à noite | `T` |
+| Planejar | Calendário de noites escuras | `Ctrl+Shift+N` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |
 | Ajuda | Ajuda do Carina | `F1` |

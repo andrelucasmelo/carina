@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa:
 enquadramento, influência da Lua, rastreamento e simulação do céu real.
@@ -113,8 +113,8 @@ E as **cores** dizem a qualidade da posição:
 
 | Cor | Situação |
 |---|---|
-| Azul claro | Boa altitude, sem Lua por perto |
-| Laranja | Afetado pela Lua |
+| Branco | Boa altitude, sem Lua por perto |
+| Azul | Afetado pela Lua |
 | Amarelo | Abaixo de 45° |
 | Laranja escuro | Abaixo de 30° |
 | Vermelho | Abaixo de 20° — massa de ar alta demais |
@@ -124,8 +124,15 @@ Os limiares e todas as cores são configuráveis.
 ### Marcadores de hora
 
 Pontos ao longo da trajetória a cada 30 minutos, com o **horário
-rotulado** a cada hora. Eles caem em minutos redondos — 18:00, 18:30,
-19:00 — para você conferir contra o relógio no campo.
+rotulado** a cada hora ("19h", "20h"…). Eles caem em minutos redondos —
+18:00, 18:30, 19:00 — para você conferir contra o relógio no campo. Os
+horários saem em **negrito com contorno**, afastados da linha, para não se
+confundirem com o traçado; quando a trajetória é curta e apertada, uma
+linha guia liga o horário ao ponto.
+
+A janela abre com a **altura toda da tela** e a vista do céu (leste à
+esquerda), fonte 1,4× e a legenda embaixo. Tudo o que você mudar em
+**Configurações** fica salvo e vale para as próximas janelas.
 
 ### Configurações
 

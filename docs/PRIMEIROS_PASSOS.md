@@ -1,6 +1,6 @@
 # Primeiros passos
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
 
 Um passeio guiado, do primeiro clique até um plano de observação impresso
 na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
@@ -9,7 +9,9 @@ na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
 
 ## 1. A primeira abertura
 
-Na primeira vez, um **assistente de três passos** pergunta **onde você
+Na primeira vez, um **assistente** pergunta primeiro o **idioma** (português
+ou inglês — em inglês, por enquanto, os nomes dos objetos e os diálogos do
+sistema; a interface completa chega na versão 1.0), depois **onde você
 observa** (a cidade, que também define o fuso horário), **como é o seu
 céu** (a escala de Bortle, com uma sugestão pela população da cidade) e
 **com o que você observa** (olho nu, binóculo ou telescópio). No fim, ele

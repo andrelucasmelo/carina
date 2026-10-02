@@ -1,6 +1,20 @@
 # O que há de novo
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
+
+## 0.16.1 — Ajustes
+
+- **Idioma** no primeiro passo do assistente e nas Preferências.
+- **Via Láctea** sem o aspecto quadriculado nos campos amplos.
+- **Sem atmosfera, sem poluição luminosa**: desligar a atmosfera mostra o
+  céu de Bortle 1; ao religar, volta o seu Bortle.
+- **Catálogos inteiros** de uma vez em *Exibir → Objetos → Catálogos do céu
+  profundo*.
+- **Rastreamento**: traçado branco, Lua em azul, vista do céu, fonte maior,
+  horários em negrito com contorno, janela com a altura da tela — e as
+  configurações agora ficam salvas.
+- **Calendário de noites escuras** no menu *Planejar*, destacando as noites
+  com mais de 8 horas sem Lua.
 
 ## 0.16 — Carta, beleza e campo
 

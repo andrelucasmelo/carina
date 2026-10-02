@@ -1,6 +1,6 @@
 # Planejamento de observação
 
-> Carina 0.16.0 — produto em desenvolvimento.
+> Carina 0.16.1 — produto em desenvolvimento.
 
 O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
 que horas?"** em todo lugar, e transforma a resposta num roteiro da noite
@@ -253,7 +253,7 @@ dentro da janela do roteiro.
 
 ## Calendário de noites escuras
 
-*Tempo → Calendário de noites escuras…* (`Ctrl+Shift+N`).
+*Planejar → Calendário de noites escuras…* (`Ctrl+Shift+N`).
 
 <div align="center">
 <img src="imagens/calendario-noites.png" alt="Calendário de noites escuras" width="75%">
@@ -261,7 +261,9 @@ dentro da janela do roteiro.
 
 Para cada noite do mês: a fase da Lua desenhada como você a vê do seu
 hemisfério e as **horas de noite astronômica sem Lua** (número e barra).
-As três melhores noites ganham contorno verde. Clique num dia para levar
+As **melhores noites** — mais de 8 horas de noite astronômica sem Lua —
+ganham contorno verde. No verão das latitudes médias a noite astronômica é
+curta e pode não haver nenhuma; o resumo então diz qual foi a mais escura. Clique num dia para levar
 a simulação ao anoitecer daquela data — é a forma mais rápida de escolher
 o fim de semana da viagem ao céu escuro.
 
