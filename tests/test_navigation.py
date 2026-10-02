@@ -50,3 +50,23 @@ def test_zoom_respects_limits(camera):
     for _ in range(80):
         camera.zoom_at(2.0, 400.0, 400.0)
     assert camera.fov == pytest.approx(FOV_MAX)
+
+
+def test_atmosphere_off_simulates_bortle_1(qt_app):
+    """Pré-0.17: sem atmosfera não há poluição luminosa; ao religar, volta."""
+    from carina.ui.mainwindow import MainWindow
+
+    win = MainWindow()
+    win.skip_state_save = True
+    sky = win.sky
+    sky.set_bortle(7)
+    sky.set_layer("atmosphere", True)
+    lim_city = sky._mag_limit()
+    assert sky.sky_bortle() == 7 and not sky.milkyway_visible()
+    sky.set_layer("atmosphere", False)
+    assert sky.sky_bortle() == 1 and sky.bortle == 7
+    assert sky.milkyway_visible() and sky._mag_limit() > lim_city + 2
+    assert sky.sky_dimming() == 1.0
+    sky.set_layer("atmosphere", True)
+    assert sky.sky_bortle() == 7
+    win.close()

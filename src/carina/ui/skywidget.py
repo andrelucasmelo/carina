@@ -335,6 +335,16 @@ class SkyWidget(QOpenGLWidget):
     # justamente o que se quer ao apreciar uma nebulosa.
     DSO_MASTER = "dso_master"
 
+    def sky_bortle(self) -> int:
+        """Bortle usado na SIMULAÇÃO do céu.
+
+        A poluição luminosa é luz espalhada pela atmosfera: sem atmosfera
+        não há céu clareado, então desligá-la simula Bortle 1. O valor
+        escolhido pelo usuário (``self.bortle``) não muda e volta a valer
+        quando a atmosfera é religada; a pontuação continua usando-o.
+        """
+        return self.bortle if self.layers.get("atmosphere", True) else 1
+
     def set_layer(self, key: str, value: bool) -> None:
         """Liga/desliga uma camada de exibição e repinta.
 
@@ -361,7 +371,14 @@ class SkyWidget(QOpenGLWidget):
                     self, "_dso_images_memo", False
                 )
         else:
+            changed = self.layers.get(key) != value
             self.layers[key] = value
+            if key == "atmosphere" and changed and self.bortle > 1:
+                self.show_notice(
+                    self.tr("Sem atmosfera, sem poluição luminosa: céu de Bortle 1")
+                    if not value else
+                    self.tr("Atmosfera ligada: de volta ao Bortle {n}").format(n=self.bortle),
+                    5.0)
         self.update()
 
     def deep_sky_on(self) -> bool:
@@ -406,7 +423,7 @@ class SkyWidget(QOpenGLWidget):
         bg = night + (dusk - night) * twilight
         bg = bg + (noon - bg) * day
         # brilho do céu por poluição luminosa (tom alaranjado das lâmpadas)
-        glow = self.BORTLE_GLOW[self.bortle]
+        glow = self.BORTLE_GLOW[self.sky_bortle()]
         if glow:
             bg = bg + glow * np.array([1.00, 0.72, 0.42])
         fade = max(0.04, 1.0 - 0.85 * twilight - 0.15 * day)
@@ -461,11 +478,11 @@ class SkyWidget(QOpenGLWidget):
         return {
             1: 1.00, 2: 0.92, 3: 0.80, 4: 0.62, 5: 0.44, 6: 0.26,
             7: 0.10, 8: 0.04, 9: 0.00,
-        }[self.bortle]
+        }[self.sky_bortle()]
 
     def milkyway_visible(self) -> bool:
         """A Via Láctea deixa de ser visível a partir de Bortle 7."""
-        return self.bortle <= 6
+        return self.sky_bortle() <= 6
 
     def _mag_limit(self) -> float:
         """Magnitude-limite das estrelas no quadro atual.
@@ -484,7 +501,7 @@ class SkyWidget(QOpenGLWidget):
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
         # a poluição luminosa corta as estrelas fracas: o desconto é a
         # diferença entre o céu perfeito (Bortle 1) e a classe escolhida
-        auto -= self.BORTLE_NELM[1] - self.BORTLE_NELM[self.bortle]
+        auto -= self.BORTLE_NELM[1] - self.BORTLE_NELM[self.sky_bortle()]
         if self.mag_cap is not None:
             return min(auto, self.mag_cap, 12.0)
         return auto
