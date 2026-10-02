@@ -362,8 +362,6 @@ class MainWindow(QMainWindow):
             (self.tr("Nascer do sol"), "sunrise"),
         ):
             self._add(m_jump, title, lambda _c=False, k=kind: self._goto_time(k))
-        self._add(m_time, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
-                  "Ctrl+Shift+N")
         m_time.addSeparator()
         m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
         step_group = QActionGroup(self)
@@ -435,6 +433,8 @@ class MainWindow(QMainWindow):
         # --- Planejar --------------------------------------------------
         m_plan = bar.addMenu(self.tr("&Planejar"))
         self._add(m_plan, self.tr("Hoje à noite…"), self._open_tonight, "T")
+        self._add(m_plan, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
+                  "Ctrl+Shift+N")
         m_rot = m_plan.addMenu(self.tr("Roteiros"))
         for kind, label in (("M", self.tr("Maratona Messier…")),
                             ("C", self.tr("Maratona Caldwell…")),

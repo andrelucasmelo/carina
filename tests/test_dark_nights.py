@@ -32,8 +32,18 @@ def test_new_moon_darker_than_full(engine):
     assert full.phase_name in ("Cheia", "Gibosa crescente")
     for n in nights:
         assert 0 <= n.moonless_minutes <= n.astro_minutes <= 12 * 60
-    best = best_nights(nights)
-    assert all(abs((b.date - dt.date(2026, 12, 8)).days) <= 4 for b in best)
+    # verão no Rio: a noite astronômica tem menos de 8 h — nenhuma "melhor"
+    assert best_nights(nights) == []
+    from carina.core.dark_nights import darkest_night
+
+    assert abs((darkest_night(nights).date - dt.date(2026, 12, 8)).days) <= 3
+    # inverno: noites longas; as melhores (mais de 8 h sem Lua) ficam em
+    # torno da lua nova de 14/07/2026
+    july = month_nights(engine, 2026, 7)
+    best = best_nights(july)
+    assert best and all(n.moonless_minutes > 480 for n in best)
+    assert all(abs((b.date - dt.date(2026, 7, 14)).days) <= 9 for b in best)
+    assert [b.date for b in best] == sorted(b.date for b in best)
 
 
 def test_dialog_navigation_and_click(engine):

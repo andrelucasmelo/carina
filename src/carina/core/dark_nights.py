@@ -76,6 +76,19 @@ def month_nights(engine, year: int, month: int) -> list[DarkNight]:
     return out
 
 
-def best_nights(nights: list[DarkNight], count: int = 3) -> list[DarkNight]:
-    """As noites com mais horas escuras sem Lua (empate: data mais cedo)."""
-    return sorted(nights, key=lambda n: (-round(n.moonless_minutes), n.date))[:count]
+BEST_MIN_HOURS = 8.0     # "melhor noite": mais de 8 h de noite astronômica sem Lua
+
+
+def best_nights(nights: list[DarkNight], min_hours: float = BEST_MIN_HOURS) -> list[DarkNight]:
+    """Noites com mais de ``min_hours`` horas escuras sem Lua, em ordem de data.
+
+    Critério absoluto (pedido do usuário, pré-0.17): num mês sem nenhuma noite
+    assim — verão em latitudes médias, quando a noite astronômica é curta —
+    a lista fica vazia, em vez de promover noites medianas.
+    """
+    return [n for n in nights if n.moonless_minutes > min_hours * 60.0]
+
+
+def darkest_night(nights: list[DarkNight]) -> DarkNight | None:
+    """A noite com mais horas sem Lua (empate: a mais cedo)."""
+    return min(nights, key=lambda n: (-round(n.moonless_minutes), n.date), default=None)

@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QDialog, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget,
 )
 
-from ..core.dark_nights import best_nights, month_nights
+from ..core.dark_nights import BEST_MIN_HOURS, best_nights, darkest_night, month_nights
 
 MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
           "agosto", "setembro", "outubro", "novembro", "dezembro"]
@@ -177,8 +177,8 @@ class DarkCalendarDialog(QDialog):
         self.summary.setWordWrap(True)
         hint = QLabel(self.tr(
             "Número e barra: horas de noite astronômica sem a Lua no céu. Contorno "
-            "verde: as três melhores noites do mês. Clique num dia para ir ao "
-            "anoitecer daquela data."))
+            "verde: as melhores noites — mais de 8 h sem Lua. Clique num dia para ir "
+            "ao anoitecer daquela data."))
         hint.setWordWrap(True)
         hint.setStyleSheet("color:#8a93a5; font-size:8pt")
         lay = QVBoxLayout(self)
@@ -194,9 +194,18 @@ class DarkCalendarDialog(QDialog):
         self.grid.set_month(self.year, self.month, nights)
         self.title.setText(f"{MONTHS[self.month - 1].capitalize()} de {self.year}")
         best = best_nights(nights)
-        parts = [f"{n.date:%d/%m} ({n.moonless_hours:.1f} h)".replace(".", ",")
-                 for n in best]
-        self.summary.setText(self.tr("Melhores noites: {l}").format(l=", ".join(parts)))
+        if best:
+            parts = [f"{n.date:%d/%m} ({n.moonless_hours:.1f} h)".replace(".", ",")
+                     for n in best]
+            self.summary.setText(self.tr("Melhores noites (mais de {h:.0f} h sem Lua): {l}")
+                                 .format(h=BEST_MIN_HOURS, l=", ".join(parts)))
+        else:
+            top = darkest_night(nights)
+            extra = (f" — a mais escura: {top.date:%d/%m}, {top.moonless_hours:.1f} h"
+                     .replace(".", ",", 1) if top else "")
+            self.summary.setText(self.tr(
+                "Nenhuma noite com mais de {h:.0f} h sem Lua neste mês{e}.").format(
+                    h=BEST_MIN_HOURS, e=extra))
 
     def _shift(self, delta: int) -> None:
         m = self.month - 1 + delta
