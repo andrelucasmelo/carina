@@ -152,3 +152,47 @@ def test_bundled_database_is_versioned():
     if not db.exists():
         pytest.skip("banco embarcado ausente")
     assert read_data_version(db) >= 2
+
+
+def test_magnitude_fixes_respect_user_edits(tmp_path):
+    """B-024: versão 3 corrige magnitudes onde o usuário não editou."""
+    from carina.catalogs.dso import DsoCatalog
+
+    rows = [(1, "NGC 253", "GAL", 11.11, None, [("NGC", "253")]),
+            (2, "NGC 4945", "GAL", 11.86, None, [("NGC", "4945")])]
+    user = tmp_path / "u" / "dso.sqlite"
+    user.parent.mkdir()
+    _make_db(user, rows, version=2)
+    cx = sqlite3.connect(user)
+    cx.execute("UPDATE objects SET mag = 8.0 WHERE name = 'NGC 4945'")  # edição
+    cx.commit()
+    cx.close()
+    bundled = tmp_path / "b.sqlite"
+    fixed = [(1, "NGC 253", "GAL", 7.14, None, [("NGC", "253")]),
+             (2, "NGC 4945", "GAL", 8.48, None, [("NGC", "4945")])]
+    _make_db(bundled, fixed, version=3)
+    cx = sqlite3.connect(bundled)
+    cx.execute("CREATE TABLE mag_fixes (name TEXT PRIMARY KEY, old REAL, new REAL)")
+    cx.executemany("INSERT INTO mag_fixes VALUES (?,?,?)",
+                   [("NGC 253", 11.11, 7.14), ("NGC 4945", 11.86, 8.48)])
+    cx.commit()
+    cx.close()
+
+    cat = DsoCatalog(bundled, user, visible_catalogs=set())
+    assert cat.migration_report["magnitudes"] == 1
+    mags = dict(cat.cx.execute("SELECT name, mag FROM objects").fetchall())
+    assert mags["NGC 253"] == 7.14
+    assert mags["NGC 4945"] == 8.0            # edição do usuário preservada
+    cat.cx.close()
+
+
+def test_bundled_ngc253_magnitude():
+    from pathlib import Path
+
+    db = Path(__file__).resolve().parent.parent / "data" / "processed" / "dso.sqlite"
+    if not db.exists():
+        pytest.skip("banco embarcado ausente")
+    cx = sqlite3.connect(db)
+    mag = cx.execute("SELECT mag FROM objects WHERE name = 'NGC 253'").fetchone()[0]
+    cx.close()
+    assert 6.5 < mag < 8.0

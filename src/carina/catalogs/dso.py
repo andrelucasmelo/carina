@@ -203,6 +203,21 @@ class DsoCatalog:
                 "  (SELECT 1 FROM bundled.objects b WHERE b.name ="
                 "   main.objects.name AND b.common IS NOT NULL)"
             )
+            # 5) magnitudes corrigidas no embarcado (B-024): só onde o
+            #    usuário ainda tem o valor antigo, nunca sobre uma edição
+            n_mag = 0
+            has_fixes = self.cx.execute(
+                "SELECT 1 FROM bundled.sqlite_master WHERE name = 'mag_fixes'"
+            ).fetchone()
+            if has_fixes:
+                cur = self.cx.execute(
+                    "UPDATE main.objects SET mag = (SELECT f.new FROM"
+                    " bundled.mag_fixes f WHERE f.name = main.objects.name)"
+                    " WHERE user_added = 0 AND EXISTS (SELECT 1 FROM"
+                    " bundled.mag_fixes f WHERE f.name = main.objects.name"
+                    " AND abs(main.objects.mag - f.old) < 0.005)"
+                )
+                n_mag = max(0, cur.rowcount)
             self.cx.execute(
                 "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
                 (DATA_VERSION_KEY, str(target)),
@@ -215,7 +230,7 @@ class DsoCatalog:
             self.cx.execute("DETACH DATABASE bundled")
         return {
             "from": current, "to": target, "objects": len(id_map),
-            "designations": n_desig, "backup": backup,
+            "designations": n_desig, "magnitudes": n_mag, "backup": backup,
         }
 
     def set_featured_names(self, names: set[str]) -> None:

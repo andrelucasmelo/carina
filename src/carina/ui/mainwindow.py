@@ -1261,6 +1261,9 @@ class MainWindow(QMainWindow):
             "{o} objetos e {d} designações novos."
         ).format(v=report["to"], o=br(report["objects"]),
                  d=br(report["designations"]))
+        if report.get("magnitudes"):
+            text += " " + self.tr("{m} magnitudes corrigidas.").format(
+                m=br(report["magnitudes"]))
         text += "\n\n" + self.tr(
             "Cópia de segurança da base anterior:"
         ) + f"\n{report['backup']}"

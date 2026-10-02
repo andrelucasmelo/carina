@@ -127,6 +127,22 @@ def ffloat(text: str) -> float | None:
         return None
 
 
+GALAXY_TYPES = {"G", "GPair", "GTrpl", "GGroup"}
+
+
+def pick_mag(v: float | None, b: float | None, typ: str) -> tuple[float | None, bool]:
+    """Magnitude visual de uma linha do OpenNGC: V, senão B.
+
+    Algumas galáxias trazem um V mais de uma magnitude MAIS FRACO que o B
+    — fisicamente implausível (galáxias têm B−V de 0,6 a 1,0). É o caso de
+    NGC 253, que aparecia com 11,1 em vez de ~7,1 (B-024). Nesses casos
+    usa B − 0,8. Devolve (magnitude, corrigida?).
+    """
+    if typ in GALAXY_TYPES and v is not None and b is not None and v - b > 1.0:
+        return round(b - 0.8, 2), True
+    return (v if v is not None else b), False
+
+
 def pretty_ngc(name: str) -> tuple[str, str] | None:
     """'NGC0001'/'IC0342' -> ('NGC', '1')  (mantém sufixos como 'NGC0554A')."""
     m = re.match(r"^(NGC|IC)(\d+)(.*)$", name or "")
@@ -141,6 +157,7 @@ def pretty_ngc(name: str) -> tuple[str, str] | None:
 
 SCHEMA = """
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE mag_fixes (name TEXT PRIMARY KEY, old REAL, new REAL);
 CREATE TABLE objects (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -240,7 +257,8 @@ def load_openngc(b: Builder, force: bool) -> None:
                 dec = dms_to_rad(row.get("Dec"))
                 if ra is None or dec is None:
                     continue
-                mag = ffloat(row.get("V-Mag")) or ffloat(row.get("B-Mag"))
+                mag, fixed = pick_mag(ffloat(row.get("V-Mag")),
+                                      ffloat(row.get("B-Mag")), typ)
                 common = (row.get("Common names") or "").replace(",", ", ") or None
                 pn = pretty_ngc(name)
                 m_num = (row.get("M") or "").strip()
@@ -260,6 +278,11 @@ def load_openngc(b: Builder, force: bool) -> None:
                     common=common,
                 )
                 n_obj += 1
+                if fixed:
+                    b.cx.execute(
+                        "INSERT OR REPLACE INTO mag_fixes VALUES (?,?,?)",
+                        (display, ffloat(row.get("V-Mag")), mag),
+                    )
                 if pn:
                     b.add_desig(oid, pn[0], pn[1])
                     b.by_ngc[name] = oid

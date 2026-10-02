@@ -147,13 +147,18 @@ class NightGrid:
             return self.altaz(target.icrs)
         return self.body_altaz(target.body)
 
-    def moon_separation(self, alt: np.ndarray, az: np.ndarray) -> np.ndarray:
-        """Separação angular (graus) entre o alvo e a Lua em cada instante."""
+    def moon_separation(self, alt: np.ndarray, az: np.ndarray, idx=None) -> np.ndarray:
+        """Separação angular (graus) entre o alvo e a Lua.
+
+        ``alt``/``az`` cobrem a grade inteira (último eixo = tempo) ou só os
+        instantes ``idx`` da grade.
+        """
+        moon = self.moon_vec if idx is None else self.moon_vec[np.asarray(idx)]
         a = np.radians(alt)
         z = np.radians(az)
         ca = np.cos(a)
         v = np.stack([ca * np.cos(z), ca * np.sin(z), np.sin(a)], axis=-1)
-        dots = np.clip(np.sum(v * self.moon_vec, axis=-1), -1.0, 1.0)
+        dots = np.clip(np.sum(v * moon, axis=-1), -1.0, 1.0)
         return np.degrees(np.arccos(dots))
 
 
@@ -480,7 +485,7 @@ def compute_visibility(engine, target: Target, ref_utc: dt.datetime,
     if vis.best_utc is not None:
         kb = grid.index_of(vis.best_utc)
         vis.best_az = float(azs[kb])
-        sep = grid.moon_separation(alts[kb:kb + 1], azs[kb:kb + 1])
+        sep = grid.moon_separation(alts[kb:kb + 1], azs[kb:kb + 1], [kb])
         vis.moon_sep_best = float(sep[0])
         vis.moon_alt_best = float(grid.moon_alt[kb])
     return vis
