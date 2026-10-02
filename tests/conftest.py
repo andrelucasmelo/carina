@@ -26,3 +26,15 @@ def qt_app():
     if app is None:
         app = QApplication([])
     yield app
+
+
+@pytest.fixture(scope="session", autouse=True)
+def isolated_userdata(tmp_path_factory):
+    """Nenhum teste lê ou grava o carina.sqlite real do usuário."""
+    from carina.core import userdata
+
+    data = userdata.UserData(tmp_path_factory.mktemp("userdata") / "carina.sqlite")
+    userdata.set_instance(data)
+    yield data
+    data.close()
+    userdata.set_instance(None)

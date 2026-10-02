@@ -302,16 +302,28 @@ def build_sphere_mesh(n_ra: int = 96, n_dec: int = 48):
     return verts.astype(np.float32), uv.astype(np.float32), tris
 
 
-def build_ground(az_step: float = 5.0, alt_step: float = 10.0):
+def build_ground(az_step: float = 5.0, alt_step: float = 10.0, profile=None):
     """Malha triangular do hemisfério abaixo do horizonte (solo opaco).
 
     Retorna (verts (V,3) float32, tris (T,3) int32). Malha densa para que a
     projeção com clamp de pontos atrás do observador degrade suavemente.
+
+    Com um perfil de horizonte do quintal (``core.horizon.HorizonProfile``)
+    o anel do topo sobe até a silhueta de prédios e árvores, amostrada a
+    cada 1° para os cantos dos prédios ficarem nítidos.
     """
+    has_profile = profile is not None and not profile.is_flat
+    if has_profile:
+        az_step = 1.0
     n_az = int(round(360.0 / az_step))
-    az = np.radians(np.arange(n_az) * az_step)
+    az_deg = np.arange(n_az) * az_step
+    az = np.radians(az_deg)
     alts = np.radians(np.arange(0.0, -80.0 - 1e-6, -alt_step))
     rings = []
+    if has_profile:
+        top = np.radians(profile.altitude_at(az_deg))
+        rings.append(np.stack([np.cos(top) * np.cos(az), np.cos(top) * np.sin(az),
+                               np.sin(top)], axis=1))
     for alt in alts:
         ca, sa = math.cos(alt), math.sin(alt)
         rings.append(
@@ -321,7 +333,7 @@ def build_ground(az_step: float = 5.0, alt_step: float = 10.0):
     nadir = len(verts) - 1
 
     tris = []
-    n_rings = len(alts)
+    n_rings = len(rings)
     for r in range(n_rings - 1):
         base0, base1 = r * n_az, (r + 1) * n_az
         for j in range(n_az):
@@ -349,3 +361,14 @@ def cardinal_vectors() -> list[tuple[str, np.ndarray]]:
         az = math.radians(az_deg)
         out.append((name, np.array([math.cos(az), math.sin(az), 0.0])))
     return out
+
+
+def build_silhouette(profile) -> np.ndarray | None:
+    """Contorno do horizonte do quintal: polilinha fechada (N,3), ou None."""
+    if profile is None or profile.is_flat:
+        return None
+    az_deg = np.arange(0.0, 361.0, 1.0)
+    top = np.radians(profile.altitude_at(az_deg))
+    az = np.radians(az_deg)
+    return np.stack([np.cos(top) * np.cos(az), np.cos(top) * np.sin(az),
+                     np.sin(top)], axis=1)

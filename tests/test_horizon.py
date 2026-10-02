@@ -45,3 +45,52 @@ def test_normalization_and_presets():
         p = factory()
         assert isinstance(p, HorizonProfile)
         assert 0.0 <= p.max_altitude() < 60.0
+
+
+def test_ground_mesh_follows_profile():
+    from carina.catalogs.skygeometry import build_ground, build_silhouette
+
+    flat_v, flat_t = build_ground()
+    prof = HorizonProfile([(150, 35), (210, 35), (240, 3), (120, 3)])
+    v, t = build_ground(profile=prof)
+    assert len(v) > len(flat_v) and t.max() < len(v)
+    top_alt = np.degrees(np.arcsin(v[:360, 2]))
+    assert abs(top_alt[180] - 35.0) < 0.01 and abs(top_alt[0] - 3.0) < 0.5
+    sil = build_silhouette(prof)
+    assert sil.shape == (361, 3)
+    assert build_silhouette(HorizonProfile()) is None
+
+
+def test_dialog_saves_and_emits(tmp_path):
+    from pathlib import Path
+
+    from carina.core.userdata import UserData
+
+    ephem = Path(__file__).resolve().parent.parent / "data" / "ephemeris"
+    data = Path(__file__).resolve().parent.parent / "data" / "processed"
+    if not (ephem / "de440s.bsp").exists():
+        import pytest
+        pytest.skip("efeméride ausente")
+    from carina.catalogs.stars import StarCatalog
+    from carina.config import ObserverLocation
+    from carina.core.engine import SkyEngine
+    from carina.ui.horizon_dialog import HorizonDialog
+
+    engine = SkyEngine(ephem)
+    engine.set_location(ObserverLocation())
+    ud = UserData(tmp_path / "c.sqlite")
+    dlg = HorizonDialog(engine, StarCatalog(data), ud, "Rio")
+    got = []
+    dlg.profileApplied.connect(got.append)
+    dlg.editor.set_profile(preset_wall(15.0))
+    dlg.name.setText("Muro")
+    dlg._save()
+    assert got and got[-1].name == "Muro" and got[-1].max_altitude() == 15.0
+    assert ud.active_horizon().name == "Muro"
+    # editor: conversão pixel ↔ (az, alt) é inversa
+    dlg.editor.resize(800, 300)
+    pt = dlg.editor.to_px(123.0, 22.0)
+    az, alt = dlg.editor.from_px(pt.x(), pt.y())
+    assert abs(az - 123.0) < 0.01 and abs(alt - 22.0) < 0.01
+    dlg.close()
+    ud.close()

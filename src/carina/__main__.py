@@ -39,12 +39,14 @@ def _parse_args(argv):
     parser.add_argument(
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
-                 "catalogs", "print", "night", "location"],
+                 "catalogs", "print", "night", "location", "horizon"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
                         help="traça o caminho anual de um planeta (testes)")
     parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--horizon-preset", default=None,
+                        help="aplica um modelo de horizonte sem salvar (testes)")
     parser.add_argument("--moon-forecast", action="store_true",
                         help="calcula a previsão da Lua ao iniciar (testes)")
     parser.add_argument(
@@ -361,6 +363,11 @@ def main(argv=None) -> int:
         win.setAttribute(Qt.WA_ShowWithoutActivating, True)
         win.setWindowFlag(Qt.WindowStaysOnBottomHint, True)
 
+    if args.horizon_preset:
+        from .core.horizon import PRESETS
+
+        win.sky.set_horizon_profile(PRESETS[args.horizon_preset]())
+
     win.show()
 
     dialog = None
@@ -408,6 +415,9 @@ def main(argv=None) -> int:
     elif args.dialog == "print":
         win._open_print_map()
         dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "horizon":
+        win._open_horizon()
+        dialog = win._horizon_dialog
     elif args.dialog == "fov":
         from .catalogs.equipment import EquipmentStore
         from .config import user_data_path

@@ -114,6 +114,12 @@ class MainWindow(QMainWindow):
         self.sky.set_dso_filter(
             DsoFilter.from_json(self.settings.value("dso/filter", "", str))
         )
+        # banco do usuário (listas, diário, horizonte do quintal — v0.15)
+        from ..core import userdata
+
+        self.userdata = userdata.get()
+        self.horizon_profile = self.userdata.active_horizon()
+        self.sky.set_horizon_profile(self.horizon_profile)
         self.sky.statusUpdated.connect(self._on_status)
         self.sky.selectionChanged.connect(self._on_selection)
         self.sky.contextInfoRequested.connect(self._popup_info)
@@ -357,6 +363,7 @@ class MainWindow(QMainWindow):
         m_local = bar.addMenu(self.tr("&Local"))
         self._add(m_local, self.tr("Localização…"), self._edit_location, "Ctrl+L")
         self._add(m_local, self.tr("Crepúsculos e noite…"), self._open_night_info, "Ctrl+I")
+        self._add(m_local, self.tr("Horizonte do quintal…"), self._open_horizon)
 
         # --- Objetos ---------------------------------------------------
         m_objs = bar.addMenu(self.tr("&Objetos"))
@@ -731,6 +738,25 @@ class MainWindow(QMainWindow):
     def _on_time_step(self, seconds: float) -> None:
         self.engine.time.step(seconds)
         self.sky.sync_clock()
+
+    def _open_horizon(self) -> None:
+        """Local ▸ Horizonte do quintal: editor do perfil (v0.15 T4)."""
+        from .horizon_dialog import HorizonDialog
+
+        ref = ObjectRef.resolve(self.sky.selection, self.star_catalog,
+                                self.dso_catalog)
+        dialog = HorizonDialog(self.engine, self.star_catalog, self.userdata,
+                               self.settings.location().name, ref, self)
+        dialog.profileApplied.connect(self._apply_horizon)
+        self._horizon_dialog = dialog
+        dialog.show()
+
+    def _apply_horizon(self, profile) -> None:
+        self.horizon_profile = profile
+        self.sky.set_horizon_profile(profile)
+        name = profile.name if profile is not None else self.tr("plano")
+        self.statusBar().showMessage(
+            self.tr("Horizonte do quintal: {n}").format(n=name), 6000)
 
     def _open_track(self) -> None:
         """Abre a janela de rastreamento para o objeto selecionado."""

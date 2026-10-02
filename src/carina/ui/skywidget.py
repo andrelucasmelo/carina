@@ -255,6 +255,8 @@ class SkyWidget(QOpenGLWidget):
         self.equator = skygeometry.build_equator()
         self.cardinals = skygeometry.cardinal_vectors()
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
+        self.horizon_profile = None          # horizonte do quintal (v0.15)
+        self._silhouette = None
         self._goto_anim = None
         self.follow_selection = False       # câmera acompanha a seleção
         self._history: list = []            # vistas anteriores (Backspace)
@@ -733,6 +735,17 @@ class SkyWidget(QOpenGLWidget):
                         + (COL_GROUND_DAY - COL_GROUND_NIGHT) * day
                     )
                 r.fill_triangles(pts, (col[0], col[1], col[2], 1.0))
+            if self._silhouette is not None:
+                sil_col = ((0.35, 0.35, 0.30, 1.0) if self.chart_mode
+                           else (0.55, 0.42, 0.28, 0.9))
+                px, py, vis = cam.project(self._silhouette, margin=4000.0)
+                ok = vis[:-1] & vis[1:]
+                if ok.any():
+                    seg = np.empty((2 * int(ok.sum()), 6), dtype=np.float32)
+                    seg[0::2, 0], seg[0::2, 1] = px[:-1][ok], py[:-1][ok]
+                    seg[1::2, 0], seg[1::2, 1] = px[1:][ok], py[1:][ok]
+                    seg[:, 2:] = sil_col
+                    r.draw_lines(seg)
 
         # --- horizonte por cima do solo ---
         if self.layers["horizon"]:
@@ -879,7 +892,7 @@ class SkyWidget(QOpenGLWidget):
         sizes = np.minimum(26.0, 1.1 + 0.68 * rel ** 1.58).astype(np.float32)
         alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
-        below = vecs[sub, 2] < 0.0
+        below = self._below_mask(vecs[sub])
         dim_below = 0.45 if self.layers.get("below_horizon", False) else 0.15
         alpha = np.where(below, alpha * dim_below, alpha)
         keep = alpha > 0.02
@@ -1038,7 +1051,7 @@ class SkyWidget(QOpenGLWidget):
         xs = x[sub]
         ys = y[sub]
         maj_sel = maj_px_all[idx]
-        below_sel = vecs[sub, 2] < 0.0
+        below_sel = self._below_mask(vecs[sub])
 
         pole = np.array([0.0, 0.0, 1.0], dtype=np.float32)
         segs: list[np.ndarray] = []
@@ -1239,6 +1252,26 @@ class SkyWidget(QOpenGLWidget):
         """Define as trajetórias anuais a exibir (lista vazia limpa)."""
         self.planet_paths = list(paths)
         self.update()
+
+    def set_horizon_profile(self, profile) -> None:
+        """Horizonte do quintal: o solo sobe até a silhueta do perfil e os
+        rótulos de quem fica atrás dela somem. ``None`` = horizonte plano."""
+        if profile is not None and profile.is_flat:
+            profile = None
+        self.horizon_profile = profile
+        self.ground_verts, self.ground_tris = skygeometry.build_ground(profile=profile)
+        self._silhouette = skygeometry.build_silhouette(profile)
+        self.update()
+
+    def _below_mask(self, vecs: np.ndarray) -> np.ndarray:
+        """Abaixo do horizonte OU atrás da silhueta do quintal."""
+        below = vecs[:, 2] < 0.0
+        prof = self.horizon_profile
+        if prof is not None and len(vecs):
+            az = np.degrees(np.arctan2(vecs[:, 1], vecs[:, 0])) % 360.0
+            alt = np.degrees(np.arcsin(np.clip(vecs[:, 2], -1.0, 1.0)))
+            below |= prof.blocks(az, alt)
+        return below
 
     def _hide_below_ground(self) -> bool:
         """Com o solo opaco ativo, nada de rastreamento aparece sob ele.
@@ -1659,7 +1692,7 @@ class SkyWidget(QOpenGLWidget):
             for i, info in enumerate(self.const_info):
                 if not cvis[i]:
                     continue
-                if ground_on and cv[i, 2] < 0:
+                if ground_on and self._below_mask(cv[i:i + 1])[0]:
                     continue
                 text = label_for(
                     info.get("id", ""), self.const_label_mode,
@@ -1677,7 +1710,7 @@ class SkyWidget(QOpenGLWidget):
             painter.setFont(font)
             fm = QFontMetrics(font)
             for b, x, y, size in bodies_px:
-                if ground_on and b.alt < 0:
+                if ground_on and self._below_mask(b.vec[np.newaxis, :])[0]:
                     continue
                 if self.chart_mode:
                     pen = QColor(20, 20, 20)
