@@ -174,6 +174,7 @@ class MainWindow(QMainWindow):
             self.settings.value("ui/sidebar_labels", False, bool))
         if self.settings.value("ui/night_mode", False, bool):
             self.act_night.setChecked(True)     # no campo, abre já no vermelho
+        self._setup_field_tools()
 
         report = self.dso_catalog.migration_report
         if report:
@@ -200,6 +201,8 @@ class MainWindow(QMainWindow):
         self._add(m_file, self.tr("Gerar carta celeste…"),
                   self._open_chart_dialog, "Ctrl+Shift+P")
         self._add(m_file, self.tr("Anotar a vista atual…"), self._open_print_map)
+        m_file.addSeparator()
+        self._add(m_file, self.tr("Preferências…"), self._open_preferences, "Ctrl+,")
         m_file.addSeparator()
         self._add(m_file, self.tr("Sair"), self.close, QKeySequence.Quit)
 
@@ -315,6 +318,15 @@ class MainWindow(QMainWindow):
         self.act_night = self._add(m_view, self.tr("Modo noturno (vermelho)"),
                                    None, "Ctrl+N", checkable=True)
         self.act_night.toggled.connect(self._toggle_night)
+        self.act_fullscreen = self._add(m_view, self.tr("Tela cheia"), None, "F11",
+                                        checkable=True)
+        self.act_fullscreen.toggled.connect(
+            lambda on: self.showFullScreen() if on else self.showNormal())
+        self.act_observe = self._add(m_view, self.tr("Modo observação"), None,
+                                     "Ctrl+Shift+F", checkable=True)
+        self.act_observe.toggled.connect(self._toggle_observing)
+        self.act_slider = self._add(m_view, self.tr("Linha do tempo da noite"), None, None,
+                                    checkable=True, checked=True)
         self.act_follow = self._add(m_view, self.tr("Seguir objeto selecionado"),
                                     None, "F", checkable=True)
         self.act_follow.toggled.connect(self._toggle_follow)
@@ -513,6 +525,119 @@ class MainWindow(QMainWindow):
         self.engine.time.set_datetime(target)
         self.engine.time.set_speed(0.0)
         self.sky.sync_clock()
+
+    # --- campo (v0.16 T5) ---------------------------------------------------
+    def _setup_field_tools(self) -> None:
+        """Linha do tempo da noite no rodapé, preferências e relógio de 1 s."""
+        from PySide6.QtWidgets import QToolBar
+
+        from .preferences_dialog import apply_font_scale
+        from .widgets.night_slider import NightSlider
+
+        self.night_slider = NightSlider()
+        self.night_slider.timeChosen.connect(self._slider_time)
+        bar = QToolBar(self.tr("Linha do tempo da noite"))
+        bar.setObjectName("night_slider_bar")
+        bar.setMovable(False)
+        bar.addWidget(self.night_slider)
+        self.addToolBar(Qt.BottomToolBarArea, bar)
+        self._slider_bar = bar
+        self.act_slider.toggled.connect(bar.setVisible)
+        self.act_slider.setChecked(self.settings.value("ui/night_slider", True, bool))
+        self.act_slider.toggled.connect(
+            lambda on: self.settings.set_value("ui/night_slider", on)
+            if not getattr(self, "skip_state_save", False) else None)
+        self._slider_night_key = None
+        scale = self.settings.value("ui/font_scale", 100, int)
+        if scale != 100:
+            apply_font_scale(scale)
+        self.sky.label_scale = self.settings.value("sky/label_scale", 100, int) / 100.0
+        self._next_card = None
+        self._field_timer = QTimer(self)
+        self._field_timer.setInterval(1000)
+        self._field_timer.timeout.connect(self._tick_field)
+        self._field_timer.start()
+        QTimer.singleShot(0, self._tick_field)
+
+    def _tick_field(self) -> None:
+        from ..core.visibility import _noon_before, night_grid
+
+        now = self.engine.time.current_datetime()
+        key = (_noon_before(now), self.settings.location().name)
+        try:
+            if key != self._slider_night_key:
+                self.night_slider.set_night(night_grid(self.engine, now))
+                self._slider_night_key = key
+            self.night_slider.set_now(now)
+        except Exception:  # noqa: BLE001 — o rodapé não pode derrubar a janela
+            pass
+        card = self._next_card
+        if card is not None and card.isVisible():
+            card.tick(now)
+            card.adjustSize()
+            card.move(14, self.sky.height() - card.height() - 14)
+
+    def _slider_time(self, when) -> None:
+        self.engine.time.set_datetime(when)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+
+    def _latest_plan(self):
+        for w in reversed(self._track_windows):
+            try:
+                plan = getattr(w, "plan", None)
+            except RuntimeError:
+                continue
+            if plan is not None and getattr(plan, "entries", None):
+                return plan
+        return None
+
+    def _toggle_observing(self, on: bool) -> None:
+        """Exibir ▸ Modo observação: sem painéis, rótulos grandes, cartão do
+        próximo alvo do roteiro aberto."""
+        from .observing_mode import LABEL_SCALE, NextTargetCard
+
+        base = self.settings.value("sky/label_scale", 100, int) / 100.0
+        if on:
+            self._docks_before = (self.info_dock.isVisible(), self.side_dock.isVisible())
+            self.info_dock.hide()
+            self.side_dock.hide()
+            self.sky.label_scale = base * LABEL_SCALE
+            if self._next_card is None:
+                self._next_card = NextTargetCard(self.sky)
+                self._next_card.gotoRequested.connect(
+                    lambda k, i, _w: self._goto_ident(k, i))
+                self._next_card.observedRequested.connect(
+                    lambda k, i, w: self._observed_ident(k, i, w))
+            self._next_card.set_plan(self._latest_plan())
+            self._next_card.show()
+            self._next_card.raise_()
+            self._tick_field()
+        else:
+            info, side = getattr(self, "_docks_before", (False, True))
+            self.info_dock.setVisible(info and self.sky.selection is not None)
+            self.side_dock.setVisible(side)
+            self.sky.label_scale = base
+            if self._next_card is not None:
+                self._next_card.hide()
+        self.sky.update()
+
+    def _observed_ident(self, kind: str, ident: str, when) -> None:
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        if ref is not None:
+            self._mark_observed(ref.selection, when)
+
+    def _open_preferences(self) -> None:
+        from .preferences_dialog import PreferencesDialog, apply_font_scale
+
+        dlg = PreferencesDialog(self.settings, self)
+        if dlg.exec():
+            dlg.save()
+            apply_font_scale(dlg.font_scale.value())
+            base = dlg.label_scale.value() / 100.0
+            self.sky.label_scale = base * (1.45 if self.act_observe.isChecked() else 1.0)
+            self.sky.update()
+            self._refresh_cards()
 
     def _toggle_night(self, on: bool) -> None:
         """Exibir ▸ Modo noturno (Ctrl+N): céu e interface em vermelho (v0.16 T2)."""

@@ -264,6 +264,7 @@ class SkyWidget(QOpenGLWidget):
         self._frame_logical = None           # (largura, altura) lógicas do quadro
         self._offscreen_marker = False       # marcador da seleção fora da tela
         self._px = 1.0                       # escala de tamanhos do quadro atual
+        self.label_scale = 1.0               # rótulos maiores no modo observação
         self._silhouette = None
         self._goto_anim = None
         self.follow_selection = False       # câmera acompanha a seleção
@@ -1772,6 +1773,10 @@ class SkyWidget(QOpenGLWidget):
         self.renderer.fill_polygons([lit], (0.94, 0.93, 0.87, 1.0))
 
     # ------------------------------------------------------------------
+    def _lf(self, size: int, *args) -> QFont:
+        """Fonte dos rótulos do céu com a escala do modo observação."""
+        return QFont("Segoe UI", max(1, int(round(size * self.label_scale))), *args)
+
     def _draw_labels(self, painter: QPainter, dpr: float, star_px, bodies_px,
                      dso_px=None, ground_on: bool = False):
         """Todos os textos do quadro, num único QPainter em pixels lógicos.
@@ -1791,7 +1796,7 @@ class SkyWidget(QOpenGLWidget):
 
         # pontos cardeais (prioridade máxima)
         if self.layers["cardinals"]:
-            font = QFont("Segoe UI", 11, QFont.Bold)
+            font = self._lf(11, QFont.Bold)
             painter.setFont(font)
             painter.setPen(
                 QColor(170, 80, 20) if self.chart_mode else QColor(230, 140, 60)
@@ -1809,7 +1814,7 @@ class SkyWidget(QOpenGLWidget):
         if self._moon_marks_screen and self.layers.get("moon_forecast", True):
             from ..core.planetpath import EVENT_LABEL
 
-            font_m = QFont("Segoe UI", 8)
+            font_m = self._lf(8)
             fm_m = QFontMetrics(font_m)
             for mk, mx, my, mr in self._moon_marks_screen:
                 text = f"{to_local(mk.when_utc):%d/%m}"
@@ -1818,7 +1823,7 @@ class SkyWidget(QOpenGLWidget):
                 else:
                     text += f" · {mk.illumination * 100:.0f}%"
                 painter.setFont(
-                    QFont("Segoe UI", 8, QFont.Bold) if mk.phase_name else font_m
+                    self._lf(8, QFont.Bold) if mk.phase_name else font_m
                 )
                 metrics = QFontMetrics(painter.font())
                 w_t, h_t = metrics.horizontalAdvance(text), metrics.height()
@@ -1838,7 +1843,7 @@ class SkyWidget(QOpenGLWidget):
         if self._path_marks:
             from ..core.planetpath import EVENT_LABEL
 
-            font_small = QFont("Segoe UI", 7)
+            font_small = self._lf(7)
             painter.setFont(font_small)
             fm_s = QFontMetrics(font_small)
             for path, px, py, vis, color, marks in self._path_marks:
@@ -1855,7 +1860,7 @@ class SkyWidget(QOpenGLWidget):
                     if placer.place(tx, ty, w_t, h_t):
                         painter.drawText(tx, ty, text)
                 # eventos: rótulo destacado
-                painter.setFont(QFont("Segoe UI", 8, QFont.Bold))
+                painter.setFont(self._lf(8, QFont.Bold))
                 for ev in path.events:
                     # ev.vec está em ICRS: aplica a matriz horizontal do
                     # quadro antes de projetar (B-018)
@@ -1889,7 +1894,7 @@ class SkyWidget(QOpenGLWidget):
             m_const = self._frame_m
             cv = self.const_centers @ m_const.T
             cx_, cy_, cvis = self.camera.project(cv, margin=40.0)
-            font = QFont("Segoe UI", 10, QFont.DemiBold)
+            font = self._lf(10, QFont.DemiBold)
             painter.setFont(font)
             fm = QFontMetrics(font)
             pen = (QColor(70, 90, 120) if self.chart_mode
@@ -1912,7 +1917,7 @@ class SkyWidget(QOpenGLWidget):
 
         # nomes dos corpos do Sistema Solar
         if self.layers["planet_names"] and bodies_px:
-            font = QFont("Segoe UI", 9, QFont.DemiBold)
+            font = self._lf(9, QFont.DemiBold)
             painter.setFont(font)
             fm = QFontMetrics(font)
             for b, x, y, size in bodies_px:
@@ -1942,7 +1947,7 @@ class SkyWidget(QOpenGLWidget):
             name_lim = max(1.6, min(7.5, self._mag_limit() - 5.0))
             if self.label_mag_cap is not None:
                 name_lim = float(self.label_mag_cap)
-            font = QFont("Segoe UI", 8)
+            font = self._lf(8)
             painter.setFont(font)
             fm = QFontMetrics(font)
             if self.chart_mode:
@@ -1988,8 +1993,8 @@ class SkyWidget(QOpenGLWidget):
             idx, x, y, maj_px, below_arr = dso_px
             dso = self.dso
             label_lim = self._mag_limit() - 1.8
-            font = QFont("Segoe UI", 8)
-            font_mc = QFont("Segoe UI", 9, QFont.Bold)
+            font = self._lf(8)
+            font_mc = self._lf(9, QFont.Bold)
             fm = QFontMetrics(font)
             fm_mc = QFontMetrics(font_mc)
             if self.chart_mode:

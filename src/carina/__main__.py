@@ -50,6 +50,8 @@ def _parse_args(argv):
                         help="gera uma carta em PDF pelo gerador de carta (testes)")
     parser.add_argument("--chart-const", default=None, help="sigla IAU da constelação")
     parser.add_argument("--chart-theme", default="light", choices=["light", "dark", "red"])
+    parser.add_argument("--observe", action="store_true",
+                        help="liga o modo observação (testes)")
     parser.add_argument("--night", action="store_true",
                         help="abre em modo noturno (testes)")
     parser.add_argument("--offscreen", metavar="CAMINHO", default=None,
@@ -492,6 +494,10 @@ def main(argv=None) -> int:
                       f"({_os.path.getsize(args.marathon_pdf)} bytes, "
                       f"ok={ok})")
 
+    if args.observe:
+        win.act_observe.setChecked(True)
+        dialog = None                  # captura a janela principal com o cartão
+
     if args.demo_fov:
         from .catalogs.equipment import EquipmentStore, compute_camera_fov
         from .config import user_data_path
@@ -574,6 +580,13 @@ def main(argv=None) -> int:
             painter.drawImage(
                 QRect(top_left, win.sky.size()), gl_img
             )
+            # widgets sobrepostos ao céu (cartão do modo observação) por cima
+            from PySide6.QtCore import Qt as _Qt
+            from PySide6.QtWidgets import QWidget as _QWidget
+
+            for child in win.sky.findChildren(_QWidget, options=_Qt.FindDirectChildrenOnly):
+                if child.isVisible():
+                    child.render(painter, top_left + child.pos())
             painter.end()
             img = pix.toImage()
             img.save(args.screenshot)
