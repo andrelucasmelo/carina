@@ -31,8 +31,11 @@ def test_sky_dimming_and_milkyway_cutoff():
     dim = SkyWidget.sky_dimming
     vis = SkyWidget.milkyway_visible
 
+    from carina.ui.skywidget import SkyWidget as _SW
+
     class Fake:
-        pass
+        layers = {"atmosphere": True}
+        sky_bortle = _SW.sky_bortle
 
     values = []
     for level in range(1, 10):

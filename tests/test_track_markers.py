@@ -33,10 +33,19 @@ def test_markers_inside_chart(ra_h, dec_d):
                     math.sin(dec)])
     ref = dt.datetime(2026, 12, 20, 3, tzinfo=dt.timezone.utc)
     res = compute_track(e, ("dso", 0), "alvo", vec, ref)
-    settings = TrackSettings()
+    settings = TrackSettings()           # padrões (não as preferências)
     canvas = TrackCanvas(res, settings, "Rio")
 
     centers, texts = [], []
+    import carina.ui.track_window as tw
+
+    real_outlined = tw._outlined_text
+
+    def spy(painter, box, text, *args):
+        texts.append(text)
+        return real_outlined(painter, box, text, *args)
+
+    tw._outlined_text = spy
 
     class Recorder(QPainter):
         def drawEllipse(self, *args):
@@ -60,3 +69,34 @@ def test_markers_inside_chart(ra_h, dec_d):
     assert len(markers) >= expected            # nenhum marcador sumiu da carta
     hours = [t for t in texts if isinstance(t, str) and t.endswith("h") and t[:-1].isdigit()]
     assert len(hours) >= expected // 2 - 2     # rótulos de hora cheia "19h"
+    tw._outlined_text = real_outlined
+
+
+def test_track_settings_defaults_and_persistence(tmp_path):
+    """Pré-0.17: padrões pedidos e configuração que sobrevive ao fechar."""
+    from PySide6.QtGui import QColor
+
+    from carina.ui.track_window import TrackSettings
+
+    s = TrackSettings()
+    assert s.color_normal.lightness() > 230                      # branco
+    assert s.color_moon.blue() > 200 and s.color_moon.red() < 120  # azul
+    assert s.mirror_sky and s.font_scale == 1.4
+    assert s.show_legend and s.legend_position == "bottom"
+
+    class Store(dict):
+        def value(self, key, default, _t=None):
+            return self.get(key, default)
+
+        def set_value(self, key, value):
+            self[key] = value
+
+    store = Store()
+    s.font_scale = 1.8
+    s.color_moon = QColor(10, 200, 30)
+    s.mirror_sky = False
+    s.save(store)
+    back = TrackSettings.load(store)
+    assert back.font_scale == 1.8 and not back.mirror_sky
+    assert back.color_moon.name() == "#0ac81e"
+    assert TrackSettings.load(Store()).font_scale == 1.4

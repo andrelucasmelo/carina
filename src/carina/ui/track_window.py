@@ -47,8 +47,10 @@ BAND_LABEL = {
 class TrackSettings:
     """Configurações da visualização (menu à parte, item H)."""
 
-    color_normal: QColor = field(default_factory=lambda: QColor(120, 210, 255))
-    color_moon: QColor = field(default_factory=lambda: QColor(255, 170, 60))
+    # padrões pedidos pelo usuário (pré-0.17): traçado normal branco,
+    # afetado pela Lua em azul, vista do céu, fonte 1,4× e legenda embaixo
+    color_normal: QColor = field(default_factory=lambda: QColor(245, 245, 245))
+    color_moon: QColor = field(default_factory=lambda: QColor(70, 150, 255))
     color_low20: QColor = field(default_factory=lambda: QColor(235, 90, 90))
     color_low30: QColor = field(default_factory=lambda: QColor(235, 150, 70))
     color_low45: QColor = field(default_factory=lambda: QColor(220, 210, 100))
@@ -68,11 +70,62 @@ class TrackSettings:
     dark_theme: bool = True
     # False = bússola (N em cima, L à direita, sentido horário N→L→S→O);
     # True  = vista do céu (L à esquerda), como um planisfério erguido.
-    mirror_sky: bool = False
+    mirror_sky: bool = True
     # --- tipografia e legenda ---
-    font_scale: float = 1.0         # multiplica TODOS os textos da carta
+    font_scale: float = 1.4         # multiplica TODOS os textos da carta
     show_legend: bool = True
     legend_position: str = "bottom"  # bottom | top | left | right
+
+    _COLORS = ("color_normal", "color_moon", "color_low20", "color_low30", "color_low45")
+    STORE_KEY = "track/settings"
+
+    def to_dict(self) -> dict:
+        from dataclasses import asdict
+
+        d = asdict(self)
+        for key in self._COLORS:
+            d[key] = getattr(self, key).name()
+        return d
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TrackSettings":
+        s = cls()
+        for key, value in (data or {}).items():
+            if not hasattr(s, key):
+                continue
+            if key in cls._COLORS:
+                color = QColor(str(value))
+                if color.isValid():
+                    setattr(s, key, color)
+            else:
+                default = getattr(s, key)
+                try:
+                    setattr(s, key, type(default)(value))
+                except (TypeError, ValueError):
+                    pass
+        return s
+
+    @classmethod
+    def load(cls, store=None) -> "TrackSettings":
+        """Configuração salva nas preferências (ou os padrões)."""
+        import json
+
+        from ..config import Settings
+
+        store = store if store is not None else Settings()
+        raw = store.value(cls.STORE_KEY, "", str)
+        try:
+            return cls.from_dict(json.loads(raw)) if raw else cls()
+        except (TypeError, ValueError):
+            return cls()
+
+    def save(self, store=None) -> None:
+        import json
+
+        from ..config import Settings
+
+        (store if store is not None else Settings()).set_value(
+            self.STORE_KEY, json.dumps(self.to_dict()))
 
     def font_size(self, base: float) -> float:
         """Tamanho de fonte em pontos, já com a escala do usuário."""
@@ -90,7 +143,28 @@ class TrackSettings:
                 return self.color_low30
             if alt_deg < self.thr_high:
                 return self.color_low45
+        if not self.dark_theme and self.color_normal.lightness() > 200:
+            return QColor(30, 34, 44)      # branco sobre papel branco sumiria
         return self.color_normal
+
+
+def _outlined_text(painter: QPainter, box: QRectF, text: str, font: QFont,
+                   fill: QColor, outline: QColor, width: float) -> None:
+    """Texto centrado na caixa, com contorno (halo) na cor do fundo."""
+    from PySide6.QtGui import QPainterPath
+
+    fm = QFontMetricsF(font)
+    x = box.center().x() - fm.horizontalAdvance(text) / 2.0
+    y = box.center().y() + (fm.ascent() - fm.descent()) / 2.0
+    path = QPainterPath()
+    path.addText(QPointF(x, y), font, text)
+    painter.save()
+    painter.setRenderHint(QPainter.Antialiasing)
+    pen = QPen(outline, width)
+    pen.setJoinStyle(Qt.RoundJoin)
+    painter.strokePath(path, pen)
+    painter.fillPath(path, fill)
+    painter.restore()
 
 
 def _hm(value: dt.datetime | None) -> str:
@@ -245,7 +319,12 @@ class TrackCanvas(QWidget):
             )
 
         # --- marcadores e horários (item C) ---
-        painter.setFont(QFont("Segoe UI", s.font_size(8)))
+        # negrito com contorno na cor do fundo: o texto não se confunde com
+        # o traçado nem com a grade (pedido do usuário, pré-0.17)
+        hour_font = QFont("Segoe UI", s.font_size(8.5), QFont.Bold)
+        painter.setFont(hour_font)
+        fm_hours = QFontMetricsF(hour_font)
+        outline = QColor(14, 16, 22) if s.dark_theme else QColor(255, 255, 255)
         from ..core.localtime import to_local
 
         for p in pts:
@@ -268,16 +347,22 @@ class TrackCanvas(QWidget):
                 # do zênite os pontos se amontoam e só o radial colidia (D11)
                 ux, uy = dx / norm, dy / norm
                 tx, ty = -uy, ux
-                candidates = [(ux * r, uy * r) for r in (18, -18, 30, -30, 44, -44)]
+                # bem afastados da linha: a 1ª opção já fica fora do traçado
+                k = s.font_scale
+                candidates = [(ux * r * k, uy * r * k) for r in (26, -26, 38, -38, 52, -52)]
                 # (não reutilizar o nome `side`: ele é o espelhamento do
                 # azimute usado por to_xy — sobrescrevê-lo jogava todos os
                 # pontos seguintes para fora da carta)
                 for off in (22, -22):
-                    candidates.append((ux * 18 + tx * off, uy * 18 + ty * off))
-                    candidates.append((ux * 32 + tx * off, uy * 32 + ty * off))
+                    candidates.append(((ux * 26 + tx * off) * k, (uy * 26 + ty * off) * k))
+                    candidates.append(((ux * 40 + tx * off) * k, (uy * 40 + ty * off) * k))
                 placed = None
+                text = (f"{local.hour}h" if local.minute == 0
+                        else local.strftime("%H:%M"))
+                bw = fm_hours.horizontalAdvance(text) + 8
+                bh = fm_hours.height() + 2
                 for ox, oy in candidates:
-                    box = QRectF(xy.x() + ox - 24, xy.y() + oy - 8, 48, 16)
+                    box = QRectF(xy.x() + ox - bw / 2, xy.y() + oy - bh / 2, bw, bh)
                     if not any(box.intersects(o) for o in taken):
                         placed = box
                         break
@@ -296,10 +381,9 @@ class TrackCanvas(QWidget):
                     painter.drawLine(
                         QPointF(xy.x() + vx / d * 5, xy.y() + vy / d * 5),
                         QPointF(c.x() - vx / d * 10, c.y() - vy / d * 7))
-                painter.setPen(fg)
-                text = (f"{local.hour}h" if local.minute == 0
-                        else local.strftime("%H:%M"))
-                painter.drawText(placed, Qt.AlignCenter, text)
+                _outlined_text(painter, placed, text, hour_font, fg, outline,
+                               max(2.0, 2.2 * s.font_scale))
+                painter.setFont(hour_font)
 
         # legenda no lugar escolhido (padrão: rodapé, abaixo do "S")
         if s.show_legend:
@@ -309,10 +393,11 @@ class TrackCanvas(QWidget):
     def _legend_items(self) -> list[tuple]:
         """Entradas da legenda: (estilo de linha, cor, texto)."""
         s = self.settings
+        normal = s.color_for(90.0, False)
         items = [
-            (Qt.DotLine, s.color_normal, "noite civil"),
-            (Qt.DashLine, s.color_normal, "noite náutica"),
-            (Qt.SolidLine, s.color_normal, "noite astronômica"),
+            (Qt.DotLine, normal, "noite civil"),
+            (Qt.DashLine, normal, "noite náutica"),
+            (Qt.SolidLine, normal, "noite astronômica"),
         ]
         if s.use_moon_color:
             items.append((Qt.SolidLine, s.color_moon, "afetado pela Lua"))
@@ -341,7 +426,8 @@ class TrackCanvas(QWidget):
             return {s.legend_position: width}
         if s.legend_position == "top":
             return {"top": 30.0 * scale}
-        return {}          # 'bottom' cabe na margem inferior já existente
+        # embaixo: até duas linhas de legenda com a fonte ampliada
+        return {"bottom": max(0.0, 40.0 * scale - 20.0)}
 
     def _draw_legend(self, painter: QPainter, rect: QRectF, cx: float,
                      cy: float, radius: float, fg: QColor) -> None:
@@ -630,9 +716,10 @@ class TrackWindow(QMainWindow):
         self.setWindowTitle(
             self.tr("Rastreamento noturno — {name}").format(name=result.label)
         )
-        self.resize(980, 620)
-        self.settings = TrackSettings()
+        # a configuração vale para todas as janelas e sobrevive ao fechar
+        self.settings = TrackSettings.load()
         self.canvas = TrackCanvas(result, self.settings, location, self)
+        self._fit_to_screen()
         self.setCentralWidget(self.canvas)
 
         m_file = self.menuBar().addMenu(self.tr("&Arquivo"))
@@ -671,9 +758,29 @@ class TrackWindow(QMainWindow):
             f"{moon_pts} pontos afetados pela Lua"
         )
 
+    def _fit_to_screen(self) -> None:
+        """Altura máxima da tela e largura que a carta redonda e a legenda
+        precisam (pedido do usuário, pré-0.17)."""
+        from PySide6.QtGui import QGuiApplication
+
+        screen = (self.parent().screen() if self.parent() is not None
+                  else QGuiApplication.primaryScreen())
+        if screen is None:
+            self.resize(980, 860)
+            return
+        avail = screen.availableGeometry()
+        frame = 40                                   # barra de título da janela
+        h = max(600, avail.height() - frame)
+        # a carta tem diâmetro ≈ altura − margens; a legenda embaixo pede
+        # largura para quebrar em no máximo duas linhas
+        w = int(min(avail.width(), max(h * 0.86, 820 * self.settings.font_scale ** 0.5)))
+        self.resize(w, h)
+        self.move(avail.left() + (avail.width() - w) // 2, avail.top())
+
     def _open_settings(self) -> None:
         dlg = TrackSettingsDialog(self.settings, self)
         if dlg.exec():
+            self.settings.save()          # vale para as próximas janelas também
             self.canvas.update()
 
     # ------------------------------------------------------------------

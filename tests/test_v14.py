@@ -109,6 +109,8 @@ def test_font_scale_multiplies_sizes():
     from carina.ui.track_window import TrackSettings
 
     s = TrackSettings()
+    assert s.font_size(10) == 14.0          # padrão 1,4× desde a pré-0.17
+    s.font_scale = 1.0
     assert s.font_size(10) == 10.0
     s.font_scale = 1.5
     assert s.font_size(10) == 15.0
@@ -127,7 +129,10 @@ def test_legend_room_depends_on_position():
             self.settings = settings
 
     s = TrackSettings()
-    assert _Fake(s)._legend_room() == {}          # bottom cabe na margem
+    assert "bottom" in _Fake(s)._legend_room()    # embaixo, com fonte 1,4×
+    s.font_scale = 0.5
+    assert _Fake(s)._legend_room() == {"bottom": 0.0}   # fonte pequena: cabe na margem
+    s.font_scale = 1.4
 
     s.legend_position = "left"
     assert "left" in _Fake(s)._legend_room()
@@ -193,8 +198,9 @@ def test_track_export_is_square(engine, m42):
     # o desenho tem de ocupar a área: a borda inferior não pode ficar vazia
     band = pix.toImage()
     painted = sum(
-        1 for x in range(0, int(side), 7)
-        if band.pixelColor(x, int(side * 0.92)).lightness() > 40
+        1 for y in range(int(side * 0.82), int(side * 0.98), 6)
+        for x in range(0, int(side), 7)
+        if band.pixelColor(x, y).lightness() > 40
     )
     assert painted > 0, "a faixa inferior do quadrado deveria ter conteúdo"
 

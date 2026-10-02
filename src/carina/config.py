@@ -95,7 +95,10 @@ class Settings:
     """Envelope fino sobre QSettings com valores tipados e padrões."""
 
     def __init__(self) -> None:
-        self._s = QSettings(ORG_NAME, APP_NAME)
+        # formato padrão explícito: NativeFormat (registro) no uso normal; os
+        # testes trocam o padrão para um .ini temporário (conftest)
+        self._s = QSettings(QSettings.defaultFormat(), QSettings.UserScope,
+                            ORG_NAME, APP_NAME)
 
     # --- localização do observador -------------------------------------
     def location(self) -> ObserverLocation:

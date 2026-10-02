@@ -117,6 +117,8 @@ def test_mag_cap_is_ceiling_not_forcing():
         bortle = 1
         mag_cap = 8.0
         BORTLE_NELM = SkyWidget.BORTLE_NELM
+        layers = {"atmosphere": True}
+        sky_bortle = SkyWidget.sky_bortle
 
         class camera:
             fov = m.radians(100.0)

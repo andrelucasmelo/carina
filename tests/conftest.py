@@ -7,8 +7,17 @@ continua rodando em máquinas sem servidor gráfico.
 """
 
 import os
+import tempfile
 
 import pytest
+from PySide6.QtCore import QSettings
+
+# Nenhum teste lê ou grava as preferências REAIS do usuário (registro do
+# Windows): o QSettings passa a usar um .ini descartável. Precisa acontecer
+# antes de qualquer QSettings ser criado — por isso no nível do módulo.
+_SETTINGS_DIR = tempfile.mkdtemp(prefix="carina-test-settings-")
+QSettings.setDefaultFormat(QSettings.IniFormat)
+QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, _SETTINGS_DIR)
 
 
 @pytest.fixture(scope="session", autouse=True)
