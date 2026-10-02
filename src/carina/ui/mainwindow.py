@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
 
         self._build_menus()
         self._restore_layers()
+        self._restore_view_state()
 
         report = self.dso_catalog.migration_report
         if report:
@@ -166,6 +167,7 @@ class MainWindow(QMainWindow):
         m_time.addSeparator()
         m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
         step_group = QActionGroup(self)
+        self._step_acts: dict[float, QAction] = {}
         for label, secs in [
             ("1 minuto", 60), ("5 minutos", 300), ("15 minutos", 900),
             ("30 minutos", 1800), ("1 hora", 3600), ("3 horas", 10800),
@@ -184,6 +186,7 @@ class MainWindow(QMainWindow):
             if secs == 3600:
                 act.setChecked(True)
             m_step.addAction(act)
+            self._step_acts[float(secs)] = act
         m_time.addSeparator()
         for title, shortcut, secs in (
             (self.tr("Retroceder um passo"), "Ctrl+Left", -1.0),
@@ -250,6 +253,7 @@ class MainWindow(QMainWindow):
         m_view.addSeparator()
         m_mag = m_view.addMenu(self.tr("Magnitude máxima das estrelas"))
         mag_group = QActionGroup(self)
+        self._mag_acts: dict = {}
         for label, value in [
             (self.tr("Automática (pelo zoom)"), None), ("3,0", 3.0),
             ("4,0", 4.0), ("4,5", 4.5), ("5,0", 5.0), ("5,5", 5.5),
@@ -265,10 +269,12 @@ class MainWindow(QMainWindow):
             if value is None:
                 act.setChecked(True)
             m_mag.addAction(act)
+            self._mag_acts[value] = act
 
         m_view.addSeparator()
         m_const = m_view.addMenu(self.tr("Nomes das constelações"))
         const_group = QActionGroup(self)
+        self._const_acts: dict[str, QAction] = {}
         for label, mode in (
             (self.tr("Não exibir"), "none"),
             (self.tr("Português"), "pt"),
@@ -284,6 +290,7 @@ class MainWindow(QMainWindow):
             if mode == "none":
                 act.setChecked(True)
             m_const.addAction(act)
+            self._const_acts[mode] = act
 
         m_lang = m_view.addMenu(self.tr("Idioma dos nomes dos objetos"))
         lang_group = QActionGroup(self)
@@ -299,6 +306,7 @@ class MainWindow(QMainWindow):
 
         m_bortle = m_view.addMenu(self.tr("Poluição luminosa (Bortle)"))
         bortle_group = QActionGroup(self)
+        self._bortle_acts: dict[int, QAction] = {}
         bortle_desc = {
             1: "1 — céu perfeito", 2: "2 — céu muito escuro",
             3: "3 — céu rural", 4: "4 — transição rural/suburbano",
@@ -316,6 +324,7 @@ class MainWindow(QMainWindow):
             if level == 1:
                 act.setChecked(True)
             m_bortle.addAction(act)
+            self._bortle_acts[level] = act
 
         m_view.addSeparator()
         self.act_chart = QAction(self.tr("Modo mapa para impressão"), self)
@@ -1093,6 +1102,99 @@ class MainWindow(QMainWindow):
         self.engine.time.set_speed(0.0)  # pausa no instante do máximo
         self.sky.sync_clock()
         self.sky.goto_object(("body", body))
+
+    # ------------------------------------------------------------------
+    # Persistência da vista e das preferências de exibição (revisão
+    # 2026-10): antes só local e camadas sobreviviam ao fechar
+    # ------------------------------------------------------------------
+    def _save_view_state(self) -> None:
+        """Grava direção, campo, Bortle, teto de magnitude, modos de
+        rótulo, passo de tempo e geometria da janela."""
+        import math
+
+        s = self.settings
+        cam = self.sky.camera
+        s.set_value("view/saved", True)
+        s.set_value("view/az", math.degrees(cam.az))
+        s.set_value("view/alt", math.degrees(cam.alt))
+        s.set_value("view/fov", math.degrees(cam.fov))
+        s.set_value("view/bortle", int(self.sky.bortle))
+        s.set_value("view/mag_cap",
+                    -1.0 if self.sky.mag_cap is None else float(self.sky.mag_cap))
+        s.set_value("view/name_mode", self.sky.name_mode)
+        s.set_value("view/dso_name_mode", self.sky.dso_name_mode)
+        s.set_value("view/const_label_mode", self.sky.const_label_mode)
+        s.set_value("view/prefer_caldwell", bool(self.sky.prefer_caldwell))
+        s.set_value("view/time_step", float(self._time_step_seconds))
+        s.set_value("window/geometry", self.saveGeometry())
+        s.set_value("window/state", self.saveState())
+
+    def _restore_view_state(self) -> None:
+        """Reaplica o que :meth:`_save_view_state` gravou, sincronizando
+        os menus (ações de rádio não disparam ``triggered`` ao marcar por
+        código, por isso o valor é aplicado no céu explicitamente)."""
+        import math
+
+        from PySide6.QtCore import QByteArray
+
+        from ..core.projection import FOV_MAX, FOV_MIN
+
+        s = self.settings
+        if not s.value("view/saved", False, bool):
+            return
+        cam = self.sky.camera
+        cam.set_direction(math.radians(s.value("view/az", 0.0, float)),
+                          math.radians(s.value("view/alt", 25.0, float)))
+        cam.fov = max(FOV_MIN, min(
+            FOV_MAX, math.radians(s.value("view/fov", 90.0, float))))
+
+        bortle = max(1, min(9, s.value("view/bortle", 1, int)))
+        self.sky.set_bortle(bortle)
+        if bortle in self._bortle_acts:
+            self._bortle_acts[bortle].setChecked(True)
+
+        cap = s.value("view/mag_cap", -1.0, float)
+        cap = None if cap < 0 else float(cap)
+        self.sky.set_mag_cap(cap)
+        if cap in self._mag_acts:
+            self._mag_acts[cap].setChecked(True)
+
+        name_mode = s.value("view/name_mode", "proper", str)
+        self.sky.set_name_mode(name_mode)
+        (self.act_bayer if name_mode == "bayer" else self.act_proper).setChecked(True)
+
+        dso_mode = s.value("view/dso_name_mode", "number", str)
+        self.sky.set_dso_name_mode(dso_mode)
+        (self.act_dso_name if dso_mode == "name" else self.act_dso_number).setChecked(True)
+
+        const_mode = s.value("view/const_label_mode", "none", str)
+        self.sky.set_const_label_mode(const_mode)
+        if const_mode in self._const_acts:
+            self._const_acts[const_mode].setChecked(True)
+
+        self.act_caldwell.setChecked(s.value("view/prefer_caldwell", True, bool))
+
+        step = s.value("view/time_step", 3600.0, float)
+        self._time_step_seconds = step
+        if step in self._step_acts:
+            self._step_acts[step].setChecked(True)
+
+        geometry = s.value("window/geometry", QByteArray(), QByteArray)
+        if not geometry.isEmpty():
+            self.restoreGeometry(geometry)
+        state = s.value("window/state", QByteArray(), QByteArray)
+        if not state.isEmpty():
+            self.restoreState(state)
+        if self.sky.selection is None:
+            self.info_dock.hide()
+        self.sky.update()
+
+    def closeEvent(self, event) -> None:
+        """Salva o estado ao fechar (os testes automatizados não salvam,
+        para não trocar a vista do usuário por uma cena de teste)."""
+        if not getattr(self, "skip_state_save", False):
+            self._save_view_state()
+        super().closeEvent(event)
 
     def _notify_migration(self, report: dict) -> None:
         """Informa a atualização automática do banco de céu profundo."""
