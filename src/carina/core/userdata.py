@@ -269,12 +269,18 @@ class UserData:
         return int(cur.lastrowid)
 
     def update_observation(self, obs_id: int, **fields) -> None:
-        keys = [k for k in fields if k in OBS_FIELDS]
-        if not keys:
+        values = {k: fields[k] for k in fields if k in OBS_FIELDS}
+        when = fields.get("when_utc")
+        if when is not None:
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=dt.timezone.utc)
+            values["when_utc"] = when.astimezone(dt.timezone.utc).isoformat(
+                timespec="seconds")
+        if not values:
             return
         cx = self._w()
-        cx.execute(f"UPDATE observations SET {', '.join(k + ' = ?' for k in keys)}"
-                   " WHERE id = ?", [fields[k] for k in keys] + [obs_id])
+        cx.execute(f"UPDATE observations SET {', '.join(k + ' = ?' for k in values)}"
+                   " WHERE id = ?", list(values.values()) + [obs_id])
         cx.commit()
 
     def delete_observation(self, obs_id: int) -> None:

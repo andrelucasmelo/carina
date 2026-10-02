@@ -384,6 +384,8 @@ class MainWindow(QMainWindow):
         self._add(m_objs, self.tr("Minhas listas…"), self._open_lists, "Ctrl+Shift+L")
         self._add(m_objs, self.tr("★ Acrescentar seleção à minha lista"),
                   self._add_selection_to_list, "Ctrl+B")
+        self._add(m_objs, self.tr("Diário de observação…"), self._open_journal,
+                  "Ctrl+Shift+J")
         m_objs.addSeparator()
         self._add(m_objs, self.tr("Gerenciar catálogo de céu profundo…"),
                   self._manage_dso, "Ctrl+D")
@@ -800,18 +802,67 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(msg.format(o=ref.name, l=name), 5000)
         self._refresh_cards(reselect=True)
 
-    def _mark_observed(self, selection) -> None:
-        """Registra no diário com as condições atuais (o diálogo completo
-        chega com o diário, T8)."""
+    def _instruments(self) -> list[str]:
+        """Sugestões de instrumento para o diário: o último usado primeiro."""
+        from ..catalogs.equipment import EquipmentStore
+
+        if not hasattr(self, "_equipment"):
+            self._equipment = EquipmentStore(user_data_path() / "equipamentos.json")
+        names_ = [self.tr("Olho nu"), self.tr("Binóculo 10×50")]
+        names_ += [t.name for t in self._equipment.items("telescopes")]
+        last = self.settings.value("journal/instrument", "", str)
+        if last:
+            names_ = [last] + [n for n in names_ if n != last]
+        return names_
+
+    def _mark_observed(self, selection, when_utc=None) -> bool:
+        """Registra no diário (v0.15 T8). Devolve True se salvou."""
+        from .journal_dialog import ObservationDialog
+
         ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
         if ref is None:
-            return
-        self.userdata.add_observation(
-            ref.kind, ref.ident, ref.name, self.engine.time.current_datetime(),
-            location=self.settings.location().name, bortle=self.sky.bortle)
+            return False
+        dlg = ObservationDialog(
+            ref.name, when_utc or self.engine.time.current_datetime(),
+            self.settings.location().name, self._instruments(), self.sky.bortle,
+            parent=self)
+        from PySide6.QtWidgets import QDialog
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return False
+        values = dlg.values()
+        when = values.pop("when_utc")
+        self.userdata.add_observation(ref.kind, ref.ident, ref.name, when, **values)
+        if values.get("instrument"):
+            self.settings.set_value("journal/instrument", values["instrument"])
         self.statusBar().showMessage(
             self.tr("{o} registrado no diário").format(o=ref.name), 5000)
         self._refresh_cards(reselect=True)
+        jw = getattr(self, "_journal_window", None)
+        try:
+            if jw is not None and jw.isVisible():
+                jw.reload()
+        except RuntimeError:
+            pass
+        return True
+
+    def _open_journal(self) -> None:
+        """Objetos ▸ Diário de observação (v0.15 T8)."""
+        from .journal_dialog import JournalWindow
+
+        win = JournalWindow(self.userdata, self._instruments(), self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.gotoRequested.connect(self._goto_ident)
+        self._journal_window = win
+        win.show()
+
+    def _goto_ident(self, kind: str, ident: str) -> None:
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            self.statusBar().showMessage(
+                self.tr("{o} não está mais no catálogo").format(o=ident), 5000)
+            return
+        self._goto_selection(ref.selection)
 
     # --- barra lateral -------------------------------------------------
     def _wire_side_bar(self) -> None:
