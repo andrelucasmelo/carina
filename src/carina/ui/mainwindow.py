@@ -341,6 +341,8 @@ class MainWindow(QMainWindow):
             (self.tr("Nascer do sol"), "sunrise"),
         ):
             self._add(m_jump, title, lambda _c=False, k=kind: self._goto_time(k))
+        self._add(m_time, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
+                  "Ctrl+Shift+N")
         m_time.addSeparator()
         m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
         step_group = QActionGroup(self)
@@ -505,6 +507,33 @@ class MainWindow(QMainWindow):
         self.engine.time.set_datetime(target)
         self.engine.time.set_speed(0.0)
         self.sky.sync_clock()
+
+    def _open_dark_calendar(self) -> None:
+        """Tempo ▸ Calendário de noites escuras (v0.15 T12)."""
+        from ..core.localtime import to_local
+        from .dark_calendar import DarkCalendarDialog
+
+        today = to_local(self.engine.time.current_datetime()).date()
+        dlg = DarkCalendarDialog(self.engine, today, self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        dlg.dateChosen.connect(self._goto_night_of)
+        self._dark_calendar = dlg
+        dlg.show()
+
+    def _goto_night_of(self, date) -> None:
+        """Leva a simulação ao fim do crepúsculo astronômico da data."""
+        import datetime as dt
+
+        from ..core.localtime import from_local_naive
+        from ..core.twilight import night_info
+
+        ref = from_local_naive(dt.datetime(date.year, date.month, date.day, 20, 0))
+        info = night_info(self.engine, ref.astimezone(dt.timezone.utc))
+        target = info.astro_dusk or info.nautical_dusk or info.sunset or ref
+        self.engine.time.set_datetime(target)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self.statusBar().showMessage(self.tr("Noite de {d:%d/%m/%Y}").format(d=date), 5000)
 
     def _toggle_follow(self, on: bool) -> None:
         if on and self.sky.selection is None:
