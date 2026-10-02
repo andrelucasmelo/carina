@@ -197,6 +197,7 @@ class SkyWidget(QOpenGLWidget):
     layerToggleRequested = Signal(str, bool)  # Camadas no menu de contexto
     statusParts = Signal(object)       # campos da barra de estado (dict)
     noticeShown = Signal(str)          # aviso exibido no alto do céu
+    contextAction = Signal(str, object)    # ações da ficha pelo botão direito
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
                  data_dir, parent=None):
@@ -2475,6 +2476,9 @@ class SkyWidget(QOpenGLWidget):
                 acts["rise"] = menu.addAction(self.tr("Ir para quando nasce"))
             acts["fov"] = menu.addAction(self.tr("Enquadrar com equipamento…"))
             menu.addSeparator()
+            acts["list"] = menu.addAction(self.tr("★ Acrescentar à minha lista"))
+            acts["observed"] = menu.addAction(self.tr("✓ Marcar como observado…"))
+            menu.addSeparator()
             acts["copy_name"] = menu.addAction(self.tr("Copiar nome"))
             acts["copy_coords"] = menu.addAction(self.tr("Copiar coordenadas"))
             menu.addSeparator()
@@ -2529,7 +2533,10 @@ class SkyWidget(QOpenGLWidget):
             self.selectionChanged.emit(target)
             self.contextTrackRequested.emit(target)
         elif key == "best":
-            self.goto_best_time(target)
+            # a janela principal resolve com a janela útil e o horizonte
+            self.contextAction.emit("goto_best", target)
+        elif key in ("list", "observed"):
+            self.contextAction.emit(key, target)
         elif key == "rise":
             self.goto_when_rises(target)
         elif key == "fov":

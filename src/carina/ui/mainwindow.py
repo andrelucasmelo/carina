@@ -127,6 +127,7 @@ class MainWindow(QMainWindow):
         self.sky.contextDetailsRequested.connect(self._open_object_window)
         self.sky.contextTrackRequested.connect(lambda _s: self._open_track())
         self.sky.contextFovRequested.connect(self._open_fov_for)
+        self.sky.contextAction.connect(self._on_card_action)
         self.sky.layerToggleRequested.connect(self._on_layer_toggled)
         self.sky.followChanged.connect(self._on_follow_changed)
         self.sky.statusParts.connect(self._on_status_parts)
@@ -380,6 +381,10 @@ class MainWindow(QMainWindow):
         self._add(m_objs, self.tr("Ir para a melhor hora desta noite"), self._goto_best_time)
         self._add(m_objs, self.tr("Ir para quando nasce"), self._goto_rise)
         m_objs.addSeparator()
+        self._add(m_objs, self.tr("Minhas listas…"), self._open_lists, "Ctrl+Shift+L")
+        self._add(m_objs, self.tr("★ Acrescentar seleção à minha lista"),
+                  self._add_selection_to_list, "Ctrl+B")
+        m_objs.addSeparator()
         self._add(m_objs, self.tr("Gerenciar catálogo de céu profundo…"),
                   self._manage_dso, "Ctrl+D")
 
@@ -413,6 +418,7 @@ class MainWindow(QMainWindow):
         m_rot.addSeparator()
         self._add(m_rot, self.tr("Melhores Objetos da Noite…"),
                   lambda: self._open_marathon("BEST"))
+        self._add(m_rot, self.tr("Roteiro da minha lista…"), self._plan_current_list)
         m_rot.addSeparator()
         for kind, label in (("MONTH", self.tr("Destaques do mês…")),
                             ("SEASON", self.tr("Destaques da estação…")),
@@ -517,7 +523,7 @@ class MainWindow(QMainWindow):
         if self.sky.selection is None:
             self.statusBar().showMessage(self.tr("Selecione um objeto primeiro."), 5000)
             return
-        self.sky.goto_best_time(self.sky.selection)
+        self._goto_best_tonight(self.sky.selection)
 
     def _goto_rise(self) -> None:
         if self.sky.selection is None:
@@ -711,6 +717,49 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(self.tr("Copiado: {t}").format(
                 t=self.card.copy_text() if self.card.selection == selection
                 else self.sky.describe_selection(selection)), 5000)
+
+    def _open_lists(self) -> None:
+        """Objetos ▸ Minhas listas (v0.15 T7)."""
+        from .lists_window import ListsWindow
+
+        win = getattr(self, "_lists_window", None)
+        try:
+            if win is not None and win.isVisible():
+                win.refresh_lists()
+                win.raise_()
+                win.activateWindow()
+                return
+        except RuntimeError:
+            pass
+        win = ListsWindow(self._card_context(), self.settings, self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.gotoRequested.connect(self._goto_selection)
+        win.planRequested.connect(lambda name: self._open_marathon(f"LIST:{name}"))
+        self._lists_window = win
+        win.show()
+
+    def _goto_selection(self, selection) -> None:
+        self.sky.selection = selection
+        self.sky.selectionChanged.emit(selection)
+        self.sky.goto_object(selection)
+
+    def _add_selection_to_list(self) -> None:
+        if self.sky.selection is None:
+            self.statusBar().showMessage(self.tr("Nenhum objeto selecionado"), 4000)
+            return
+        self._add_to_list(self.sky.selection)
+
+    def _plan_current_list(self) -> None:
+        from ..core.userdata import DEFAULT_LIST
+
+        name = self.settings.value("lists/current", DEFAULT_LIST, str)
+        lid = self.userdata.list_id(name)
+        if lid is None or not self.userdata.items(lid):
+            QMessageBox.information(self, "Carina", self.tr(
+                "A lista \"{n}\" está vazia. Acrescente objetos pelo botão "
+                "direito, pela ficha (★) ou com Ctrl+B.").format(n=name))
+            return
+        self._open_marathon(f"LIST:{name}")
 
     def _goto_best_tonight(self, selection) -> None:
         """Relógio na melhor hora desta noite (janela útil e horizonte)."""
