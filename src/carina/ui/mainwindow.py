@@ -267,6 +267,7 @@ class MainWindow(QMainWindow):
             self._const_acts[mode] = act
         m_lang = m_labels.addMenu(self.tr("Idioma dos nomes dos objetos"))
         lang_group = QActionGroup(self)
+        self._names_acts = {}
         for code, label in names.LANGUAGES.items():
             act = QAction(self.tr(label), self)
             act.setCheckable(True)
@@ -275,6 +276,7 @@ class MainWindow(QMainWindow):
             act.triggered.connect(
                 lambda _c=False, c=code: self._set_names_language(c))
             m_lang.addAction(act)
+            self._names_acts[code] = act
 
         m_sky = m_view.addMenu(self.tr("Céu"))
         for key in ("atmosphere", "refraction", "ground"):
@@ -641,6 +643,7 @@ class MainWindow(QMainWindow):
 
         dlg = PreferencesDialog(self.settings, self)
         if dlg.exec():
+            self.set_language(dlg.language.currentData())
             dlg.save()
             apply_font_scale(dlg.font_scale.value())
             base = dlg.label_scale.value() / 100.0
@@ -1901,6 +1904,21 @@ class MainWindow(QMainWindow):
         self._help_viewer = viewer
         viewer.show()
 
+    def set_language(self, code: str) -> None:
+        """Idioma do programa: nomes dos objetos já; o resto ao reiniciar."""
+        from ..i18n import DEFAULT_LANGUAGE, LANGUAGES, SETTING_KEY
+
+        code = code if code in LANGUAGES else DEFAULT_LANGUAGE
+        previous = self.settings.value(SETTING_KEY, DEFAULT_LANGUAGE, str)
+        self.settings.set_value(SETTING_KEY, code)
+        if code != previous:
+            self._set_names_language(LANGUAGES[code][1])
+            if hasattr(self, "_names_acts") and LANGUAGES[code][1] in self._names_acts:
+                self._names_acts[LANGUAGES[code][1]].setChecked(True)
+            self.statusBar().showMessage(self.tr(
+                "Idioma: {l}. Diálogos do sistema mudam ao reiniciar o Carina.").format(
+                    l=LANGUAGES[code][0]), 8000)
+
     def show_whats_new_if_needed(self) -> None:
         """Na primeira abertura de uma versão nova, mostra as novidades."""
         last = self.settings.value("ui/last_version", "", str)
@@ -1912,8 +1930,11 @@ class MainWindow(QMainWindow):
         """Assistente de 3 passos (cidade, céu, instrumento)."""
         from .first_run import FirstRunWizard
 
+        from ..i18n import DEFAULT_LANGUAGE, SETTING_KEY
+
         wiz = FirstRunWizard(self.settings.location(), int(self.sky.bortle),
-                             self.settings.value("card/instrument", "pequeno", str), self)
+                             self.settings.value("card/instrument", "pequeno", str), self,
+                             language=self.settings.value(SETTING_KEY, DEFAULT_LANGUAGE, str))
         self._first_run = wiz
         accepted = bool(wiz.exec())
         self.settings.set_value("ui/first_run_done", True)
@@ -1921,6 +1942,7 @@ class MainWindow(QMainWindow):
         if not accepted:
             return False
         values = wiz.result_values()
+        self.set_language(values["language"])
         self._apply_location(values["location"])
         self._apply_bortle(values["bortle"])
         self.settings.set_value("card/instrument", values["instrument"])

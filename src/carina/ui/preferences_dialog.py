@@ -49,7 +49,15 @@ class PreferencesDialog(QDialog):
             self.instrument.addItem(self.tr(label), key)
         current = settings.value("card/instrument", "pequeno", str)
         self.instrument.setCurrentIndex(max(0, self.instrument.findData(current)))
+        from ..i18n import DEFAULT_LANGUAGE, LANGUAGES, SETTING_KEY, language_label
+
+        self.language = QComboBox()
+        for code in LANGUAGES:
+            self.language.addItem(language_label(code), code)
+        self.language.setCurrentIndex(max(0, self.language.findData(
+            settings.value(SETTING_KEY, DEFAULT_LANGUAGE, str))))
         form = QFormLayout(self)
+        form.addRow(self.tr("Idioma"), self.language)
         form.addRow(self.tr("Fonte da interface"), self.font_scale)
         form.addRow(self.tr("Rótulos do céu"), self.label_scale)
         form.addRow(self.tr("Instrumento da pontuação"), self.instrument)

@@ -94,3 +94,30 @@ def test_saved_locations(qt_app):
     finally:
         win._apply_location(original)
         win.close()
+
+
+def test_language_first_in_wizard_and_applied(qt_app):
+    """Pré-0.17: o idioma vem antes da cidade; escolher inglês troca os nomes."""
+    from carina.catalogs import names
+    from carina.i18n import LANGUAGES, apply_language, language_label
+    from carina.ui.first_run import FirstRunWizard
+    from carina.ui.mainwindow import MainWindow
+
+    wiz = FirstRunWizard(ObserverLocation(), 5, "pequeno")
+    first = wiz.page(wiz.pageIds()[0])
+    assert "Idioma" in first.title() and wiz.language.count() == len(LANGUAGES)
+    wiz.language.setCurrentIndex(wiz.language.findData("en"))
+    assert "1.0" in wiz.language_note.text()             # prévia declarada
+    assert wiz.result_values()["language"] == "en"
+    assert "prévia" in language_label("en") and language_label("pt_BR") == "Português (Brasil)"
+    assert apply_language(qt_app, "en")["names"] == "en"
+    win = MainWindow()
+    win.skip_state_save = True
+    try:
+        win.set_language("en")
+        assert names.language() == "en" and win._names_acts["en"].isChecked()
+        win.set_language("pt_BR")
+        assert names.language() == "pt"
+    finally:
+        names.set_language("pt")
+        win.close()

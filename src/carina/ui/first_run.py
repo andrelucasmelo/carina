@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import ObserverLocation
+from ..i18n import DEFAULT_LANGUAGE, LANGUAGES, language_label
 from .preferences_dialog import INSTRUMENTS
 
 BORTLE_TEXT = {
@@ -48,7 +49,8 @@ class FirstRunWizard(QWizard):
     """Bem-vindo ao Carina: cidade, céu e instrumento."""
 
     def __init__(self, current: ObserverLocation, bortle: int = 5,
-                 instrument: str = "pequeno", parent=None) -> None:
+                 instrument: str = "pequeno", parent=None,
+                 language: str = DEFAULT_LANGUAGE) -> None:
         super().__init__(parent)
         from .location_dialog import load_cities
 
@@ -62,6 +64,23 @@ class FirstRunWizard(QWizard):
         self.cities = load_cities()
         self.chosen = None
         self.current = current
+
+        # --- 0. idioma ---------------------------------------------------------
+        p0 = QWizardPage()
+        p0.setTitle("Idioma · Language")
+        p0.setSubTitle("Escolha o idioma do Carina · Choose the language of Carina")
+        self.language = QComboBox()
+        for code in LANGUAGES:
+            self.language.addItem(language_label(code), code)
+        self.language.setCurrentIndex(max(0, self.language.findData(language)))
+        self.language_note = QLabel()
+        self.language_note.setWordWrap(True)
+        l0 = QVBoxLayout(p0)
+        l0.addWidget(self.language)
+        l0.addWidget(self.language_note)
+        l0.addStretch(1)
+        self.language.currentIndexChanged.connect(self._language_note)
+        self._language_note()
 
         # --- 1. cidade -------------------------------------------------------
         p1 = QWizardPage()
@@ -113,13 +132,26 @@ class FirstRunWizard(QWizard):
         l3.addWidget(self.want_horizon)
         l3.addWidget(self.want_tonight)
         l3.addStretch(1)
-        for page in (p1, p2, p3):
+        for page in (p0, p1, p2, p3):
             self.addPage(page)
         # só agora (com a página do céu pronta) a cidade atual é procurada,
         # para a sugestão de Bortle acompanhar a escolha
         self.search.setText(current.name.split(",")[0])
         if not self.list.count():
             self.search.clear()
+
+    def _language_note(self) -> None:
+        code = self.language.currentData()
+        if LANGUAGES[code][2]:
+            self.language_note.setText(self.tr("Interface, nomes dos objetos e "
+                                               "documentação em português."))
+        else:
+            self.language_note.setText(
+                "Preview: object names and standard dialogs in English. The full "
+                "English interface is planned for version 1.0; until then menus and "
+                "windows stay in Portuguese.\n\nPrévia: nomes dos objetos e diálogos "
+                "do sistema em inglês; a interface completa em inglês está prevista "
+                "para a versão 1.0.")
 
     def _filter(self, text: str) -> None:
         t = text.strip().lower()
@@ -155,6 +187,7 @@ class FirstRunWizard(QWizard):
     def result_values(self) -> dict:
         loc = city_location(self.chosen) if self.chosen else self.current
         return {"location": loc, "bortle": int(self.bortle.currentData()),
+                "language": self.language.currentData(),
                 "instrument": self.instrument.currentData(),
                 "horizon": self.want_horizon.isChecked(),
                 "tonight": self.want_tonight.isChecked()}

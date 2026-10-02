@@ -225,10 +225,16 @@ def main(argv=None) -> int:
     app.setApplicationName(APP_NAME)
     app.setOrganizationName(ORG_NAME)
 
-    # botões padrão dos diálogos em português (OK/Cancelar/Fechar…)
-    from .i18n import install_qt_translations
+    # idioma do programa (escolhido no assistente ou nas Preferências):
+    # traduções do Qt, catálogo do Carina quando existir e o idioma sugerido
+    # para os nomes dos objetos enquanto o usuário não escolher outro
+    from .config import Settings as _Settings
+    from .i18n import DEFAULT_LANGUAGE, SETTING_KEY, apply_language
 
-    install_qt_translations(app)
+    _store = _Settings()
+    _lang = apply_language(app, _store.value(SETTING_KEY, DEFAULT_LANGUAGE, str))
+    if _store.value("names/language", "", str) == "":
+        _store.set_value("names/language", _lang["names"])
 
     # ícone do aplicativo: vale para a janela, a barra de tarefas e os
     # diálogos (todos herdam o ícone da aplicação)
@@ -453,7 +459,8 @@ def main(argv=None) -> int:
 
         dialog = FirstRunWizard(win.settings.location(), int(win.sky.bortle))
         dialog.show()
-        dialog.next()
+        for _ in range(int(args.dialog_text or 0)):     # --dialog-text N: página N
+            dialog.next()
     elif args.dialog == "chart":
         win._open_chart_dialog()
         dialog = win._chart_dialog

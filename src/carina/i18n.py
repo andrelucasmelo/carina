@@ -44,3 +44,54 @@ def install_qt_translations(app, locale_name: str = "pt_BR") -> bool:
             app.installTranslator(translator)
             loaded = True
     return loaded
+
+
+# ---------------------------------------------------------------------------
+# Idioma do programa (pré-0.17)
+# ---------------------------------------------------------------------------
+
+# código → (nome no próprio idioma, idioma dos nomes dos objetos, interface completa?)
+LANGUAGES = {
+    "pt_BR": ("Português (Brasil)", "pt", True),
+    "en": ("English", "en", False),
+}
+DEFAULT_LANGUAGE = "pt_BR"
+SETTING_KEY = "ui/language"
+
+
+def language_label(code: str) -> str:
+    name, _names, complete = LANGUAGES.get(code, LANGUAGES[DEFAULT_LANGUAGE])
+    if complete:
+        return name
+    return f"{name} — prévia: nomes dos objetos e diálogos do sistema"
+
+
+def app_translations_dir() -> Path:
+    """Onde ficam os ``carina_<idioma>.qm`` (gerados a partir dos ``tr()``)."""
+    from .config import package_data_dir
+
+    return package_data_dir() / "i18n"
+
+
+def apply_language(app, code: str) -> dict:
+    """Instala as traduções do idioma escolhido.
+
+    * catálogos do próprio Qt (botões padrão dos diálogos);
+    * o catálogo do Carina, ``carina_<código>.qm``, quando existir — a
+      tradução completa da interface para o inglês está planejada para a
+      v1.0; até lá, o inglês é uma prévia;
+    * devolve ``{"qt": bool, "app": bool, "names": "pt"|"en"|"la"}`` — o
+      idioma sugerido para os nomes dos objetos.
+    """
+    from PySide6.QtCore import QTranslator
+
+    code = code if code in LANGUAGES else DEFAULT_LANGUAGE
+    qt_ok = install_qt_translations(app, code if code != "en" else "en_US")
+    app_ok = False
+    qm = app_translations_dir() / f"carina_{code}.qm"
+    if qm.exists():
+        translator = QTranslator(app)
+        if translator.load(str(qm)):
+            app.installTranslator(translator)
+            app_ok = True
+    return {"qt": qt_ok, "app": app_ok, "names": LANGUAGES[code][1]}
