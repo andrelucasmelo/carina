@@ -193,6 +193,25 @@ class PlanWindow(QMainWindow):
             act.setShortcut(key)
             act.triggered.connect(slot)
             m_file.addAction(act)
+        m_theme = m_file.addMenu(self.tr("Tema do PDF"))
+        from PySide6.QtGui import QActionGroup
+
+        from .plan_pdf import THEME_LABELS
+
+        group = QActionGroup(self)
+        self.pdf_theme = "light"
+        for key, label in THEME_LABELS.items():
+            act = m_theme.addAction(self.tr(label))
+            act.setCheckable(True)
+            act.setChecked(key == "light")
+            act.setActionGroup(group)
+            act.triggered.connect(lambda _c=False, k=key: setattr(self, "pdf_theme", k))
+        m_file.addSeparator()
+        for text, slot in ((self.tr("Exportar CSV (planilha)…"), self._export_csv),
+                           (self.tr("Exportar texto…"), self._export_text)):
+            act = QAction(text, self)
+            act.triggered.connect(slot)
+            m_file.addAction(act)
         m_file.addSeparator()
         act_close = QAction(self.tr("Fechar"), self)
         act_close.setShortcut("Ctrl+W")
@@ -473,7 +492,32 @@ class PlanWindow(QMainWindow):
     def write_pdf(self, path: str, progress=None) -> bool:
         from .plan_pdf import write_plan_pdf
 
-        return write_plan_pdf(path, self.plan, self.stars, self.const_lines, progress)
+        return write_plan_pdf(path, self.plan, self.stars, self.const_lines, progress,
+                              theme=self.pdf_theme)
+
+    def _export_csv(self) -> None:
+        from pathlib import Path
+
+        from .plan_pdf import plan_to_csv
+
+        path, _ = QFileDialog.getSaveFileName(
+            self, self.tr("Exportar CSV"),
+            f"{self.plan.title.lower().replace(' ', '_')}.csv", "CSV (*.csv)")
+        if path:
+            Path(path).write_text(plan_to_csv(self.plan), encoding="utf-8-sig")
+            self.statusBar().showMessage(self.tr("CSV gerado: {p}").format(p=path), 8000)
+
+    def _export_text(self) -> None:
+        from pathlib import Path
+
+        from .plan_pdf import plan_to_text
+
+        path, _ = QFileDialog.getSaveFileName(
+            self, self.tr("Exportar texto"),
+            f"{self.plan.title.lower().replace(' ', '_')}.txt", "Texto (*.txt)")
+        if path:
+            Path(path).write_text(plan_to_text(self.plan), encoding="utf-8")
+            self.statusBar().showMessage(self.tr("Texto gerado: {p}").format(p=path), 8000)
 
     def _progress(self, text: str) -> QProgressDialog:
         dlg = QProgressDialog(text, self.tr("Cancelar"), 0, len(self.plan.entries), self)

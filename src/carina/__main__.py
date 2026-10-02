@@ -56,6 +56,8 @@ def _parse_args(argv):
                  "MONTH", "SEASON", "STARS"], default=None,
         help="abre o planejamento da maratona (testes)",
     )
+    parser.add_argument("--pdf-theme", default="light", choices=["light", "dark", "red"],
+                        help="tema do PDF do roteiro (testes)")
     parser.add_argument("--marathon-pdf", default=None,
                         help="exporta o PDF da maratona para o caminho dado")
     parser.add_argument("--const-names", default=None,
@@ -462,6 +464,7 @@ def main(argv=None) -> int:
                       f"{e.catalog_id[:22]:22s} alt {e.altitude:.0f} "
                       f"{e.constellation}")
             if args.marathon_pdf:
+                dialog.pdf_theme = args.pdf_theme
                 ok = dialog.write_pdf(args.marathon_pdf)
                 import os as _os
 

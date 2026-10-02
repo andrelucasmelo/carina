@@ -1,22 +1,28 @@
-"""PDF de campo do roteiro de observação.
+"""PDF de campo do roteiro de observação — v2 (v0.15 T13).
 
-Duas seções:
+Conteúdo:
 
-1. um **checklist compacto** (uma linha por objeto, com caixa para marcar);
-2. um **cartão por objeto** com as instruções completas e uma **carta de
-   localização** desenhada no estilo do modo de impressão.
+1. capa com título, noite, local, resumo e a **carta geral da noite** (céu
+   inteiro com os alvos numerados na posição do horário de cada um);
+2. **checklist compacto** (uma linha por parada, com caixa para marcar);
+3. um **cartão por objeto** com instruções e carta de localização.
+
+Cada página tem cabeçalho (título e noite) e rodapé numerado. Três
+**temas**: claro (papel), escuro (o visual do Carina) e vermelho (para não
+perder a adaptação ao escuro no campo).
 
 O texto é sempre MEDIDO antes de desenhado (``boundingRect``) e o cursor
-vertical avança pela altura real — foi assim que o problema de linhas
-sobrepostas da primeira versão foi eliminado.
+vertical avança pela altura real — nunca há linhas sobrepostas.
 
-Extraído da antiga janela de maratonas na v0.15 (a janela de planejamento
-v2 e a exportação pela linha de comando usam a mesma função).
+Também exporta o roteiro em **CSV** (planilhas) e **texto** (celular,
+mensagens).
 """
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
+import io
 
 from PySide6.QtCore import QMarginsF, QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QPageLayout, QPageSize, QPainter, QPdfWriter
@@ -25,126 +31,218 @@ from PySide6.QtWidgets import QApplication
 from ..core.localtime import to_local
 from ..core.observing import INSTRUMENT_LABEL
 
+THEMES = {
+    "light": {"bg": None, "fg": QColor(0, 0, 0), "muted": QColor(105, 110, 120),
+              "line": QColor(190, 190, 190), "box": QColor(90, 90, 90),
+              "accent": QColor(180, 40, 40)},
+    "dark": {"bg": QColor(10, 14, 28), "fg": QColor(225, 230, 242),
+             "muted": QColor(140, 152, 176), "line": QColor(55, 66, 92),
+             "box": QColor(150, 160, 185), "accent": QColor(255, 120, 110)},
+    "red": {"bg": QColor(0, 0, 0), "fg": QColor(230, 55, 40),
+            "muted": QColor(160, 40, 28), "line": QColor(90, 18, 12),
+            "box": QColor(200, 45, 30), "accent": QColor(255, 80, 50)},
+}
+THEME_LABELS = {"light": "Claro (papel)", "dark": "Escuro (Carina)",
+                "red": "Vermelho (visão noturna)"}
+CSV_COLUMNS = ["ordem", "hora", "designacao", "nome", "tipo", "magnitude",
+               "tamanho_arcmin", "altitude", "azimute", "janela_inicio", "janela_fim",
+               "nota", "instrumento", "constelacao", "lua_graus", "anotacao"]
+
 
 def _hm(value: dt.datetime | None) -> str:
     return to_local(value).strftime("%H:%M") if value else "—"
 
 
-def write_plan_pdf(path: str, plan, stars=None, const_lines=None,
-                   progress=None) -> bool:
-    """Desenha o PDF. Retorna False se o usuário cancelou no meio."""
+# ---------------------------------------------------------------------------
+# CSV e texto
+# ---------------------------------------------------------------------------
+
+def plan_to_csv(plan) -> str:
+    """Roteiro em CSV (separador ';', vírgula decimal, como no Excel PT)."""
+    buf = io.StringIO()
+    w = csv.writer(buf, delimiter=";", lineterminator="\n")
+    w.writerow(CSV_COLUMNS)
+
+    def num(value, fmt="{:.1f}"):
+        return "" if value is None else fmt.format(value).replace(".", ",")
+
+    for i, e in enumerate(plan.entries, 1):
+        w.writerow([
+            i, _hm(e.when_utc) if plan.timed else "", e.designation,
+            e.common or "", e.type_label, num(e.magnitude), num(e.size_arcmin, "{:.0f}"),
+            num(e.altitude, "{:.0f}"), num(e.azimuth, "{:.0f}"),
+            _hm(e.window_start) if e.window_start else "",
+            _hm(e.window_end) if e.window_end else "", e.score or "",
+            INSTRUMENT_LABEL.get(e.instrument, e.instrument), e.constellation,
+            "" if e.moon_sep > 360 else num(e.moon_sep, "{:.0f}"), e.note,
+        ])
+    return buf.getvalue()
+
+
+def plan_to_text(plan) -> str:
+    """Roteiro em texto corrido, bom para levar no celular."""
+    lines = [plan.title]
+    if plan.timed and plan.night_start and plan.night_end:
+        lines.append(f"{to_local(plan.night_start):%d/%m/%Y} · {_hm(plan.night_start)}–"
+                     f"{_hm(plan.night_end)} · {plan.location}")
+    elif plan.subtitle:
+        lines.append(f"{plan.subtitle} · {plan.location}")
+    lines.append("")
+    for i, e in enumerate(plan.entries, 1):
+        when = f"{_hm(e.when_utc)} " if plan.timed else ""
+        extra = [e.type_label, f"alt {e.altitude:.0f}°"]
+        if e.constellation:
+            extra.append(e.constellation)
+        extra.append(INSTRUMENT_LABEL.get(e.instrument, e.instrument))
+        lines.append(f"{i:>2}. {when}{e.label} — {', '.join(extra)}")
+        if e.note:
+            lines.append(f"     nota: {e.note}")
+    lines.append("")
+    lines.append(f"Gerado pelo Carina em {dt.datetime.now():%d/%m/%Y %H:%M}")
+    return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# PDF
+# ---------------------------------------------------------------------------
+
+def write_plan_pdf(path: str, plan, stars=None, const_lines=None, progress=None,
+                   theme: str = "light") -> bool:
+    """Desenha o PDF. Devolve False se o usuário cancelou no meio."""
+    pal = THEMES.get(theme, THEMES["light"])
     writer = QPdfWriter(path)
     writer.setPageSize(QPageSize(QPageSize.A4))
     writer.setPageOrientation(QPageLayout.Portrait)
-    writer.setPageMargins(QMarginsF(12, 12, 12, 12), QPageLayout.Millimeter)
+    writer.setPageMargins(QMarginsF(0, 0, 0, 0), QPageLayout.Millimeter)
     writer.setResolution(300)
     writer.setTitle(plan.title)
+    writer.setCreator("Carina")
 
     p = QPainter(writer)
-    width = writer.width()
-    height = writer.height()
-    margin = 30
-    y = margin
-
+    W, H = writer.width(), writer.height()
+    M = int(14 / 25.4 * 300)                 # margem de 14 mm
+    FOOT = 70
     f_title = QFont("Segoe UI", 18, QFont.Bold)
     f_head = QFont("Segoe UI", 12, QFont.Bold)
     f_meta = QFont("Segoe UI", 9)
     f_body = QFont("Segoe UI", 9)
     f_row = QFont("Segoe UI", 8)
+    f_small = QFont("Segoe UI", 7)
+
+    if plan.timed and plan.night_start and plan.night_end:
+        night = (f"{to_local(plan.night_start):%d/%m/%Y} · "
+                 f"{_hm(plan.night_start)} – {_hm(plan.night_end)}")
+    else:
+        night = plan.subtitle or ""
+    state = {"y": float(M), "page": 1}
+
+    def begin_page() -> None:
+        if pal["bg"] is not None:
+            p.fillRect(QRectF(0, 0, W, H), pal["bg"])
+        p.setFont(f_small)
+        p.setPen(pal["muted"])
+        p.drawText(QRectF(M, H - M + 10, W - 2 * M, FOOT), Qt.AlignHCenter | Qt.AlignTop,
+                   f"Carina · {plan.title} · {night} — página {state['page']}")
+        state["y"] = float(M)
+        if state["page"] > 1:
+            p.drawText(QRectF(M, M - 50, W - 2 * M, 40), Qt.AlignLeft | Qt.AlignVCenter,
+                       f"{plan.title} · {night} · {plan.location}")
+            p.setPen(pal["line"])
+            p.drawLine(M, M - 6, W - M, M - 6)
+            state["y"] = float(M + 14)
 
     def ensure(space: float) -> None:
-        """Quebra de página quando o próximo bloco não couber inteiro."""
-        nonlocal y
-        if y + space > height - margin:
+        if state["y"] + space > H - M - FOOT:
             writer.newPage()
-            y = margin
+            state["page"] += 1
+            begin_page()
 
-    def paragraph(text: str, x: float, wrap_w: float,
-                  font: QFont, advance: bool = True) -> float:
-        """Mede, desenha e devolve a ALTURA REAL do parágrafo.
-
-        Medir antes de desenhar (e avançar o cursor pela altura medida)
-        é o que garante que nenhuma linha sobreponha a seguinte.
-        """
-        nonlocal y
+    def measure(text: str, width: float, font: QFont) -> float:
         p.setFont(font)
-        probe = QRectF(x, 0, wrap_w, 100000)
-        used = p.boundingRect(probe, Qt.TextWordWrap, text)
-        rect = QRectF(x, y, wrap_w, used.height())
-        p.drawText(rect, Qt.TextWordWrap, text)
+        return p.boundingRect(QRectF(0, 0, width, 100000), Qt.TextWordWrap, text).height()
+
+    def paragraph(text: str, x: float, width: float, font: QFont, color=None,
+                  advance: bool = True) -> float:
+        h = measure(text, width, font)
+        p.setPen(color or pal["fg"])
+        p.drawText(QRectF(x, state["y"], width, h), Qt.TextWordWrap, text)
         if advance:
-            y += used.height() + 8
-        return used.height()
+            state["y"] += h + 8
+        return h
 
-    # --- cabeçalho ---------------------------------------------------
-    p.setPen(QColor(0, 0, 0))
-    if plan.timed and plan.night_start and plan.night_end:
-        periodo = (f"{to_local(plan.night_start):%d/%m/%Y} · "
-                   f"{_hm(plan.night_start)} – {_hm(plan.night_end)}")
-        if plan.window_label:
-            periodo += f" ({plan.window_label})"
-        resumo = (
-            f"Lua {plan.moon_illumination * 100:.0f}% iluminada · "
-            f"{len(plan.entries)} objetos · "
-            f"{plan.minutes_per_object} min por objeto"
-        )
+    begin_page()
+    # --- capa ----------------------------------------------------------------
+    if plan.timed:
+        resumo = (f"Lua {plan.moon_illumination * 100:.0f}% iluminada · "
+                  f"{len(plan.entries)} objetos · {plan.minutes_per_object} min por objeto")
     else:
-        periodo = plan.subtitle
-        resumo = (f"{len(plan.entries)} objetos bem posicionados "
-                  f"durante todo o período")
-    paragraph(plan.title, margin, width - 2 * margin, f_title)
-    paragraph(
-        f"{periodo} · {plan.location}\n{resumo} · "
-        f"gerado pelo Carina em {dt.datetime.now():%d/%m/%Y %H:%M}",
-        margin, width - 2 * margin, f_meta,
-    )
-    y += 10
+        resumo = f"{len(plan.entries)} objetos bem posicionados durante todo o período"
+    horizon = getattr(plan, "horizon", None)
+    if horizon is not None:
+        resumo += f" · horizonte: {horizon.name}"
+    paragraph(plan.title, M, W - 2 * M, f_title)
+    paragraph(f"{night}{' (' + plan.window_label + ')' if plan.window_label else ''} · "
+              f"{plan.location}\n{resumo} · gerado pelo Carina em "
+              f"{dt.datetime.now():%d/%m/%Y %H:%M}", M, W - 2 * M, f_meta, pal["muted"])
+    state["y"] += 6
 
-    # --- seção 1: checklist compacto ---------------------------------
-    paragraph("Checklist" if not plan.timed else "Checklist da noite",
-              margin, width - 2 * margin, f_head)
+    if plan.timed and getattr(plan, "engine", None) is not None and stars is not None \
+            and plan.entries:
+        from .finderchart import render_overview_chart
+
+        size = int(min(W - 2 * M, (H - M - FOOT - state["y"]) * 0.82))
+        img = render_overview_chart(plan, stars, const_lines, size_px=size, theme=theme)
+        x0 = (W - size) / 2
+        p.drawImage(QRectF(x0, state["y"], size, size), img)
+        state["y"] += size + 10
+        paragraph("Carta geral da noite: segure acima da cabeça com o norte para o "
+                  "norte (leste à esquerda). Os números são as paradas do roteiro, cada "
+                  "uma na posição do seu horário; as estrelas, no meio da noite. Anéis "
+                  "pontilhados: 30° e 60° de altitude.", M, W - 2 * M, f_small,
+                  pal["muted"])
+        writer.newPage()
+        state["page"] += 1
+        begin_page()
+    else:
+        state["y"] += 10
+
+    # --- checklist -------------------------------------------------------------
+    paragraph("Checklist da noite" if plan.timed else "Checklist", M, W - 2 * M, f_head)
     p.setFont(f_row)
-    row_h = p.boundingRect(
-        QRectF(0, 0, 1000, 1000), 0, "Ag"
-    ).height() + 10
+    row_h = p.boundingRect(QRectF(0, 0, 1000, 1000), 0, "Ag").height() + 10
     box = row_h * 0.55
+    col1 = (W - 2 * M) * 0.52
     for i, e in enumerate(plan.entries, 1):
         ensure(row_h)
-        p.setPen(QColor(90, 90, 90))
-        p.drawRect(QRectF(margin, y + (row_h - box) / 2 - 2, box, box))
-        p.setPen(QColor(0, 0, 0))
+        y = state["y"]
+        p.setPen(pal["box"])
+        p.setBrush(Qt.NoBrush)
+        p.drawRect(QRectF(M, y + (row_h - box) / 2 - 2, box, box))
+        p.setPen(pal["fg"])
+        p.setFont(f_row)
         hora = f"{_hm(e.when_utc)}  " if plan.timed else ""
-        label = f"{i:>3}.  {hora}{e.catalog_id}"
-        if e.common and e.common != e.catalog_id:
-            label += f" — {e.common}"
+        p.drawText(QRectF(M + box + 14, y, col1, row_h), Qt.AlignVCenter,
+                   f"{i:>3}.  {hora}{e.label}")
         extra = (f"{e.type_label} · alt {e.altitude:.0f}° · "
                  f"{INSTRUMENT_LABEL.get(e.instrument, '')}")
+        if e.score:
+            extra += f" · nota {e.score}"
         if e.constellation:
             extra += f" · {e.constellation}"
         if e.moon_warning:
             extra += " · LUA PRÓXIMA"
         if e.in_twilight:
             extra += " · CÉU CLARO"
-        p.drawText(QRectF(margin + box + 14, y, width * 0.52, row_h),
-                   Qt.AlignVCenter, label)
-        p.setPen(QColor(110, 110, 110))
-        p.drawText(
-            QRectF(margin + box + 14 + width * 0.52, y,
-                   width - 2 * margin - box - 14 - width * 0.52, row_h),
-            Qt.AlignVCenter, extra,
-        )
-        y += row_h
-    y += 20
+        if e.late:
+            extra += " · FORA DA JANELA"
+        p.setPen(pal["muted"])
+        p.drawText(QRectF(M + box + 14 + col1, y, W - 2 * M - box - 14 - col1, row_h),
+                   Qt.AlignVCenter, extra)
+        state["y"] += row_h
+    state["y"] += 20
 
-    # --- seção 2: um cartão por objeto, com carta de localização -----
-    chart_px = 0
-    chart_img = None
-    if stars is not None:
-        from .finderchart import render_finder_chart
-
-        # ~62 mm a 300 dpi; a carta fica à esquerda, o texto à direita
-        chart_px = int(62 / 25.4 * 300)
-
+    # --- cartões com carta de localização -------------------------------------
+    chart_px = int(62 / 25.4 * 300) if stars is not None else 0
     for i, e in enumerate(plan.entries, 1):
         if progress is not None:
             progress.setValue(i - 1)
@@ -152,67 +250,55 @@ def write_plan_pdf(path: str, plan, stars=None, const_lines=None,
             if progress.wasCanceled():
                 p.end()
                 return False
+        chart_img = None
+        if stars is not None and e.klass not in ("PLANET", "MOON"):
+            from .finderchart import render_finder_chart
 
-        if stars is not None:
-            chart_img = render_finder_chart(e, stars,
-                                            const_lines)
-
-        # mede os textos antes de reservar espaço para o cartão
-        text_x = margin + (chart_px + 24 if chart_img else 0)
-        text_w = width - margin - text_x
+            chart_img = render_finder_chart(e, stars, const_lines, theme=theme)
+        text_x = M + (chart_px + 24 if chart_img is not None else 0)
+        text_w = W - M - text_x
         hora = f"{_hm(e.when_utc)} — " if plan.timed else ""
-        title = f"{i}. {hora}{e.catalog_id}"
-        if e.common and e.common != e.catalog_id:
-            title += f" ({e.common})"
-        meta = f"{e.type_label}"
-        if e.constellation:
-            meta += f" em {e.constellation}"
+        title = f"{i}. {hora}{e.label}"
+        meta = e.type_label + (f" em {e.constellation}" if e.constellation else "")
         meta += f" · alt {e.altitude:.0f}° · az {e.azimuth:.0f}°"
         if e.magnitude is not None:
             meta += f" · mag {e.magnitude:.1f}"
         if e.size_arcmin:
             meta += f" · {e.size_arcmin:.0f}'"
         if e.moon_sep <= 360:
-            meta += f" · Lua a {e.moon_sep:.0f}°"
-            if e.moon_warning:
-                meta += " (ATRAPALHA)"
-        instrumento = (
-            f"Instrumento:  {INSTRUMENT_LABEL.get(e.instrument, '')}"
-        )
+            meta += f" · Lua a {e.moon_sep:.0f}°" + (" (ATRAPALHA)" if e.moon_warning else "")
+        vis = ""
+        if e.rise_utc or e.set_utc:
+            vis = (f"Nasce {_hm(e.rise_utc)} · culmina {_hm(e.transit_utc)} · "
+                   f"se põe {_hm(e.set_utc)}")
+        if e.window_start and e.window_end:
+            vis += f"{' · ' if vis else ''}janela útil {_hm(e.window_start)}–{_hm(e.window_end)}"
+        instr = f"Instrumento:  {INSTRUMENT_LABEL.get(e.instrument, '')}"
+        if e.score_text:
+            instr += f"   ·   Nota {e.score_text}"
         if e.in_twilight:
-            instrumento += ("   ·   Céu ainda claro neste horário: "
-                            "só entrou por ser bem brilhante.")
+            instr += "   ·   Céu ainda claro neste horário: só entrou por ser bem brilhante."
         if e.note:
-            instrumento += f"   ·   {e.note}"
-        blocks = [
-            (title, f_head), (meta, f_meta), (instrumento, f_meta),
-            (f"O que ver:  {e.what_to_see}", f_body),
-            (e.binocular, f_body),
-            (f"Como encontrar:  {e.how_to_find}", f_body),
-        ]
-        total_text = 0.0
-        for text, font in blocks:
-            p.setFont(font)
-            used = p.boundingRect(
-                QRectF(0, 0, text_w, 100000), Qt.TextWordWrap, text
-            )
-            total_text += used.height() + 8
-        card_h = max(total_text, chart_px if chart_img else 0) + 26
-
+            instr += f"   ·   {e.note}"
+        blocks = [(title, f_head, pal["fg"]), (meta, f_meta, pal["muted"])]
+        if vis:
+            blocks.append((vis, f_meta, pal["muted"]))
+        blocks += [(instr, f_meta, pal["muted"]),
+                   (f"O que ver:  {e.what_to_see}", f_body, pal["fg"]),
+                   (e.binocular, f_body, pal["fg"]),
+                   (f"Como encontrar:  {e.how_to_find}", f_body, pal["fg"])]
+        total = sum(measure(t, text_w, f) + 8 for t, f, _c in blocks)
+        card_h = max(total, chart_px if chart_img is not None else 0) + 26
         ensure(card_h)
-        top = y
+        top = state["y"]
         if chart_img is not None:
-            p.drawImage(
-                QRectF(margin, top, chart_px, chart_px), chart_img
-            )
-        for text, font in blocks:
-            paragraph(text, text_x, text_w, font)
-        y = max(y, top + (chart_px if chart_img else 0) + 8)
-        p.setPen(QColor(190, 190, 190))
-        p.drawLine(QRectF(margin, y, width - 2 * margin, 0).topLeft(),
-                   QRectF(margin, y, width - 2 * margin, 0).topRight())
-        p.setPen(QColor(0, 0, 0))
-        y += 18
+            p.drawImage(QRectF(M, top, chart_px, chart_px), chart_img)
+        for text, font, color in blocks:
+            paragraph(text, text_x, text_w, font, color)
+        state["y"] = max(state["y"], top + (chart_px if chart_img is not None else 0) + 8)
+        p.setPen(pal["line"])
+        p.drawLine(M, int(state["y"]), W - M, int(state["y"]))
+        state["y"] += 18
 
     if progress is not None:
         progress.setValue(len(plan.entries))
