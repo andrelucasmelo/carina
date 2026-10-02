@@ -195,11 +195,11 @@ def write_plan_pdf(path: str, plan, stars=None, const_lines=None, progress=None,
         x0 = (W - size) / 2
         p.drawImage(QRectF(x0, state["y"], size, size), img)
         state["y"] += size + 10
-        paragraph("Carta geral da noite: segure acima da cabeça com o norte para o "
-                  "norte (leste à esquerda). Os números são as paradas do roteiro, cada "
-                  "uma na posição do seu horário; as estrelas, no meio da noite. Anéis "
-                  "pontilhados: 30° e 60° de altitude.", M, W - 2 * M, f_small,
-                  pal["muted"])
+        paragraph("Mapa da noite: segure acima da cabeça com o N voltado para o norte "
+                  "(leste à esquerda). Cada número é uma parada do roteiro, na direção e "
+                  "na altura em que o objeto estará no horário dela. Círculos "
+                  "tracejados: 20°, 40°, 60° e 80° de altitude; o ponto central é o "
+                  "zênite.", M, W - 2 * M, f_small, pal["muted"])
         writer.newPage()
         state["page"] += 1
         begin_page()

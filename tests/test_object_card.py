@@ -122,3 +122,38 @@ def test_instrument_uses_minor_axis(ctx):
     card = ObjectCard(ctx)
     card.set_selection(("dso", _dso_id(ctx, "M 8")))
     assert card.summary()["instrument"] == "binoculo"
+
+
+def test_annual_chart_hides_below_horizon(monkeypatch):
+    """Gráfico anual: 0° é a base; nada abaixo dele é desenhado."""
+    import datetime as dt
+
+    from PySide6.QtCore import QPointF
+    from PySide6.QtGui import QPainter
+
+    from carina.ui import object_window
+    from carina.ui.object_window import AltitudeChart
+
+    dates = [dt.date(2026, 1, 1) + dt.timedelta(days=10 * i) for i in range(10)]
+    mid = [-30, -10, 5, 20, 40, 60, 40, 10, -5, -40]
+    chart = AltitudeChart(dates, mid, [v + 10 for v in mid])
+    chart.resize(600, 300)
+    lines = []
+
+    class Rec(QPainter):
+        def drawLine(self, *a):
+            if len(a) == 2 and isinstance(a[0], QPointF):
+                lines.append(a)
+            return super().drawLine(*a)
+
+    monkeypatch.setattr(object_window, "QPainter", Rec)
+    chart.grab()
+    plot = chart._plot_rect
+    assert plot is not None
+    curve = [ln for ln in lines if ln[1].x() > ln[0].x() + 1
+             and abs(ln[1].y() - ln[0].y()) > 0.01]
+    assert len(curve) >= 6
+    # nenhum segmento desenhado fica inteiramente abaixo de 0° (a base)
+    assert all(min(a.y(), b.y()) <= plot.bottom() + 0.5 for a, b in curve)
+    # os dois segmentos totalmente negativos (início e fim) foram omitidos
+    assert len(curve) <= 2 * (len(dates) - 1) - 2

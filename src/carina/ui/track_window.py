@@ -269,9 +269,12 @@ class TrackCanvas(QWidget):
                 ux, uy = dx / norm, dy / norm
                 tx, ty = -uy, ux
                 candidates = [(ux * r, uy * r) for r in (18, -18, 30, -30, 44, -44)]
-                for side in (22, -22):
-                    candidates.append((ux * 18 + tx * side, uy * 18 + ty * side))
-                    candidates.append((ux * 32 + tx * side, uy * 32 + ty * side))
+                # (não reutilizar o nome `side`: ele é o espelhamento do
+                # azimute usado por to_xy — sobrescrevê-lo jogava todos os
+                # pontos seguintes para fora da carta)
+                for off in (22, -22):
+                    candidates.append((ux * 18 + tx * off, uy * 18 + ty * off))
+                    candidates.append((ux * 32 + tx * off, uy * 32 + ty * off))
                 placed = None
                 for ox, oy in candidates:
                     box = QRectF(xy.x() + ox - 24, xy.y() + oy - 8, 48, 16)
@@ -281,10 +284,22 @@ class TrackCanvas(QWidget):
                 if placed is None:
                     continue
                 taken.append(placed)
+                c = placed.center()
+                if math.hypot(c.x() - xy.x(), c.y() - xy.y()) > 24:
+                    # rótulo afastado: linha guia até o ponto, para não
+                    # deixar dúvida de a que horário ele pertence
+                    lead = QColor(fg)
+                    lead.setAlpha(110)
+                    painter.setPen(QPen(lead, 0.8))
+                    vx, vy = c.x() - xy.x(), c.y() - xy.y()
+                    d = math.hypot(vx, vy)
+                    painter.drawLine(
+                        QPointF(xy.x() + vx / d * 5, xy.y() + vy / d * 5),
+                        QPointF(c.x() - vx / d * 10, c.y() - vy / d * 7))
                 painter.setPen(fg)
-                painter.drawText(
-                    placed, Qt.AlignCenter, local.strftime("%H:%M")
-                )
+                text = (f"{local.hour}h" if local.minute == 0
+                        else local.strftime("%H:%M"))
+                painter.drawText(placed, Qt.AlignCenter, text)
 
         # legenda no lugar escolhido (padrão: rodapé, abaixo do "S")
         if s.show_legend:

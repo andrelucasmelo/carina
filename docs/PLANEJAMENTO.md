@@ -273,9 +273,11 @@ o fim de semana da viagem ao céu escuro.
 
 `Ctrl+Shift+V` pré-visualiza e `Ctrl+P` exporta. O arquivo tem:
 
-1. **capa** com a **carta geral da noite** — o céu inteiro visto de
-   baixo, com cada parada numerada na posição do seu horário e o seu
-   horizonte sombreado;
+1. **capa** com o **mapa da noite** — o céu visto de baixo, com cada
+   parada numerada na direção e na altura em que estará no horário dela,
+   círculos de 20°, 40°, 60° e 80°, os oito pontos cardeais e o seu
+   horizonte sombreado. Não há estrelas de fundo: como cada parada tem um
+   horário, um céu de um instante só não bateria com as posições;
 2. **checklist** — uma linha por parada, com caixa para marcar;
 3. **um cartão por objeto** — carta de localização à esquerda e
    instruções à direita, com nasce, culmina, se põe, janela e nota.

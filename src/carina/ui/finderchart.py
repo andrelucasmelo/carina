@@ -341,46 +341,34 @@ def _draw_compass(p: QPainter, size_px: int, pal: dict | None = None) -> None:
 # Carta geral da noite (v0.15 T13)
 # ---------------------------------------------------------------------------
 
-def render_overview_chart(plan, stars, const_lines, size_px: int = 1400,
+def render_overview_chart(plan, stars=None, const_lines=None, size_px: int = 1400,
                           theme: str = "light", when_utc=None) -> QImage:
-    """Céu inteiro (projeção estereográfica do zênite) com os alvos numerados.
+    """Mapa da noite: o céu visto de baixo com os alvos numerados.
 
     Convenção de carta para segurar acima da cabeça: norte em cima, **leste
-    à esquerda**. Estrelas e linhas de constelação são as do instante
-    ``when_utc`` (padrão: meio da janela da noite); cada alvo aparece na
-    posição do **seu horário agendado**, com o número da parada — é o mapa
-    de "para onde apontar" ao longo da noite. Com horizonte do quintal, a
-    silhueta é sombreada na borda.
+    à esquerda**. Cada alvo aparece na posição do **seu horário agendado**,
+    com o número da parada. Não há estrelas nem constelações de fundo: como
+    cada alvo está num horário diferente, um céu de um instante só não
+    corresponderia às posições e confundiria (pedido do usuário, pré-0.16).
+    A orientação vem de círculos de altitude (20°, 40°, 60°, 80°), dos oito
+    pontos cardeais e, havendo horizonte do quintal, da silhueta sombreada.
+
+    ``stars``, ``const_lines`` e ``when_utc`` ficam por compatibilidade.
     """
     pal = CHART_THEMES.get(theme, _LIGHT)
-    engine = plan.engine
-    if when_utc is None:
-        when_utc = plan.night_start + (plan.night_end - plan.night_start) / 2
-    m = engine.horizontal_matrix(engine.ts.from_datetime(when_utc))
     img = QImage(size_px, size_px, QImage.Format_RGB32)
     img.fill(pal["bg"])
     p = QPainter(img)
     p.setRenderHint(QPainter.Antialiasing)
     cx = cy = size_px / 2.0
-    radius = size_px / 2.0 - size_px * 0.06
+    radius = size_px / 2.0 - size_px * 0.08
+    k = size_px / 1400.0
 
     def xy_altaz(alt_deg: float, az_deg: float):
-        z = math.radians(90.0 - alt_deg)
-        rr = radius * math.tan(z / 2.0)               # horizonte: tan(45°) = 1
+        rr = radius * (90.0 - max(0.0, min(90.0, alt_deg))) / 90.0   # equidistante
         a = math.radians(az_deg)
         return QPointF(cx - rr * math.sin(a), cy - rr * math.cos(a))
 
-    def xy_vec(h):
-        alt = math.degrees(math.asin(max(-1.0, min(1.0, float(h[2])))))
-        az = math.degrees(math.atan2(float(h[1]), float(h[0]))) % 360.0
-        return xy_altaz(alt, az), alt
-
-    # grade: horizonte, 30° e 60°, e os cardeais
-    p.setPen(QPen(pal["grid"], 1.2, Qt.DotLine))
-    p.setBrush(Qt.NoBrush)
-    for alt in (30.0, 60.0):
-        rr = radius * math.tan(math.radians(90.0 - alt) / 2.0)
-        p.drawEllipse(QPointF(cx, cy), rr, rr)
     # horizonte do quintal: anel sombreado entre 0° e o perfil
     horizon = getattr(plan, "horizon", None)
     if horizon is not None and not horizon.is_flat:
@@ -398,39 +386,43 @@ def render_overview_chart(plan, stars, const_lines, size_px: int = 1400,
         p.drawPath(path.subtracted(hole))
         p.setBrush(Qt.NoBrush)
 
-    # linhas de constelação acima do horizonte
-    if const_lines is not None:
-        p.setPen(QPen(pal["const"], 1.3))
-        hv = const_lines.verts.astype(np.float64) @ m.T
-        for a, b in const_lines.segments:
-            if hv[a, 2] < 0.0 or hv[b, 2] < 0.0:
-                continue
-            pa, _ = xy_vec(hv[a])
-            pb, _ = xy_vec(hv[b])
-            p.drawLine(pa, pb)
+    # raios dos oito rumos
+    p.setPen(QPen(pal["grid"], 1.0 * max(1.0, k), Qt.DotLine))
+    for az in range(0, 360, 45):
+        p.drawLine(QPointF(cx, cy), xy_altaz(0.0, az))
 
-    # estrelas até a magnitude 5
-    count = stars.count_brighter_than(5.0)
-    hs = stars.xyz[:count].astype(np.float64) @ m.T
+    # círculos de altitude com rótulo
+    label_font = QFont("Segoe UI", max(8, int(size_px / 85)))
+    p.setFont(label_font)
+    for alt in (20.0, 40.0, 60.0, 80.0):
+        rr = radius * (90.0 - alt) / 90.0
+        p.setPen(QPen(pal["grid"], 1.3 * max(1.0, k), Qt.DashLine))
+        p.setBrush(Qt.NoBrush)
+        p.drawEllipse(QPointF(cx, cy), rr, rr)
+        p.setPen(pal["text"])
+        lab = f"{alt:.0f}°"
+        w = p.fontMetrics().horizontalAdvance(lab)
+        # rótulo no rumo NE, entre os raios, para não cobrir alvos do N/S
+        a = math.radians(22.5)
+        p.drawText(QPointF(cx - rr * math.sin(a) - w / 2, cy - rr * math.cos(a) - 4), lab)
+    p.setBrush(pal["text"])
     p.setPen(Qt.NoPen)
-    p.setBrush(pal["star"])
-    for i in np.nonzero(hs[:, 2] > 0.0)[0]:
-        pt, _ = xy_vec(hs[i])
-        r = max(1.0, (5.8 - 0.95 * float(stars.mag[i])) * size_px / 1400.0)
-        p.drawEllipse(pt, r, r)
-
-    # moldura do horizonte e cardeais
-    p.setPen(QPen(pal["frame"], 2.0))
+    p.drawEllipse(QPointF(cx, cy), 2.5 * max(1.0, k), 2.5 * max(1.0, k))   # zênite
     p.setBrush(Qt.NoBrush)
+
+    # horizonte e os oito pontos cardeais
+    p.setPen(QPen(pal["frame"], 2.2 * max(1.0, k)))
     p.drawEllipse(QPointF(cx, cy), radius, radius)
-    font = QFont("Segoe UI", max(9, int(size_px / 60)), QFont.Bold)
-    p.setFont(font)
-    p.setPen(pal["text"])
-    for name, az in (("N", 0.0), ("L", 90.0), ("S", 180.0), ("O", 270.0)):
+    for name, az in (("N", 0.0), ("NE", 45.0), ("L", 90.0), ("SE", 135.0),
+                     ("S", 180.0), ("SO", 225.0), ("O", 270.0), ("NO", 315.0)):
+        big = len(name) == 1
+        p.setFont(QFont("Segoe UI", max(9, int(size_px / (55 if big else 70))),
+                        QFont.Bold if big else QFont.Normal))
+        p.setPen(pal["text"])
         a = math.radians(az)
-        x = cx - (radius + size_px * 0.03) * math.sin(a)
-        y = cy - (radius + size_px * 0.03) * math.cos(a)
-        p.drawText(QRectF(x - 30, y - 20, 60, 40), Qt.AlignCenter, name)
+        dist = radius + size_px * 0.035
+        x, y = cx - dist * math.sin(a), cy - dist * math.cos(a)
+        p.drawText(QRectF(x - 40, y - 22, 80, 44), Qt.AlignCenter, name)
 
     # alvos numerados na posição do horário de cada um
     num_font = QFont("Segoe UI", max(8, int(size_px / 75)), QFont.Bold)

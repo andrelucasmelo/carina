@@ -127,11 +127,14 @@ class AltitudeChart(QWidget):
             return
         i = int(round((x - r.left()) / r.width() * (len(self.dates) - 1)))
         i = max(0, min(len(self.dates) - 1, i))
+        def fmt(v: float) -> str:
+            return f"{v:.0f}°" if v >= 0 else self.tr("abaixo do horizonte")
+
         QToolTip.showText(
             event.globalPosition().toPoint(),
-            self.tr("{d}: {m:.0f}° no meio da noite · máx. {x:.0f}°").format(
-                d=self.dates[i].strftime("%d/%m"), m=self.alt_mid[i],
-                x=self.alt_max[i]), self)
+            self.tr("{d}: meio da noite {m} · máx. {x}").format(
+                d=self.dates[i].strftime("%d/%m"), m=fmt(self.alt_mid[i]),
+                x=fmt(self.alt_max[i])), self)
 
     def paintEvent(self, event) -> None:
         p = QPainter(self)
@@ -152,7 +155,9 @@ class AltitudeChart(QWidget):
 
         def to_xy(i: int, alt: float) -> QPointF:
             fx = i / max(1, n - 1)
-            fy = 1.0 - (max(-10.0, min(90.0, alt)) + 10.0) / 100.0
+            # 0° é a base do gráfico: abaixo do horizonte nada é exibido
+            # (o trecho negativo sai da área e é recortado no desenho)
+            fy = 1.0 - min(90.0, alt) / 90.0
             return QPointF(plot.left() + fx * plot.width(),
                            plot.top() + fy * plot.height())
 
@@ -187,9 +192,14 @@ class AltitudeChart(QWidget):
             (self.alt_mid, QColor(255, 190, 90), 2.4),
         ):
             p.setPen(QPen(color, width))
+            p.save()
+            p.setClipRect(plot)
             pts = [to_xy(i, v) for i, v in enumerate(values)]
-            for a, b in zip(pts, pts[1:]):
+            for (a, b), (va, vb) in zip(zip(pts, pts[1:]), zip(values, values[1:])):
+                if va < 0.0 and vb < 0.0:
+                    continue
                 p.drawLine(a, b)
+            p.restore()
 
         # legenda
         p.setFont(QFont("Segoe UI", 8))

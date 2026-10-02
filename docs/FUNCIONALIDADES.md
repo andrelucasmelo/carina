@@ -190,7 +190,7 @@ Detalhes completos em [PLANEJAMENTO.md](PLANEJAMENTO.md).
   mapa e na hora; reordenar e remover.
 - **Calendário de noites escuras** (`Ctrl+Shift+N`): horas sem Lua de cada
   noite do mês, com as três melhores destacadas.
-- **PDF de campo** com a carta geral da noite, checklist e cartas de
+- **PDF de campo** com o mapa da noite (paradas numeradas por direção e altura), checklist e cartas de
   localização, em tema claro, escuro ou vermelho; exportação em CSV e
   texto.
 
