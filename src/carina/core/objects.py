@@ -28,6 +28,7 @@ class ObjectRef:
     name: str
     icrs: np.ndarray | None = None
     data: dict | None = None
+    ident: str = ""          # identidade estável (banco do usuário)
 
     @property
     def selection(self) -> tuple[str, object]:
@@ -49,7 +50,10 @@ class ObjectRef:
             idx = int(key)
             name = (stars.proper.get(idx) or stars.label(idx, "bayer")
                     or f"HIP {int(stars.hip[idx])}")
-            return cls(kind, idx, name, np.asarray(stars.xyz[idx], dtype=np.float64))
+            hip = int(stars.hip[idx]) if stars.hip[idx] else 0
+            ident = f"HIP {hip}" if hip else f"STAR {idx}"
+            return cls(kind, idx, name, np.asarray(stars.xyz[idx], dtype=np.float64),
+                       None, ident)
         if kind == "dso":
             data = dso.get(int(key))
             if data is None:
@@ -61,8 +65,36 @@ class ObjectRef:
             cd = math.cos(data["dec"])
             icrs = np.array([cd * math.cos(data["ra"]), cd * math.sin(data["ra"]),
                              math.sin(data["dec"])])
-            return cls(kind, int(key), name, icrs, data)
-        return cls(kind, key, str(key), None, None)
+            return cls(kind, int(key), name, icrs, data, data["name"])
+        return cls(kind, key, str(key), None, None, str(key))
+
+    @classmethod
+    def from_ident(cls, kind: str, ident: str, stars, dso) -> "ObjectRef | None":
+        """Caminho inverso de :attr:`ident`: o que o banco do usuário guarda
+        volta a ser uma referência viva (``None`` se sumiu do catálogo)."""
+        if kind == "dso":
+            row = dso.cx.execute("SELECT id FROM objects WHERE name = ?",
+                                 (ident,)).fetchone()
+            return cls.resolve(("dso", int(row[0])), stars, dso) if row else None
+        if kind == "star":
+            if ident.startswith("HIP "):
+                index = _hip_index(stars).get(int(ident[4:]))
+            elif ident.startswith("STAR "):
+                index = int(ident[5:])
+            else:
+                index = None
+            if index is None or not 0 <= index < len(stars.mag):
+                return None
+            return cls.resolve(("star", index), stars, dso)
+        return cls.resolve(("body", ident), stars, dso)
+
+    @property
+    def ra_dec(self) -> tuple[float, float] | None:
+        """(AR, Dec) J2000 em radianos, para objetos de posição fixa."""
+        if self.icrs is None:
+            return None
+        x, y, z = (float(c) for c in self.icrs)
+        return math.atan2(y, x) % (2 * math.pi), math.asin(max(-1.0, min(1.0, z)))
 
     def image_path(self):
         """Caminho da imagem local do objeto (só céu profundo), ou None."""
@@ -71,3 +103,14 @@ class ObjectRef:
         from ..catalogs import images
 
         return images.image_path_for(self.data["name"])
+
+
+def _hip_index(stars) -> dict[int, int]:
+    """Mapa HIP → índice no catálogo (montado uma vez por catálogo)."""
+    cached = getattr(stars, "_hip_index_cache", None)
+    if cached is None:
+        hips = np.asarray(stars.hip)
+        nz = np.nonzero(hips)[0]
+        cached = {int(hips[i]): int(i) for i in nz}
+        stars._hip_index_cache = cached
+    return cached
