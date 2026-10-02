@@ -2669,6 +2669,30 @@ class SkyWidget(QOpenGLWidget):
         self.highlight_constellation(cid)
         self.show_notice(self.tr("Esta região é {pt} ({la})").format(pt=pt, la=latin), 8.0)
 
+    def goto_constellation(self, cid: str) -> bool:
+        """Busca ▸ constelação: centro da constelação, campo que a contém
+        inteira (pelas fronteiras IAU) e destaque por alguns segundos."""
+        k = next((i for i, c in enumerate(self.const_info) if c.get("id") == cid), None)
+        if k is None:
+            return False
+        center = self.const_centers[k].astype(np.float64)
+        sub = self._const_subset(self.const_bounds, cid)
+        fov = 40.0
+        if len(sub.verts):
+            dots = np.clip(sub.verts.astype(np.float64) @ center, -1.0, 1.0)
+            fov = min(100.0, max(15.0, 2.3 * math.degrees(float(np.arccos(dots.min())))))
+        t = self.engine.time.current()
+        m = self.engine.horizontal_matrix(t)
+        self._push_view()
+        self._stop_following()
+        az, alt = vec_to_altaz(m @ center)
+        self.camera.fov = math.radians(fov)
+        self._animate_to(az, alt)
+        self.highlight_constellation(cid)
+        if alt < 0.0:
+            self.show_notice(self.tr("Esta constelação está abaixo do horizonte agora."))
+        return True
+
     def highlight_constellation(self, cid: str, seconds: float = 8.0) -> None:
         import time as _time
 

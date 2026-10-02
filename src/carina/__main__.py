@@ -380,8 +380,9 @@ def main(argv=None) -> int:
     elif args.dialog == "search":
         from .ui.search_dialog import SearchDialog
 
-        dialog = SearchDialog(win.star_catalog, win.dso_catalog, win)
-        dialog.goto_requested.connect(win.sky.goto_object)
+        dialog = SearchDialog(win.star_catalog, win.dso_catalog, win,
+                              ctx=win._card_context())
+        dialog.goto_requested.connect(win._search_goto)
         if args.dialog_text:
             dialog.edit.setText(args.dialog_text)
         dialog.show()

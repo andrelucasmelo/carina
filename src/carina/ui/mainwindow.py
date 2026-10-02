@@ -720,6 +720,13 @@ class MainWindow(QMainWindow):
                 t=self.card.copy_text() if self.card.selection == selection
                 else self.sky.describe_selection(selection)), 5000)
 
+    def _search_goto(self, selection) -> None:
+        """Resultado da busca: constelação vai ao centro com destaque."""
+        if selection[0] == "const":
+            self.sky.goto_constellation(selection[1])
+        else:
+            self.sky.goto_object(selection)
+
     def _open_lists(self) -> None:
         """Objetos ▸ Minhas listas (v0.15 T7)."""
         from .lists_window import ListsWindow
@@ -1060,8 +1067,10 @@ class MainWindow(QMainWindow):
     def _open_search(self) -> None:
         from .search_dialog import SearchDialog
 
-        dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
-        dlg.goto_requested.connect(self.sky.goto_object)
+        dlg = SearchDialog(self.star_catalog, self.dso_catalog, self,
+                           ctx=self._card_context())
+        dlg.goto_requested.connect(self._search_goto)
+        dlg.addToListRequested.connect(self._add_to_list)
         dlg.exec()
 
     def _set_names_language(self, code: str) -> None:
