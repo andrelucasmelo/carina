@@ -289,7 +289,17 @@ class GLRenderer:
             GL.glDeleteTextures([tex])
 
     def set_mw_texture(self, rgb: np.ndarray) -> None:
-        """Envia a textura da Via Láctea (H,W,3 uint8) para a GPU."""
+        """Envia a textura da Via Láctea (H,W,3 uint8) para a GPU.
+
+        Placas com limite de textura menor que a imagem (6144 px desde a
+        v0.16) recebem uma versão reduzida por amostragem.
+        """
+        limit = int(GL.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE) or 4096)
+        step = 1
+        while rgb.shape[1] // step > limit:
+            step += 1
+        if step > 1:
+            rgb = rgb[::step, ::step]
         h, w, _ = rgb.shape
         rgb = np.ascontiguousarray(rgb, dtype=np.uint8)
         if self.mw_texture:
@@ -371,6 +381,23 @@ class GLRenderer:
         self.batch_fill.upload(np.ascontiguousarray(verts, dtype=np.float32))
         GL.glBindVertexArray(self.batch_fill.vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(verts))
+
+    def draw_colored_triangles(self, verts: np.ndarray, colors: np.ndarray) -> None:
+        """Triângulos com cor por vértice (gradiente do céu no crepúsculo).
+
+        Usa o programa das linhas (posição + cor) com ``GL_TRIANGLES``.
+        verts: (3T, 2) em pixels; colors: (3T, 4).
+        """
+        if len(verts) == 0:
+            return
+        data = np.empty((len(verts), 6), dtype=np.float32)
+        data[:, :2] = verts
+        data[:, 2:] = colors
+        GL.glUseProgram(self.prog_lines)
+        GL.glUniform2f(self.u_vp_lines, self._w, self._h)
+        self.batch_lines.upload(data)
+        GL.glBindVertexArray(self.batch_lines.vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(data))
 
     def multiply_screen(self, width: int, height: int, rgb) -> None:
         """Multiplica todo o framebuffer por ``rgb`` (canal a canal).

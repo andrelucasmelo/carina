@@ -706,6 +706,8 @@ class SkyWidget(QOpenGLWidget):
         painter.beginNativePainting()
         r = self.renderer
         r.begin_frame(w, h, bg)
+        if (self.layers["atmosphere"] and not self.chart_mode):
+            self._draw_sky_gradient(t, bg)
 
         # --- Via Láctea: textura na esfera (mecanismo do Stellarium) ---
         # a partir de Bortle 7 ela simplesmente não é visível
@@ -967,6 +969,82 @@ class SkyWidget(QOpenGLWidget):
             return f_icrs, -1.1          # tudo passa: nada a filtrar
         return f_icrs, math.cos(half)
 
+    def _sky_dome(self):
+        """Malha da cúpula celeste acima do horizonte (cacheada)."""
+        dome = getattr(self, "_dome", None)
+        if dome is None:
+            az = np.radians(np.arange(0.0, 360.0, 6.0))
+            alts = np.radians(np.concatenate([[0.0, 2.0, 5.0], np.arange(10.0, 91.0, 8.0)]))
+            rings = [np.stack([np.cos(a) * np.cos(az), np.cos(a) * np.sin(az),
+                               np.full(len(az), np.sin(a))], axis=1) for a in alts]
+            verts = np.concatenate(rings)
+            n = len(az)
+            tris = []
+            for r in range(len(alts) - 1):
+                b0, b1 = r * n, (r + 1) * n
+                for j in range(n):
+                    j2 = (j + 1) % n
+                    tris += [[b0 + j, b0 + j2, b1 + j], [b0 + j2, b1 + j2, b1 + j]]
+            dome = (verts, np.asarray(tris, dtype=np.int32))
+            self._dome = dome
+        return dome
+
+    def _draw_sky_gradient(self, t, bg) -> None:
+        """Gradiente do céu no crepúsculo e de dia (v0.16 T4).
+
+        Modelo simples e barato: mais claro perto do horizonte, ainda mais
+        do lado do Sol, com o tom alaranjado do crepúsculo concentrado entre
+        o Sol a −12° e +6°. De noite (Sol abaixo de −18°) o céu é uniforme
+        e nada é desenhado.
+        """
+        sun = next((b for b in self.engine.bodies(t) if b.name == "Sol"), None)
+        if sun is None:
+            return
+        sun_alt = math.degrees(sun.alt)
+        if sun_alt < -18.0:
+            return
+        verts, tris = self._sky_dome()
+        cam = self.camera
+        fwd = cam.forward_component(verts)
+        keep = (fwd[tris] > -0.15).any(axis=1)
+        tri = tris[keep]
+        if not len(tri):
+            return
+        alt = np.degrees(np.arcsin(np.clip(verts[:, 2], -1.0, 1.0)))
+        gamma = np.degrees(np.arccos(np.clip(verts @ sun.vec, -1.0, 1.0)))
+        horizon = np.exp(-alt / 18.0)
+        near_sun = np.exp(-gamma / 40.0)
+        twilight = (min(1.0, max(0.0, (sun_alt + 18.0) / 18.0))
+                    * min(1.0, max(0.0, (6.0 - sun_alt) / 12.0)))
+        gain = 1.0 + 0.9 * horizon * (0.35 + 0.65 * near_sun)
+        warm = np.array([1.0, 0.42, 0.14])
+        col = (np.asarray(bg)[np.newaxis, :] * gain[:, np.newaxis]
+               + (0.5 * twilight * near_sun * horizon)[:, np.newaxis] * warm)
+        rgba = np.empty((len(verts), 4), dtype=np.float32)
+        rgba[:, :3] = np.clip(col, 0.0, 1.0)
+        rgba[:, 3] = 1.0
+        gx, gy = cam.project_clamped(verts)
+        pts = np.column_stack([gx, gy]).astype(np.float32)
+        idx = tri.ravel()
+        self.renderer.draw_colored_triangles(pts[idx], rgba[idx])
+
+    EXTINCTION_K = 0.28        # mag por massa de ar (banda V, céu típico)
+
+    def _extinction(self, vecs: np.ndarray):
+        """Perda de brilho pela atmosfera (mag) para cada vetor horizontal.
+
+        ``k·(X − 1)``, com a massa de ar X de Kasten & Young: zero no zênite,
+        ~0,3 mag a 30°, ~2 mag a 3° — as estrelas se apagam ao se aproximar
+        do horizonte como no céu real. Só com a atmosfera ligada e fora do
+        tema papel.
+        """
+        if self.chart_mode or not self.layers.get("atmosphere", True):
+            return None
+        alt = np.degrees(np.arcsin(np.clip(vecs[:, 2], -1.0, 1.0)))
+        a = np.maximum(alt, 0.5)
+        x = 1.0 / (np.sin(np.radians(a)) + 0.50572 * (a + 6.07995) ** -1.6364)
+        return np.minimum(self.EXTINCTION_K * (x - 1.0), 4.0)
+
     def _draw_stars(self, m: np.ndarray, fade: float):
         """Estrelas do quadro em um único draw call de sprites.
 
@@ -1000,6 +1078,9 @@ class SkyWidget(QOpenGLWidget):
         # índices no catálogo completo (rótulos e seleção dependem deles)
         idx = near[sub]
         mag = cat.mag[idx]
+        ext = self._extinction(vecs[sub])
+        if ext is not None:
+            mag = mag + ext
         rel = np.maximum(0.0, m_lim - mag)
         # Curva de tamanho bem íngreme: as estrelas mais brilhantes dominam
         # visivelmente o campo (compensação de brilho por tamanho).
@@ -1027,6 +1108,16 @@ class SkyWidget(QOpenGLWidget):
             data[:, 3:6] = cat.colors[idx]
             data[:, 6] = alpha[keep]
         self.renderer.draw_points(data, hard=self.chart_mode)
+        if not self.chart_mode:
+            # halo das mais brilhantes: um sprite largo e tênue por trás dá a
+            # sensação de brilho que o tamanho sozinho não transmite (v0.16)
+            bright = np.nonzero(mag[keep] < 1.6)[0]
+            if len(bright):
+                halo = data[bright].copy()
+                strength = np.clip((1.6 - mag[keep][bright]) / 3.0, 0.05, 1.0)
+                halo[:, 2] = np.minimum(data[bright, 2] * 3.2, 90.0 * self._px)
+                halo[:, 6] = (0.10 + 0.16 * strength) * data[bright, 6]
+                self.renderer.draw_points(halo)
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
 
         # --- catálogo profundo (Tycho-2): só quando o zoom pede mag > 8,5 ---

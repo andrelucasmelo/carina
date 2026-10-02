@@ -72,16 +72,43 @@ def bayer_display(code: str, con: str | None = None, full: bool = False) -> str:
     return f"{letter}{sup}"
 
 
-def _bv_to_rgb(bv: np.ndarray) -> np.ndarray:
-    """Índice de cor B-V -> RGB aproximado (interpolação em pontos de controle)."""
-    ctrl_bv = np.array([-0.4, 0.0, 0.4, 0.8, 1.2, 1.6, 2.0])
-    ctrl_r = np.array([0.61, 0.80, 1.00, 1.00, 1.00, 1.00, 1.00])
-    ctrl_g = np.array([0.72, 0.87, 0.98, 0.92, 0.82, 0.72, 0.62])
-    ctrl_b = np.array([1.00, 1.00, 0.96, 0.82, 0.65, 0.50, 0.40])
-    bv = np.clip(bv, ctrl_bv[0], ctrl_bv[-1])
-    return np.stack(
-        [np.interp(bv, ctrl_bv, c) for c in (ctrl_r, ctrl_g, ctrl_b)], axis=1
-    ).astype(np.float32)
+def bv_to_temperature(bv) -> np.ndarray:
+    """Temperatura efetiva (K) pelo índice B−V — fórmula de Ballesteros (2012)."""
+    bv = np.clip(np.asarray(bv, dtype=np.float64), -0.4, 2.0)
+    return 4600.0 * (1.0 / (0.92 * bv + 1.7) + 1.0 / (0.92 * bv + 0.62))
+
+
+def temperature_to_rgb(kelvin) -> np.ndarray:
+    """Cor de um corpo negro (aproximação de Tanner Helland), 0..1.
+
+    Ajuste empírico sobre a tabela de Mitchell Charity, bom de 1000 K a
+    40 000 K — o intervalo das estrelas a olho nu.
+    """
+    t = np.clip(np.asarray(kelvin, dtype=np.float64), 1000.0, 40000.0) / 100.0
+    r = np.where(t <= 66, 255.0, 329.698727446 * np.power(np.maximum(t - 60, 1e-6), -0.1332047592))
+    g = np.where(t <= 66, 99.4708025861 * np.log(t) - 161.1195681661,
+                 288.1221695283 * np.power(np.maximum(t - 60, 1e-6), -0.0755148492))
+    b = np.where(t >= 66, 255.0,
+                 np.where(t <= 19, 0.0, 138.5177312231 * np.log(np.maximum(t - 10, 1e-6))
+                          - 305.0447927307))
+    return np.clip(np.stack([r, g, b], axis=-1) / 255.0, 0.0, 1.0)
+
+
+def _bv_to_rgb(bv: np.ndarray, saturation: float = 0.75) -> np.ndarray:
+    """Índice de cor B−V → RGB de exibição (v0.16 T4).
+
+    Temperatura de Ballesteros → corpo negro → normalizado para o canal
+    mais forte valer 1 (o brilho vem do tamanho e do alfa do sprite) →
+    saturação reduzida, porque a cor das estrelas a olho nu é sutil:
+    azul-esbranquiçada em Rigel, branca em Vega, amarela no Sol, laranja em
+    Arcturus, alaranjado-avermelhada em Antares.
+    """
+    rgb = temperature_to_rgb(bv_to_temperature(bv))
+    rgb = rgb / np.maximum(rgb.max(axis=-1, keepdims=True), 1e-6)
+    gray = rgb.mean(axis=-1, keepdims=True)
+    rgb = gray + (rgb - gray) * saturation
+    return np.clip(rgb / np.maximum(rgb.max(axis=-1, keepdims=True), 1e-6),
+                   0.0, 1.0).astype(np.float32)
 
 
 class StarCatalog:

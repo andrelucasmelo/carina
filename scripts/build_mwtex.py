@@ -9,7 +9,10 @@ EQUATORIAIS J2000 (AR 0..24h da esquerda p/ direita? NÃO: u cresce com AR;
 o renderizador usa u = AR/2π, v = (90°−Dec)/180°).
 
 Uso:
-    python scripts/build_mwtex.py [--size 4096x2048] [--flip]
+    python scripts/build_mwtex.py [--size 6144x3072] [--flip]
+
+v0.16: fonte de 6000×3000 (cdn.eso.org/images/large/eso0932a.jpg) e
+textura de 6144×3072; a janela da limpeza de estrelas escala com a largura.
 """
 
 from __future__ import annotations
@@ -23,7 +26,10 @@ import numpy as np
 from PySide6.QtGui import QImage
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "data" / "raw" / "eso0932a.jpg"
+# 6000×3000 ("large" da ESO, a maior para download — o "original" TIF tem a
+# mesma resolução); cai para a versão de 4000×2000 se a grande não existir
+SRC_LARGE = ROOT / "data" / "raw" / "eso0932a_large.jpg"
+SRC = SRC_LARGE if SRC_LARGE.exists() else ROOT / "data" / "raw" / "eso0932a.jpg"
 OUT = ROOT / "data" / "processed" / "milkyway_tex.jpg"
 
 # Matriz ICRS(J2000) -> galáctico (linhas = eixos galácticos em ICRS).
@@ -191,21 +197,26 @@ def build(out_w: int, out_h: int, flip_l: bool, clean: bool = True,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--size", default="4096x2048")
+    parser.add_argument("--size", default="6144x3072")
     parser.add_argument("--flip", action="store_true",
                         help="inverte o sentido da longitude galáctica")
     parser.add_argument("--raw", action="store_true",
                         help="não remove estrelas nem suaviza")
-    parser.add_argument("--sigma", type=float, default=0.9)
-    parser.add_argument("--window", type=int, default=17)
+    parser.add_argument("--sigma", type=float, default=None,
+                        help="padrão: 0,9 a 4096 px, proporcional à largura")
+    parser.add_argument("--window", type=int, default=None,
+                        help="padrão: 17 px a 4096 px, proporcional à largura")
     parser.add_argument("--out", default=None,
                         help="caminho de saída alternativo")
     parser.add_argument("--lon-shift", type=float, default=0.0,
                         help="deslocamento de longitude galáctica (graus)")
     args = parser.parse_args()
     w, h = (int(v) for v in args.size.lower().split("x"))
-    build(w, h, args.flip, clean=not args.raw, sigma=args.sigma,
-          window=args.window,
+    k = w / 4096.0
+    sigma = args.sigma if args.sigma is not None else 0.9 * k
+    window = args.window if args.window is not None else int(round(17 * k)) | 1
+    build(w, h, args.flip, clean=not args.raw, sigma=sigma,
+          window=window,
           out_path=Path(args.out) if args.out else None,
           lon_shift_deg=args.lon_shift)
     return 0
