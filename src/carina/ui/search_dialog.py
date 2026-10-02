@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDialog, QLabel, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout,
 )
 
+from ..catalogs import names
 from ..catalogs.dso import DsoCatalog, type_label
 from ..catalogs.stars import StarCatalog
 from ..core.engine import _BODIES
@@ -108,7 +109,7 @@ class SearchDialog(QDialog):
                 for r in rows:
                     label = f"{r['name']} — {type_label(r['type'])}"
                     if r["common"]:
-                        label += f" · {r['common'].split(',')[0]}"
+                        label += f" · {names.common_label(r['common'])}"
                     self._add(results, seen, ("dso", int(r["id"])), label,
                               (2, r["mag"] if r["mag"] is not None else 99.0))
 
@@ -123,9 +124,18 @@ class SearchDialog(QDialog):
         for r in self.dso.search(text=text, limit=25):
             label = f"{r['name']} — {type_label(r['type'])}"
             if r["common"]:
-                label += f" · {r['common'].split(',')[0]}"
+                label += f" · {names.common_label(r['common'])}"
             self._add(results, seen, ("dso", int(r["id"])), label,
                       (3, r["mag"] if r["mag"] is not None else 99.0))
+
+        # nomes traduzidos: "lagoa" acha a Lagoon Nebula da base
+        for original in names.search_translations(text)[:10]:
+            for r in self.dso.search(text=original, limit=3):
+                label = f"{r['name']} — {type_label(r['type'])}"
+                if r["common"]:
+                    label += f" · {names.common_label(r['common'])}"
+                self._add(results, seen, ("dso", int(r["id"])), label,
+                          (3, r["mag"] if r["mag"] is not None else 99.0))
 
         results.sort(key=lambda item: item[0])
         for _key, label, selection in results[:40]:

@@ -46,7 +46,8 @@ def test_m31_lookup_and_labels(catalog):
     assert data["common"] and "Andromeda" in data["common"]
     row = catalog.row_of(m31["id"])
     assert catalog.label(row, "number") == "M 31"
-    assert "Andromeda" in catalog.label(row, "name")
+    # o rótulo por nome sai no idioma escolhido (português por padrão)
+    assert "Andrômeda" in catalog.label(row, "name")
 
 
 def test_caldwell_c99_coalsack(catalog):

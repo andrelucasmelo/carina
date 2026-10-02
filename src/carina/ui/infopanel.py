@@ -12,7 +12,7 @@ import numpy as np
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QScrollArea
 
-from ..catalogs import images
+from ..catalogs import images, names
 from ..catalogs.dso import DsoCatalog, type_label
 from ..catalogs.stars import GENITIVE, StarCatalog
 from ..core.engine import SkyEngine
@@ -167,7 +167,7 @@ def _dso_html(object_id: int, engine: SkyEngine, m, dso: DsoCatalog,
         _row("Tipo", type_label(data["type"])),
     ]
     if data.get("common"):
-        rows.append(_row("Nomes", data["common"]))
+        rows.append(_row("Nomes", ", ".join(names.all_labels(data["common"]))))
     if data.get("mag") is not None:
         rows.append(_row("Magnitude", f"{data['mag']:.1f}"))
     if data.get("maj"):
@@ -218,7 +218,7 @@ def _dso_html(object_id: int, engine: SkyEngine, m, dso: DsoCatalog,
 
     title = data["name"]
     if data.get("common"):
-        title = f"{data['name']} — {data['common'].split(',')[0]}"
+        title = f"{data['name']} — {names.common_label(data['common'])}"
     return (
         f"<h2 style='margin-bottom:2px'>{title}</h2>"
         f"<table style='font-size:9pt'>{''.join(rows)}</table>{img_html}"

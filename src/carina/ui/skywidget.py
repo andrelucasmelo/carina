@@ -9,7 +9,7 @@ from PySide6.QtCore import QEasingCurve, Qt, QTimer, QVariantAnimation, Signal
 from PySide6.QtGui import QFont, QPainter, QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
-from ..catalogs import skygeometry
+from ..catalogs import names, skygeometry
 from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..core.eclipses import moon_influence_radii
@@ -2186,7 +2186,7 @@ class SkyWidget(QOpenGLWidget):
             return "objeto"
         name = data["name"]
         if data.get("common"):
-            name += f" — {data['common'].split(',')[0]}"
+            name += f" — {names.common_label(data['common'])}"
         return name
 
     def wheelEvent(self, event) -> None:

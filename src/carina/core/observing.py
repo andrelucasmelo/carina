@@ -41,6 +41,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from ..catalogs import names
 from .eclipses import moon_influence_radii
 from .twilight import night_info
 
@@ -513,18 +514,36 @@ def _class_rows(dso, kind: str) -> list[tuple[dict, str]]:
 
 
 def _best_rows(dso) -> list[tuple[dict, str]]:
-    """Céu profundo dos "Melhores Objetos": famosos, brilhantes ou enormes."""
+    """Céu profundo dos "Melhores Objetos": famosos, brilhantes ou enormes.
+
+    Dois cuidados que faltavam (revisão 2026-10, D3): a base OpenNGC
+    cataloga algumas ESTRELAS e NOVAS com número NGC/IC e nome próprio
+    (NGC 1990 = Alnilam, IC 1318 = Sadr, NGC 7114 = Nova Cygni 1600) —
+    não são céu profundo e saem pelo tipo; e o mesmo nome comum aparece em
+    mais de um objeto ("Eagle Nebula" em M 16 e IC 4703, "Eastern Veil" em
+    NGC 6992 e 6995) — fica só o mais brilhante de cada nome.
+    """
+    marks = ",".join("?" * len(_NOT_SHOWPIECES))
     rows = dso.cx.execute(
         "SELECT o.id, o.name, o.common, o.klass, o.type, o.ra, o.dec,"
         " o.mag, o.maj, o.con FROM objects o"
         " WHERE o.enabled = 1 AND o.common != '' AND o.klass != 'DARK'"
+        f" AND o.type NOT IN ({marks})"
         " AND (o.mag <= 8.0 OR o.maj >= 90.0)"
-        " ORDER BY COALESCE(o.mag, 99) LIMIT 60",
+        " ORDER BY COALESCE(o.mag, 99) LIMIT 90",
+        _NOT_SHOWPIECES,
     ).fetchall()
-    out = []
+    out: list[tuple[dict, str]] = []
+    seen: set[str] = set()
     for r in rows:
-        label = (r["common"] or "").split(",")[0].strip() or r["name"]
+        label = names.common_label(r["common"]) or r["name"]
+        key = label.lower()
+        if key in seen:
+            continue
+        seen.add(key)
         out.append((dict(r), label))
+        if len(out) >= 60:
+            break
     return out
 
 
@@ -744,7 +763,7 @@ def build_marathon(engine, dso, stars, kind: str, ref_utc: dt.datetime,
         plan.entries.append(PlanEntry(
             when_utc=when,
             name=row["name"],
-            common=(row["common"] or "").split(",")[0].strip(),
+            common=names.common_label(row["common"]),
             catalog_id=cand["label"],
             klass=klass,
             type_label=tipo,
@@ -942,7 +961,7 @@ def build_period_plan(engine, dso, stars, kind: str, ref_utc: dt.datetime,
         plan.entries.append(PlanEntry(
             when_utc=mid.utc_datetime(),
             name=row["name"],
-            common=(row["common"] or "").split(",")[0].strip(),
+            common=names.common_label(row["common"]),
             catalog_id=row["name"],
             klass=row["klass"],
             type_label=type_label(row["type"]),

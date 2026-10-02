@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QDockWidget, QFileDialog, QInputDialog, QMainWindow,
@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import __version__
-from ..catalogs import skygeometry
+from ..catalogs import names, skygeometry
 from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
@@ -68,6 +68,10 @@ class MainWindow(QMainWindow):
         self.resize(1280, 800)
 
         self.settings = Settings()
+        # idioma dos nomes comuns (português / inglês / latim)
+        names.set_language(
+            self.settings.value("names/language", names.DEFAULT_LANGUAGE, str)
+        )
         data_dir = package_data_dir()
 
         self.engine = SkyEngine(ephemeris_dir())
@@ -113,6 +117,12 @@ class MainWindow(QMainWindow):
 
         self._build_menus()
         self._restore_layers()
+
+        report = self.dso_catalog.migration_report
+        if report:
+            # a cópia do usuário recebeu catálogos novos (B-023): avisar uma
+            # única vez, depois que a janela estiver na tela
+            QTimer.singleShot(600, lambda: self._notify_migration(report))
 
     # ------------------------------------------------------------------
     def _build_menus(self) -> None:
@@ -274,6 +284,18 @@ class MainWindow(QMainWindow):
             if mode == "none":
                 act.setChecked(True)
             m_const.addAction(act)
+
+        m_lang = m_view.addMenu(self.tr("Idioma dos nomes dos objetos"))
+        lang_group = QActionGroup(self)
+        for code, label in names.LANGUAGES.items():
+            act = QAction(self.tr(label), self)
+            act.setCheckable(True)
+            act.setActionGroup(lang_group)
+            act.setChecked(code == names.language())
+            act.triggered.connect(
+                lambda _c=False, c=code: self._set_names_language(c)
+            )
+            m_lang.addAction(act)
 
         m_bortle = m_view.addMenu(self.tr("Poluição luminosa (Bortle)"))
         bortle_group = QActionGroup(self)
@@ -652,7 +674,7 @@ class MainWindow(QMainWindow):
                 return
             label = data["name"]
             if data.get("common"):
-                label += f" — {data['common'].split(',')[0]}"
+                label += f" — {names.common_label(data['common'])}"
             import math as _math
 
             cd = _math.cos(data["dec"])
@@ -742,6 +764,13 @@ class MainWindow(QMainWindow):
         dlg = SearchDialog(self.star_catalog, self.dso_catalog, self)
         dlg.goto_requested.connect(self.sky.goto_object)
         dlg.exec()
+
+    def _set_names_language(self, code: str) -> None:
+        """Idioma dos nomes comuns: vale para mapa, ficha, busca e roteiros."""
+        names.set_language(code)
+        self.settings.set_value("names/language", code)
+        self.sky.update()
+        self._refresh_info()
 
     def _set_bortle(self, level: int) -> None:
         self.sky.set_bortle(level)
@@ -1064,6 +1093,25 @@ class MainWindow(QMainWindow):
         self.engine.time.set_speed(0.0)  # pausa no instante do máximo
         self.sky.sync_clock()
         self.sky.goto_object(("body", body))
+
+    def _notify_migration(self, report: dict) -> None:
+        """Informa a atualização automática do banco de céu profundo."""
+        def br(n: int) -> str:
+            return f"{n:,}".replace(",", ".")
+
+        text = self.tr(
+            "A base de céu profundo foi atualizada para a versão {v}: "
+            "{o} objetos e {d} designações novos."
+        ).format(v=report["to"], o=br(report["objects"]),
+                 d=br(report["designations"]))
+        text += "\n\n" + self.tr(
+            "Cópia de segurança da base anterior:"
+        ) + f"\n{report['backup']}"
+        QMessageBox.information(self, "Carina", text)
+        self.statusBar().showMessage(
+            self.tr("Base de céu profundo atualizada (v{v})").format(
+                v=report["to"]), 8000,
+        )
 
     def _on_status(self, text: str) -> None:
         self.statusBar().showMessage(text)
