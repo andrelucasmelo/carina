@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 
-from PySide6.QtCore import QMarginsF, QPoint, QPointF, QRectF, Qt
+from PySide6.QtCore import QMarginsF, QPoint, QPointF, QRectF, QSizeF, Qt
 from PySide6.QtGui import (
     QAction, QActionGroup, QColor, QFont, QImage, QPageLayout, QPageSize,
     QPainter, QPainterPath, QPen, QPixmap,
@@ -19,7 +19,7 @@ from PySide6.QtGui import (
 from PySide6.QtPrintSupport import QPrintDialog, QPrinter
 from PySide6.QtWidgets import (
     QColorDialog, QFileDialog, QFontDialog, QInputDialog, QLabel, QMainWindow,
-    QMessageBox, QSpinBox, QToolBar, QWidget,
+    QMessageBox, QSpinBox, QStackedWidget, QToolBar, QWidget,
 )
 
 TOOLS = [
@@ -104,24 +104,51 @@ class AnnotatedCanvas(QWidget):
         self.annotations: list[Annotation] = []
         self.tool = "select"
         self.color = QColor(220, 40, 40)
-        self.width = 3
+        # anotações vivem nas coordenadas da IMAGEM: páginas grandes (cartas
+        # a 200 dpi) pedem traço e fonte proporcionais ao tamanho
+        big = max(1.0, base.width() / 1400.0)
+        self.width = max(3, int(round(3 * big)))
         self.font = QFont("Segoe UI", 14, QFont.Bold)
+        self.font.setPixelSize(int(19 * big))
         self._draft: Annotation | None = None
         self._drag_idx: int | None = None
         self._drag_off = QPointF()
         self.selected: int | None = None
-        self.setMinimumSize(base.size())
+        self.setMinimumSize(360, 260)
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
 
     # ------------------------------------------------------------------
     def sizeHint(self):
-        return self.base.size()
+        from PySide6.QtCore import QSize
+
+        k = min(1.0, 1400 / self.base.width(), 860 / self.base.height())
+        return QSize(int(self.base.width() * k), int(self.base.height() * k))
+
+    def _view(self) -> tuple[float, float, float]:
+        """(escala, deslocamento x, y) que encaixa a página na janela."""
+        k = min(self.width_px() / self.base.width(), self.height() / self.base.height())
+        k = min(k, 2.0)
+        ox = (self.width_px() - self.base.width() * k) / 2
+        oy = (self.height() - self.base.height() * k) / 2
+        return k, ox, oy
+
+    def width_px(self) -> int:
+        return QWidget.width(self)
+
+    def _to_image(self, pos) -> QPointF:
+        k, ox, oy = self._view()
+        return QPointF((pos.x() - ox) / k, (pos.y() - oy) / k)
 
     def paintEvent(self, event) -> None:
         p = QPainter(self)
+        p.fillRect(self.rect(), QColor(40, 42, 48))
         p.setRenderHint(QPainter.Antialiasing)
         p.setRenderHint(QPainter.TextAntialiasing)
+        p.setRenderHint(QPainter.SmoothPixmapTransform)
+        k, ox, oy = self._view()
+        p.translate(ox, oy)
+        p.scale(k, k)
         p.drawImage(0, 0, self.base)
         self.draw_annotations(p, show_selection=True)
         p.end()
@@ -164,7 +191,7 @@ class AnnotatedCanvas(QWidget):
     def mousePressEvent(self, event) -> None:
         if event.button() != Qt.LeftButton:
             return
-        pos = QPointF(event.position())
+        pos = self._to_image(event.position())
         if self.tool == "select":
             idx = self._hit(pos)
             self.selected = idx
@@ -192,7 +219,7 @@ class AnnotatedCanvas(QWidget):
         self.update()
 
     def mouseMoveEvent(self, event) -> None:
-        pos = QPointF(event.position())
+        pos = self._to_image(event.position())
         if self._drag_idx is not None:
             ann = self.annotations[self._drag_idx]
             delta = pos - self._drag_off - ann.p0
@@ -237,17 +264,30 @@ class AnnotatedCanvas(QWidget):
 
 
 class PrintMapWindow(QMainWindow):
-    """Editor do mapa para impressão: recebe a captura do céu em modo
-    carta, permite anotar livremente (textos, setas, desenho) e imprime ou
-    exporta em PNG/PDF/SVG pelo mesmo caminho de renderização."""
+    """Editor de mapas para impressão: uma ou várias páginas (cartas e
+    atlas do gerador de carta), cada uma com as próprias anotações (textos,
+    setas, desenho). Imprime ou exporta em PNG/PDF/SVG pelo mesmo caminho
+    de renderização.
 
-    def __init__(self, base: QImage, title: str, parent=None) -> None:
+    ``page_mm`` (largura, altura em mm) indica que as páginas já trazem
+    margens e moldura: o PDF e a impressão saem sem margem extra, no papel
+    exato. Sem ele, vale o comportamento antigo (A4 com 8 mm de margem).
+    """
+
+    def __init__(self, base, title: str, parent=None, page_mm=None) -> None:
         super().__init__(parent)
+        pages = list(base) if isinstance(base, (list, tuple)) else [base]
         self.setWindowTitle(self.tr("Mapa para impressão — anotações"))
-        self.canvas = AnnotatedCanvas(base, self)
-        self.setCentralWidget(self.canvas)
         self.map_title = title
-        self.resize(min(1500, base.width() + 40), min(950, base.height() + 120))
+        self.page_mm = page_mm
+        self.canvases = [AnnotatedCanvas(img, self) for img in pages]
+        self.stack = QStackedWidget()
+        for c in self.canvases:
+            self.stack.addWidget(c)
+        self.setCentralWidget(self.stack)
+        first = pages[0]
+        k = min(1.0, 1400 / first.width(), 860 / first.height())
+        self.resize(int(first.width() * k) + 40, int(first.height() * k) + 140)
 
         bar = QToolBar(self.tr("Ferramentas"))
         bar.setMovable(False)
@@ -262,23 +302,19 @@ class PrintMapWindow(QMainWindow):
             if key == "select":
                 act.setChecked(True)
         bar.addSeparator()
-
         self.color_action = QAction(self.tr("Cor…"), self)
         self.color_action.triggered.connect(self._pick_color)
         bar.addAction(self.color_action)
         self._refresh_color()
-
         act_font = QAction(self.tr("Fonte…"), self)
         act_font.triggered.connect(self._pick_font)
         bar.addAction(act_font)
-
         bar.addWidget(QLabel(self.tr("  Espessura: ")))
         spin = QSpinBox()
-        spin.setRange(1, 20)
+        spin.setRange(1, 60)
         spin.setValue(self.canvas.width)
-        spin.valueChanged.connect(lambda v: setattr(self.canvas, "width", v))
+        spin.valueChanged.connect(self._set_width)
         bar.addWidget(spin)
-
         bar.addSeparator()
         act_del = QAction(self.tr("Apagar selecionado"), self)
         act_del.setShortcut("Del")
@@ -287,6 +323,23 @@ class PrintMapWindow(QMainWindow):
         act_clear = QAction(self.tr("Limpar tudo"), self)
         act_clear.triggered.connect(self._clear)
         bar.addAction(act_clear)
+
+        # navegação entre páginas (atlas)
+        self.page_label = QLabel()
+        if len(self.canvases) > 1:
+            nav = QToolBar(self.tr("Páginas"))
+            nav.setMovable(False)
+            self.addToolBar(nav)
+            prev_act = QAction("◀", self)
+            prev_act.setShortcut("PgUp")
+            prev_act.triggered.connect(lambda: self.go_to_page(self.stack.currentIndex() - 1))
+            next_act = QAction("▶", self)
+            next_act.setShortcut("PgDown")
+            next_act.triggered.connect(lambda: self.go_to_page(self.stack.currentIndex() + 1))
+            nav.addAction(prev_act)
+            nav.addWidget(self.page_label)
+            nav.addAction(next_act)
+        self._update_page_label()
 
         m_file = self.menuBar().addMenu(self.tr("&Arquivo"))
         for label, slot, shortcut in (
@@ -305,18 +358,33 @@ class PrintMapWindow(QMainWindow):
         act_close.setShortcut("Ctrl+W")
         act_close.triggered.connect(self.close)
         m_file.addAction(act_close)
-
         self.statusBar().showMessage(self.tr(
             "Escolha uma ferramenta e desenhe sobre o mapa. "
-            "Use 'Selecionar / mover' para reposicionar; Del apaga."
-        ))
+            "Use 'Selecionar / mover' para reposicionar; Del apaga."))
 
-    # ------------------------------------------------------------------
+    # -- páginas ---------------------------------------------------------
+    @property
+    def canvas(self) -> "AnnotatedCanvas":
+        return self.canvases[self.stack.currentIndex()]
+
+    def go_to_page(self, index: int) -> None:
+        index = max(0, min(len(self.canvases) - 1, index))
+        self.stack.setCurrentIndex(index)
+        self._update_page_label()
+
+    def _update_page_label(self) -> None:
+        self.page_label.setText(self.tr("  Página {i} de {n}  ").format(
+            i=self.stack.currentIndex() + 1, n=len(self.canvases)))
+
+    # -- ferramentas (valem para todas as páginas) ----------------------
     def _set_tool(self, key: str) -> None:
-        self.canvas.tool = key
-        self.canvas.setCursor(
-            Qt.ArrowCursor if key == "select" else Qt.CrossCursor
-        )
+        for c in self.canvases:
+            c.tool = key
+            c.setCursor(Qt.ArrowCursor if key == "select" else Qt.CrossCursor)
+
+    def _set_width(self, value: int) -> None:
+        for c in self.canvases:
+            c.width = value
 
     def _refresh_color(self) -> None:
         c = self.canvas.color
@@ -326,17 +394,18 @@ class PrintMapWindow(QMainWindow):
         color = QColorDialog.getColor(self.canvas.color, self,
                                       self.tr("Cor das anotações"))
         if color.isValid():
-            self.canvas.color = color
+            for c in self.canvases:
+                c.color = color
             self._refresh_color()
             if self.canvas.selected is not None:
                 self.canvas.annotations[self.canvas.selected].color = color
                 self.canvas.update()
 
     def _pick_font(self) -> None:
-        font, ok = QFontDialog.getFont(self.canvas.font, self,
-                                       self.tr("Fonte do texto"))
+        font, ok = QFontDialog.getFont(self.canvas.font, self, self.tr("Fonte do texto"))
         if ok:
-            self.canvas.font = font
+            for c in self.canvases:
+                c.font = font
             if self.canvas.selected is not None:
                 ann = self.canvas.annotations[self.canvas.selected]
                 if ann.kind == "text":
@@ -353,83 +422,95 @@ class PrintMapWindow(QMainWindow):
         if not self.canvas.annotations:
             return
         if QMessageBox.question(
-            self, "Carina", self.tr("Apagar todas as anotações?")
+            self, "Carina", self.tr("Apagar todas as anotações desta página?")
         ) == QMessageBox.Yes:
             self.canvas.annotations.clear()
             self.canvas.selected = None
             self.canvas.update()
 
-    # ------------------------------------------------------------------
+    # -- saída -----------------------------------------------------------------
+    def _page_layout(self, canvas) -> QPageLayout:
+        landscape = canvas.base.width() >= canvas.base.height()
+        orient = QPageLayout.Landscape if landscape else QPageLayout.Portrait
+        if self.page_mm:
+            short, long_ = sorted(float(v) for v in self.page_mm)
+            size = QPageSize(QSizeF(short, long_), QPageSize.Millimeter)
+            return QPageLayout(size, orient, QMarginsF(0, 0, 0, 0), QPageLayout.Millimeter)
+        return QPageLayout(QPageSize(QPageSize.A4), orient, QMarginsF(8, 8, 8, 8),
+                           QPageLayout.Millimeter)
+
+    def write_pdf(self, path: str) -> None:
+        """Todas as páginas num PDF (papel exato quando ``page_mm`` existe)."""
+        from PySide6.QtGui import QPdfWriter
+
+        writer = QPdfWriter(path)
+        writer.setResolution(300)
+        writer.setTitle(self.map_title)
+        writer.setCreator("Carina")
+        writer.setPageLayout(self._page_layout(self.canvases[0]))
+        p = QPainter(writer)
+        for i, c in enumerate(self.canvases):
+            if i:
+                writer.setPageLayout(self._page_layout(c))
+                writer.newPage()
+            c.render_full(p, QRectF(0, 0, writer.width(), writer.height()))
+        p.end()
+
     def _print(self) -> None:
         printer = QPrinter(QPrinter.HighResolution)
-        printer.setPageOrientation(
-            QPageLayout.Landscape
-            if self.canvas.base.width() >= self.canvas.base.height()
-            else QPageLayout.Portrait
-        )
+        printer.setPageLayout(self._page_layout(self.canvases[0]))
         dlg = QPrintDialog(printer, self)
         if dlg.exec() != QPrintDialog.Accepted:
             return
         painter = QPainter(printer)
-        rect = QRectF(printer.pageRect(QPrinter.DevicePixel))
-        self.canvas.render_full(painter, rect)
+        for i, c in enumerate(self.canvases):
+            if i:
+                printer.newPage()
+            c.render_full(painter, QRectF(printer.pageRect(QPrinter.DevicePixel)))
         painter.end()
         self.statusBar().showMessage(self.tr("Enviado para a impressora"), 5000)
 
+    def _png_of(self, canvas) -> QPixmap:
+        pix = QPixmap(canvas.base.size())
+        pix.fill(Qt.white)
+        p = QPainter(pix)
+        p.setRenderHint(QPainter.Antialiasing)
+        p.drawImage(0, 0, canvas.base)
+        canvas.draw_annotations(p)
+        p.end()
+        return pix
+
     def _export(self, fmt: str) -> None:
-        filters = {"png": "PNG (*.png)", "pdf": "PDF (*.pdf)",
-                   "svg": "SVG (*.svg)"}
+        filters = {"png": "PNG (*.png)", "pdf": "PDF (*.pdf)", "svg": "SVG (*.svg)"}
         path, _ = QFileDialog.getSaveFileName(
-            self, self.tr("Exportar"), f"carta_ceu.{fmt}", filters[fmt]
-        )
+            self, self.tr("Exportar"), f"carta_ceu.{fmt}", filters[fmt])
         if not path:
             return
         try:
-            if fmt == "png":
-                pix = QPixmap(self.canvas.base.size())
-                pix.fill(Qt.white)
-                p = QPainter(pix)
-                p.setRenderHint(QPainter.Antialiasing)
-                p.drawImage(0, 0, self.canvas.base)
-                self.canvas.draw_annotations(p)
-                p.end()
-                pix.save(path, "PNG")
-            elif fmt == "pdf":
-                from PySide6.QtGui import QPdfWriter
-
-                writer = QPdfWriter(path)
-                writer.setPageSize(QPageSize(QPageSize.A4))
-                writer.setPageOrientation(
-                    QPageLayout.Landscape
-                    if self.canvas.base.width() >= self.canvas.base.height()
-                    else QPageLayout.Portrait
-                )
-                writer.setPageMargins(QMarginsF(8, 8, 8, 8),
-                                      QPageLayout.Millimeter)
-                writer.setResolution(300)
-                p = QPainter(writer)
-                self.canvas.render_full(
-                    p, QRectF(0, 0, writer.width(), writer.height())
-                )
-                p.end()
+            if fmt == "pdf":
+                self.write_pdf(path)
+            elif fmt == "png":
+                if len(self.canvases) == 1:
+                    self._png_of(self.canvas).save(path, "PNG")
+                else:                       # atlas: um arquivo por página
+                    stem = path[:-4] if path.lower().endswith(".png") else path
+                    for i, c in enumerate(self.canvases, 1):
+                        self._png_of(c).save(f"{stem}_{i:02d}.png", "PNG")
             else:
                 from PySide6.QtSvg import QSvgGenerator
 
+                c = self.canvas
                 gen = QSvgGenerator()
                 gen.setFileName(path)
-                gen.setSize(self.canvas.base.size())
-                gen.setViewBox(QRectF(QPointF(0, 0), self.canvas.base.size()))
+                gen.setSize(c.base.size())
+                gen.setViewBox(QRectF(QPointF(0, 0), c.base.size()))
                 gen.setTitle(self.map_title)
                 p = QPainter(gen)
-                p.drawImage(0, 0, self.canvas.base)
-                self.canvas.draw_annotations(p)
+                p.drawImage(0, 0, c.base)
+                c.draw_annotations(p)
                 p.end()
         except Exception as exc:  # noqa: BLE001
-            QMessageBox.warning(
-                self, "Carina",
-                self.tr("Falha ao exportar: {e}").format(e=exc),
-            )
+            QMessageBox.warning(self, "Carina",
+                                self.tr("Falha ao exportar: {e}").format(e=exc))
             return
-        self.statusBar().showMessage(
-            self.tr("Exportado: {p}").format(p=path), 6000
-        )
+        self.statusBar().showMessage(self.tr("Exportado: {p}").format(p=path), 6000)

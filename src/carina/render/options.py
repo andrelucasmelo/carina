@@ -26,6 +26,8 @@ class RenderOptions:
     prefer_caldwell: bool = True
     dso_filter: str = ""               # JSON do DsoFilter
     theme: str = "dark"                # dark | light (papel) | red (v0.16)
+    mag_fixed: float | None = None     # cartas: magnitude exata das estrelas
+    label_mag_cap: float | None = None  # cartas: nomes de estrelas até esta mag
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)

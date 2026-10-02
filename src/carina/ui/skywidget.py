@@ -258,9 +258,12 @@ class SkyWidget(QOpenGLWidget):
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
         self.horizon_profile = None          # horizonte do quintal (v0.15)
         self.theme = "dark"                  # dark | light (papel) | red (v0.16)
+        self.mag_fixed: float | None = None  # cartas: magnitude exata das estrelas
+        self.label_mag_cap: float | None = None   # cartas: nomes até esta mag
         self._frame_t = None                 # instante do quadro em desenho
         self._frame_logical = None           # (largura, altura) lógicas do quadro
         self._offscreen_marker = False       # marcador da seleção fora da tela
+        self._px = 1.0                       # escala de tamanhos do quadro atual
         self._silhouette = None
         self._goto_anim = None
         self.follow_selection = False       # câmera acompanha a seleção
@@ -474,6 +477,8 @@ class SkyWidget(QOpenGLWidget):
         exibição cresce até parar em 8. O alcance máximo é 12 (catálogo
         profundo Tycho-2/ATHYG).
         """
+        if self.mag_fixed is not None:          # gerador de carta: valor exato
+            return min(float(self.mag_fixed), 12.0)
         fov_deg = math.degrees(self.camera.fov)
         auto = min(13.5, 6.8 + 5.0 * math.log10(90.0 / fov_deg))
         # a poluição luminosa corta as estrelas fracas: o desconto é a
@@ -494,6 +499,7 @@ class SkyWidget(QOpenGLWidget):
             const_label_mode=self.const_label_mode,
             prefer_caldwell=bool(self.prefer_caldwell),
             dso_filter=self.dso_filter.to_json(), theme=self.theme,
+            mag_fixed=self.mag_fixed, label_mag_cap=self.label_mag_cap,
         )
 
     def apply_render_options(self, opts) -> None:
@@ -510,6 +516,8 @@ class SkyWidget(QOpenGLWidget):
         self.layers["const_names"] = opts.const_label_mode != "none"
         self.prefer_caldwell = bool(opts.prefer_caldwell)
         self.dso_filter = DsoFilter.from_json(opts.dso_filter)
+        self.mag_fixed = getattr(opts, "mag_fixed", None)
+        self.label_mag_cap = getattr(opts, "label_mag_cap", None)
         self.update()
 
     def set_dso_filter(self, flt: DsoFilter) -> None:
@@ -673,6 +681,9 @@ class SkyWidget(QOpenGLWidget):
         cam.set_viewport(w, h)
         self._frame_t = t
         self._frame_logical = (w / dpr, h / dpr)
+        # tamanhos de pontos e símbolos em pixels físicos: fora da tela (2–4×
+        # para impressão) crescem com a escala; na tela ficam como sempre
+        self._px = float(dpr) if offscreen else 1.0
 
         m = self.engine.horizontal_matrix(t).astype(np.float32)
         # matriz do quadro à disposição dos rótulos (desenhados depois,
@@ -992,7 +1003,7 @@ class SkyWidget(QOpenGLWidget):
         rel = np.maximum(0.0, m_lim - mag)
         # Curva de tamanho bem íngreme: as estrelas mais brilhantes dominam
         # visivelmente o campo (compensação de brilho por tamanho).
-        sizes = np.minimum(26.0, 1.1 + 0.68 * rel ** 1.58).astype(np.float32)
+        sizes = (np.minimum(26.0, 1.1 + 0.68 * rel ** 1.58) * self._px).astype(np.float32)
         alpha = np.clip(0.26 + 0.17 * rel, 0.0, 1.0).astype(np.float32) * fade
         # abaixo do horizonte: bem mais fraco
         below = self._below_mask(vecs[sub])
@@ -1008,12 +1019,14 @@ class SkyWidget(QOpenGLWidget):
         data[:, 1] = y[sub]
         data[:, 2] = sizes[keep]
         if self.chart_mode:
-            data[:, 3:6] = 0.05  # pontos escuros sobre fundo branco
-            data[:, 6] = np.clip(alpha[keep] * 1.6, 0.0, 1.0)
+            # papel: discos pretos firmes, tamanho pelo brilho (como num atlas)
+            data[:, 2] = np.maximum(1.6 * self._px, sizes[keep] * 0.85)
+            data[:, 3:6] = 0.05
+            data[:, 6] = np.clip(alpha[keep] * 2.2, 0.55, 1.0)
         else:
             data[:, 3:6] = cat.colors[idx]
             data[:, 6] = alpha[keep]
-        self.renderer.draw_points(data)
+        self.renderer.draw_points(data, hard=self.chart_mode)
         below_map = dict(zip(idx.tolist(), below[keep].tolist()))
 
         # --- catálogo profundo (Tycho-2): só quando o zoom pede mag > 8,5 ---
@@ -1035,9 +1048,9 @@ class SkyWidget(QOpenGLWidget):
                         didx = didx[:60000]
                     dcat = dnear[didx]         # índices no catálogo profundo
                     drel = np.maximum(0.0, m_lim - cat.deep_mag[dcat])
-                    dsize = np.minimum(
+                    dsize = (np.minimum(
                         26.0, 1.1 + 0.68 * drel ** 1.58
-                    ).astype(np.float32)
+                    ) * self._px).astype(np.float32)
                     dalpha = (
                         np.clip(0.26 + 0.17 * drel, 0.0, 1.0).astype(np.float32)
                         * fade
@@ -1052,12 +1065,13 @@ class SkyWidget(QOpenGLWidget):
                     ddata[:, 1] = dy[didx]
                     ddata[:, 2] = dsize
                     if self.chart_mode:
+                        ddata[:, 2] = np.maximum(1.4 * self._px, dsize * 0.85)
                         ddata[:, 3:6] = 0.05
-                        ddata[:, 6] = np.clip(dalpha * 1.6, 0.0, 1.0)
+                        ddata[:, 6] = np.clip(dalpha * 2.2, 0.5, 1.0)
                     else:
                         ddata[:, 3:6] = cat.deep_colors[dcat]
                         ddata[:, 6] = dalpha
-                    self.renderer.draw_points(ddata)
+                    self.renderer.draw_points(ddata, hard=self.chart_mode)
         return idx, x[sub], y[sub], below_map
 
     def _draw_dso_images(self, m: np.ndarray, fade: float) -> None:
@@ -1172,7 +1186,7 @@ class SkyWidget(QOpenGLWidget):
             rgb = CHART_COLORS["dso"] if self.chart_mode else DSO_COLORS[code]
             color = np.array([*rgb, alpha], dtype=np.float32)
             cx, cy = xs[k], ys[k]
-            big = maj_sel[k] > 26.0
+            big = maj_sel[k] > 26.0 * self._px
 
             # contorno real da nebulosa, quando existir e couber na tela
             shapes = self.outlines.get(dso.names[i]) if big else None
@@ -1238,7 +1252,7 @@ class SkyWidget(QOpenGLWidget):
                 if giant:
                     seg = seg[::2]
             else:
-                r = float(np.clip(maj_sel[k] * 0.5, 6.0, 13.0))
+                r = float(np.clip(maj_sel[k] * 0.5, 6.0 * self._px, 13.0 * self._px))
                 seg = DSO_TEMPLATES[code] * r + np.array([cx, cy])
             segs.append(seg.astype(np.float32))
             cols.append(np.repeat(color[np.newaxis, :], 2 * len(seg), axis=0))
@@ -1567,11 +1581,11 @@ class SkyWidget(QOpenGLWidget):
             if not vis[0]:
                 continue
             if b.name in ("Sol", "Lua"):
-                radius = max(5.0, b.angular_radius * scale)
+                radius = max(5.0 * self._px, b.angular_radius * scale)
                 specials.append((b, float(x[0]), float(y[0])))
                 out.append((b, float(x[0]), float(y[0]), 2.0 * radius))
                 continue
-            size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0))
+            size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0)) * self._px
             dim = 0.25 if b.alt < 0 else 1.0
             rows.append([x[0], y[0], size, *b.color, dim])
             out.append((b, float(x[0]), float(y[0]), size))
@@ -1835,6 +1849,8 @@ class SkyWidget(QOpenGLWidget):
             idx, x, y, below_map = star_px
             cat = self.stars
             name_lim = max(1.6, min(7.5, self._mag_limit() - 5.0))
+            if self.label_mag_cap is not None:
+                name_lim = float(self.label_mag_cap)
             font = QFont("Segoe UI", 8)
             painter.setFont(font)
             fm = QFontMetrics(font)

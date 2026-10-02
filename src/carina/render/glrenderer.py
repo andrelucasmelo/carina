@@ -40,11 +40,14 @@ void main() {
 _POINTS_FS = """
 #version 330 core
 in vec4 v_color;
+uniform float u_hard;   // 0 = brilho suave (tela); 1 = disco firme (papel)
 out vec4 frag;
 void main() {
     vec2 d = gl_PointCoord - vec2(0.5);
     float r = length(d) * 2.0;
-    float alpha = pow(clamp(1.0 - r, 0.0, 1.0), 1.4);
+    float soft = pow(clamp(1.0 - r, 0.0, 1.0), 1.4);
+    float disc = 1.0 - smoothstep(0.78, 1.0, r);
+    float alpha = mix(soft, disc, u_hard);
     frag = vec4(v_color.rgb, v_color.a * alpha);
 }
 """
@@ -198,6 +201,7 @@ class GLRenderer:
         self.u_tex_alpha = GL.glGetUniformLocation(self.prog_tex, "u_alpha")
         self.mw_texture = 0
         self.u_vp_points = GL.glGetUniformLocation(self.prog_points, "u_viewport")
+        self.u_hard_points = GL.glGetUniformLocation(self.prog_points, "u_hard")
         self.u_vp_lines = GL.glGetUniformLocation(self.prog_lines, "u_viewport")
         self.u_vp_fill = GL.glGetUniformLocation(self.prog_fill, "u_viewport")
         self.u_color_fill = GL.glGetUniformLocation(self.prog_fill, "u_color")
@@ -225,12 +229,17 @@ class GLRenderer:
         GL.glUseProgram(0)
 
     # ------------------------------------------------------------------
-    def draw_points(self, interleaved: np.ndarray) -> None:
-        """interleaved: (N,7) = x, y, tamanho_px, r, g, b, a"""
+    def draw_points(self, interleaved: np.ndarray, hard: bool = False) -> None:
+        """interleaved: (N,7) = x, y, tamanho_px, r, g, b, a.
+
+        ``hard``: disco sólido de borda nítida (cartas em papel) em vez do
+        brilho suave da tela.
+        """
         if len(interleaved) == 0:
             return
         GL.glUseProgram(self.prog_points)
         GL.glUniform2f(self.u_vp_points, self._w, self._h)
+        GL.glUniform1f(self.u_hard_points, 1.0 if hard else 0.0)
         self.batch_points.upload(interleaved)
         GL.glBindVertexArray(self.batch_points.vao)
         GL.glDrawArrays(GL.GL_POINTS, 0, len(interleaved))

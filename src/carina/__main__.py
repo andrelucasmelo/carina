@@ -40,12 +40,16 @@ def _parse_args(argv):
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
-                 "lists", "tonight", "calendar"],
+                 "lists", "tonight", "calendar", "chart"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
                         help="traça o caminho anual de um planeta (testes)")
     parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--chart-pdf", metavar="CAMINHO", default=None,
+                        help="gera uma carta em PDF pelo gerador de carta (testes)")
+    parser.add_argument("--chart-const", default=None, help="sigla IAU da constelação")
+    parser.add_argument("--chart-theme", default="light", choices=["light", "dark", "red"])
     parser.add_argument("--night", action="store_true",
                         help="abre em modo noturno (testes)")
     parser.add_argument("--offscreen", metavar="CAMINHO", default=None,
@@ -432,6 +436,9 @@ def main(argv=None) -> int:
     elif args.dialog == "print":
         win._open_print_map()
         dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "chart":
+        win._open_chart_dialog()
+        dialog = win._chart_dialog
     elif args.dialog == "calendar":
         win._open_dark_calendar()
         dialog = win._dark_calendar
@@ -521,6 +528,24 @@ def main(argv=None) -> int:
             from PySide6.QtCore import QPoint, QRect
             from PySide6.QtGui import QPainter
 
+            if args.chart_pdf:
+                from .ui.chart_dialog import ChartDialog
+                from .ui.print_window import PrintMapWindow
+
+                cd = ChartDialog(win)
+                spec = cd.widgets_to_spec()
+                spec.theme = args.chart_theme
+                if args.chart_const:
+                    from .ui.chart_dialog import constellation_fov
+
+                    spec.framing, spec.target = "constellation", f"const:{args.chart_const}"
+                    spec.fov_deg = constellation_fov(win.sky, args.chart_const)
+                    spec.title = args.chart_const
+                page = cd.build_page(spec)
+                pw = PrintMapWindow(page, spec.title, win, page_mm=spec.page_mm())
+                pw.write_pdf(args.chart_pdf)
+                page.save(args.chart_pdf[:-4] + ".png")
+                print(f"chart: {args.chart_pdf} página {page.width()}x{page.height()}")
             if args.offscreen:
                 opts = win.sky.render_options()
                 for key in args.offscreen_off:

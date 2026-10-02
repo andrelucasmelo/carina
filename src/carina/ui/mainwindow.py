@@ -197,8 +197,9 @@ class MainWindow(QMainWindow):
         # --- Arquivo ---------------------------------------------------
         m_file = bar.addMenu(self.tr("&Arquivo"))
         self._add(m_file, self.tr("Exportar vista…"), self._export_view, "Ctrl+S")
-        self._add(m_file, self.tr("Gerar mapa para impressão…"),
-                  self._open_print_map, "Ctrl+Shift+P")
+        self._add(m_file, self.tr("Gerar carta celeste…"),
+                  self._open_chart_dialog, "Ctrl+Shift+P")
+        self._add(m_file, self.tr("Anotar a vista atual…"), self._open_print_map)
         m_file.addSeparator()
         self._add(m_file, self.tr("Sair"), self.close, QKeySequence.Quit)
 
@@ -973,7 +974,7 @@ class MainWindow(QMainWindow):
             "track": self._open_track,
             "fov": self._open_fov,
             "marathon": self._ask_marathon,
-            "print": self._open_print_map,
+            "print": self._open_chart_dialog,
             "info": self._open_night_info,
             "tonight": self._open_tonight,
         }[kind]()
@@ -1389,6 +1390,15 @@ class MainWindow(QMainWindow):
             return
         # maratona "Melhores Objetos": planetas e a Lua não são DSOs
         self.sky.goto_object(("body", name))
+
+    def _open_chart_dialog(self) -> None:
+        """Arquivo ▸ Gerar carta celeste (v0.16 T3)."""
+        from .chart_dialog import ChartDialog
+
+        dlg = ChartDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._chart_dialog = dlg
+        dlg.show()
 
     def _open_print_map(self) -> None:
         """Abre o editor de mapa para impressão com a vista atual."""
