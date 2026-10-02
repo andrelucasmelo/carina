@@ -211,6 +211,9 @@ class MainWindow(QMainWindow):
         m_obj = m_view.addMenu(self.tr("Objetos"))
         for key in ("stars", "planets", "dso", "dso_images", "milkyway"):
             m_obj.addAction(layer[key])
+        # catálogos inteiros de uma vez (pré-0.17): atalho do filtro de exibição
+        self._cat_menu = m_obj.addMenu(self.tr("Catálogos do céu profundo"))
+        self._cat_menu.aboutToShow.connect(self._fill_catalog_menu)
         m_lines = m_view.addMenu(self.tr("Linhas e grades"))
         for key in ("const_lines", "const_bounds", "grid_altaz", "grid_eq",
                     "meridian", "ecliptic", "equator", "horizon", "cardinals"):
@@ -1317,6 +1320,50 @@ class MainWindow(QMainWindow):
         dlg.show()
         dlg.raise_()
         dlg.activateWindow()
+
+    def _fill_catalog_menu(self) -> None:
+        """Um item marcável por catálogo, mais "todos" e "nenhum".
+
+        Mesma regra do filtro: um objeto aparece se estiver em ALGUM
+        catálogo ligado — ao desligar Collinder, os Collinder que também
+        são NGC continuam visíveis enquanto o NGC estiver ligado.
+        """
+        from ..catalogs.dso import ALL_CATALOGS, CATALOG_LABELS
+
+        menu = self._cat_menu
+        menu.clear()
+        flt = self.sky.dso_filter
+        for cat in ALL_CATALOGS:
+            act = menu.addAction(self.tr(CATALOG_LABELS.get(cat, cat)))
+            act.setCheckable(True)
+            act.setChecked(cat in flt.catalogs)
+            act.toggled.connect(lambda on, c=cat: self._set_catalog_visible(c, on))
+        menu.addSeparator()
+        menu.addAction(self.tr("Mostrar todos")).triggered.connect(
+            lambda: self._set_all_catalogs(True))
+        menu.addAction(self.tr("Ocultar todos")).triggered.connect(
+            lambda: self._set_all_catalogs(False))
+        menu.addSeparator()
+        hint = menu.addAction(self.tr("Um objeto em vários catálogos aparece se algum "
+                                      "deles estiver ligado"))
+        hint.setEnabled(False)
+
+    def _set_catalog_visible(self, cat: str, on: bool) -> None:
+        flt = self.sky.dso_filter.copy()
+        cats = set(flt.catalogs)
+        cats.add(cat) if on else cats.discard(cat)
+        flt.catalogs = cats
+        self._apply_dso_filter(flt)
+        self.statusBar().showMessage(
+            (self.tr("Catálogo {c} exibido") if on else self.tr("Catálogo {c} oculto"))
+            .format(c=cat), 4000)
+
+    def _set_all_catalogs(self, on: bool) -> None:
+        from ..catalogs.dso import ALL_CATALOGS
+
+        flt = self.sky.dso_filter.copy()
+        flt.catalogs = set(ALL_CATALOGS) if on else set()
+        self._apply_dso_filter(flt)
 
     def _apply_dso_filter(self, flt) -> None:
         """Aplica o filtro ao céu e o persiste nas preferências."""

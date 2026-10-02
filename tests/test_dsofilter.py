@@ -80,3 +80,31 @@ def test_presets_are_distinct_and_default_matches(dso):
     assert PRESETS["Tudo"].mask(dso).sum() == 6
     # objeto do usuário (sem catálogo) continua: mag 9 cabe no corte
     assert PRESETS["Binóculo"].mask(dso).tolist() == [True, True, False, False, True, False]
+
+
+def test_catalog_menu_toggles_whole_catalogs(qt_app):
+    """Pré-0.17: Exibir ▸ Objetos ▸ Catálogos liga e desliga catálogos inteiros."""
+    from carina.catalogs.dso import ALL_CATALOGS
+    from carina.ui.mainwindow import MainWindow
+
+    win = MainWindow()
+    win.skip_state_save = True
+    original = win.sky.dso_filter.copy()
+    try:
+        win._set_all_catalogs(True)
+        win._fill_catalog_menu()
+        acts = [a for a in win._cat_menu.actions() if a.isCheckable()]
+        assert len(acts) == len(ALL_CATALOGS) and all(a.isChecked() for a in acts)
+        dso = win.dso_catalog
+        sh2 = dso.cat_matrix[:, ALL_CATALOGS.index("SH2")]
+        only_sh2 = sh2 & (dso.cat_matrix.sum(axis=1) == 1)
+        assert only_sh2.any()
+        win._set_catalog_visible("SH2", False)
+        mask = win.sky.dso_filter.mask(dso)
+        assert not mask[only_sh2].any()                 # Sh2 sozinhos somem
+        win._set_all_catalogs(False)
+        mask = win.sky.dso_filter.mask(dso)
+        assert mask[dso.cat_matrix.any(axis=1)].sum() == 0
+    finally:
+        win._apply_dso_filter(original)
+        win.close()
