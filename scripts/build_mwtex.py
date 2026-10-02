@@ -125,11 +125,18 @@ def remove_stars(rgb: np.ndarray, window: int = 17,
     opened = _max_filter(_min_filter(a, window), window)
     opened = np.minimum(opened, a)          # fundo sem os picos
     residual = (a - opened).max(axis=2)     # o que "sobra" = estrelas
-    mask = residual > 16.0
+    mask = residual > 28.0          # só estrelas nítidas (o difuso fica intacto)
     # dilata a máscara p/ cobrir halos e espículas de difração
     mask = _max_filter(mask.astype(np.float32)[..., None], 7)[..., 0] > 0.5
-    patch = gaussian_blur(opened, 1.2)      # remendo discreto nos buracos
-    out = np.where(mask[..., None], patch, a)
+    # O fundo "aberto" vem de filtros de janela QUADRADA: usado quase cru
+    # como remendo, deixava platôs quadrados onde as estrelas são densas —
+    # o centro da Via Láctea ficava "pixelado" em campos amplos (reporte do
+    # usuário, pré-0.17). O remendo agora é bem suavizado (isotrópico) e
+    # entra com uma máscara de borda suave, sem degraus.
+    patch = gaussian_blur(opened, max(2.0, window / 3.0))
+    wide = _max_filter(mask.astype(np.float32)[..., None], 5)      # folga p/ a borda
+    alpha = np.clip(1.6 * gaussian_blur(wide, 2.0), 0.0, 1.0)
+    out = a * (1.0 - alpha) + patch * alpha
     return gaussian_blur(out, sigma) if sigma > 0 else out
 
 
