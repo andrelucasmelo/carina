@@ -363,6 +363,27 @@ class GLRenderer:
         GL.glBindVertexArray(self.batch_fill.vao)
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(verts))
 
+    def multiply_screen(self, width: int, height: int, rgb) -> None:
+        """Multiplica todo o framebuffer por ``rgb`` (canal a canal).
+
+        É o modo noturno: ``(1, 0, 0)`` mantém só o vermelho de tudo o que
+        já foi desenhado — céu, estrelas e rótulos — sem tocar em nenhuma
+        das rotinas de desenho. Blending padrão (``GL_ZERO, GL_SRC_COLOR``),
+        suportado em qualquer driver.
+        """
+        self._w, self._h = float(width), float(height)
+        GL.glViewport(0, 0, int(width), int(height))
+        GL.glDisable(GL.GL_STENCIL_TEST)
+        GL.glDisable(GL.GL_SCISSOR_TEST)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_ZERO, GL.GL_SRC_COLOR)
+        quad = np.array([[0, 0], [self._w, 0], [self._w, self._h],
+                         [0, 0], [self._w, self._h], [0, self._h]], dtype=np.float32)
+        self.fill_triangles(quad, (rgb[0], rgb[1], rgb[2], 1.0))
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        GL.glBindVertexArray(0)
+        GL.glUseProgram(0)
+
     def fill_polygons(self, rings: list[np.ndarray], color) -> None:
         """Preenche a união (com paridade) dos anéis dados em pixels.
 

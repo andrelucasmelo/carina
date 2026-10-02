@@ -25,6 +25,7 @@ class RenderOptions:
     const_label_mode: str = "none"     # none | pt | latin | abbr
     prefer_caldwell: bool = True
     dso_filter: str = ""               # JSON do DsoFilter
+    theme: str = "dark"                # dark | light (papel) | red (v0.16)
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)

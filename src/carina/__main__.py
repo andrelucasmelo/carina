@@ -46,6 +46,13 @@ def _parse_args(argv):
     parser.add_argument("--planet-path", metavar="NOME", default=None,
                         help="traça o caminho anual de um planeta (testes)")
     parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--offscreen", metavar="CAMINHO", default=None,
+                        help="também grava um quadro renderizado fora da tela (testes)")
+    parser.add_argument("--offscreen-theme", default=None, choices=["dark", "light", "red"])
+    parser.add_argument("--offscreen-size", default="800x600")
+    parser.add_argument("--offscreen-scale", type=float, default=2.0)
+    parser.add_argument("--offscreen-off", action="append", default=[],
+                        help="camada desligada só no quadro fora da tela")
     parser.add_argument("--horizon-preset", default=None,
                         help="aplica um modelo de horizonte sem salvar (testes)")
     parser.add_argument("--moon-forecast", action="store_true",
@@ -508,6 +515,21 @@ def main(argv=None) -> int:
             from PySide6.QtCore import QPoint, QRect
             from PySide6.QtGui import QPainter
 
+            if args.offscreen:
+                opts = win.sky.render_options()
+                for key in args.offscreen_off:
+                    opts.layers[key] = False
+                ow, oh = (int(v) for v in args.offscreen_size.lower().split("x"))
+                before = (win.sky.camera.az, win.sky.camera.alt, win.sky.theme,
+                          dict(win.sky.layers))
+                frame = win.sky.render_frame(ow, oh, options=opts,
+                                             theme=args.offscreen_theme,
+                                             scale=args.offscreen_scale)
+                frame.save(args.offscreen)
+                after = (win.sky.camera.az, win.sky.camera.alt, win.sky.theme,
+                         dict(win.sky.layers))
+                print(f"offscreen: {args.offscreen} ({frame.width()}x{frame.height()}) "
+                      f"estado_preservado={before == after}")
             if dialog is not None:
                 img = dialog.grab().toImage()
                 img.save(args.screenshot)

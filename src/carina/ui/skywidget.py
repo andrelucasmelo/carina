@@ -257,6 +257,10 @@ class SkyWidget(QOpenGLWidget):
         self.cardinals = skygeometry.cardinal_vectors()
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
         self.horizon_profile = None          # horizonte do quintal (v0.15)
+        self.theme = "dark"                  # dark | light (papel) | red (v0.16)
+        self._frame_t = None                 # instante do quadro em desenho
+        self._frame_logical = None           # (largura, altura) lógicas do quadro
+        self._offscreen_marker = False       # marcador da seleção fora da tela
         self._silhouette = None
         self._goto_anim = None
         self.follow_selection = False       # câmera acompanha a seleção
@@ -489,7 +493,7 @@ class SkyWidget(QOpenGLWidget):
             name_mode=self.name_mode, dso_name_mode=self.dso_name_mode,
             const_label_mode=self.const_label_mode,
             prefer_caldwell=bool(self.prefer_caldwell),
-            dso_filter=self.dso_filter.to_json(),
+            dso_filter=self.dso_filter.to_json(), theme=self.theme,
         )
 
     def apply_render_options(self, opts) -> None:
@@ -531,6 +535,95 @@ class SkyWidget(QOpenGLWidget):
         self.mag_cap = value
         self.update()
 
+    # --- temas e render fora da tela (v0.16) ----------------------------
+    THEMES = ("dark", "light", "red")
+
+    def set_theme(self, theme: str) -> None:
+        """Tema do céu: ``dark`` (padrão), ``light`` (papel, o modo carta) ou
+        ``red`` (visão noturna: só o canal vermelho de tudo)."""
+        theme = theme if theme in self.THEMES else "dark"
+        self.theme = theme
+        self.chart_mode = theme == "light"
+        self.update()
+
+    def _red_filter(self, w: int, h: int, fbo_id: int) -> None:
+        """Modo noturno: multiplica o quadro inteiro por (1, 0, 0)."""
+        from OpenGL import GL
+
+        GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, int(fbo_id))
+        self.renderer.multiply_screen(w, h, (1.0, 0.0, 0.0))
+
+    _SNAPSHOT_ATTRS = ("_pick_stars", "_pick_bodies", "_pick_dso", "_frame_m",
+                       "_frame_t", "_frame_logical", "_path_marks",
+                       "_moon_marks_screen", "_label_hits")
+
+    def render_frame(self, width: int, height: int, *, options=None, camera=None,
+                     when_utc=None, scale: float = 2.0, theme: str | None = None,
+                     show_selection: bool = False, fov_shapes=None,
+                     samples: int = 4):
+        """Desenha um quadro **fora da tela** e devolve um ``QImage``.
+
+        ``width``/``height`` são lógicos (as fontes dos rótulos seguem essas
+        unidades); a imagem sai com ``scale`` vezes mais pixels — 2× a 4×
+        dá traços e textos nítidos no papel. ``options``
+        (:class:`render.options.RenderOptions`), ``camera``, ``when_utc``,
+        ``theme`` e ``fov_shapes`` valem só para este quadro: a vista do
+        usuário, o relógio e os caches de clique voltam como estavam.
+        Base do gerador de carta, do atlas e dos pôsteres (ADR-044).
+        """
+        from PySide6.QtGui import QImage
+        from PySide6.QtOpenGL import (
+            QOpenGLFramebufferObject, QOpenGLFramebufferObjectFormat, QOpenGLPaintDevice,
+        )
+
+        W = max(1, int(round(width * scale)))
+        H = max(1, int(round(height * scale)))
+        self.makeCurrent()
+        saved_opts = self.render_options()
+        saved_cam = self.camera
+        saved_theme = self.theme
+        saved_fov = self.fov_shapes
+        saved_attrs = {k: getattr(self, k, None) for k in self._SNAPSHOT_ATTRS}
+        fmt = QOpenGLFramebufferObjectFormat()
+        fmt.setAttachment(QOpenGLFramebufferObject.CombinedDepthStencil)
+        fmt.setSamples(int(samples))
+        fbo = QOpenGLFramebufferObject(W, H, fmt)
+        try:
+            if options is not None:
+                self.apply_render_options(options)
+            if camera is not None:
+                cam = Camera(camera.az, camera.alt, camera.fov)
+            else:
+                cam = Camera(saved_cam.az, saved_cam.alt, saved_cam.fov)
+            self.camera = cam
+            wanted = theme or (getattr(options, "theme", None) if options is not None
+                               else None)
+            if wanted:
+                self.set_theme(wanted)
+            if fov_shapes is not None:
+                self.fov_shapes = fov_shapes
+            self._offscreen_marker = show_selection
+            t = (self.engine.ts.from_datetime(when_utc) if when_utc is not None
+                 else self.engine.time.current())
+            fbo.bind()
+            device = QOpenGLPaintDevice(W, H)
+            device.setDevicePixelRatio(scale)
+            self._render(QPainter(device), W, H, scale, t, offscreen=True)
+            if self.theme == "red":
+                self._red_filter(W, H, fbo.handle())
+            image = fbo.toImage()
+        finally:
+            fbo.release()
+            self._offscreen_marker = False
+            self.camera = saved_cam
+            self.fov_shapes = saved_fov
+            self.apply_render_options(saved_opts)
+            self.theme = saved_theme        # sem mexer no modo carta restaurado
+            for k, v in saved_attrs.items():
+                setattr(self, k, v)
+            self.doneCurrent()
+        return image.convertToFormat(QImage.Format_RGB32)
+
     def set_chart_mode(self, on: bool) -> None:
         """Modo mapa para impressão: fundo branco, traços escuros, sem
         atmosfera nem imagens de levantamento."""
@@ -549,6 +642,18 @@ class SkyWidget(QOpenGLWidget):
 
     # ------------------------------------------------------------------
     def paintGL(self) -> None:
+        """Quadro da tela: delega a :meth:`_render` e aplica o modo noturno."""
+        dpr = self.devicePixelRatioF()
+        w = max(1, int(self.width() * dpr))
+        h = max(1, int(self.height() * dpr))
+        t = self.engine.time.current()
+        self._render(QPainter(self), w, h, dpr, t)
+        if self.theme == "red":
+            self._red_filter(w, h, self.defaultFramebufferObject())
+        self._emit_status(t)
+
+    def _render(self, painter: QPainter, w: int, h: int, dpr: float, t,
+                offscreen: bool = False) -> None:
         """Um quadro completo, na ordem de pintura (de trás para frente):
 
         1. fundo/atmosfera e Via Láctea (textura ou splats);
@@ -565,17 +670,15 @@ class SkyWidget(QOpenGLWidget):
         si dentro de um quadro.
         """
         cam = self.camera
-        dpr = self.devicePixelRatioF()
-        w = max(1, int(self.width() * dpr))
-        h = max(1, int(self.height() * dpr))
         cam.set_viewport(w, h)
+        self._frame_t = t
+        self._frame_logical = (w / dpr, h / dpr)
 
-        t = self.engine.time.current()
         m = self.engine.horizontal_matrix(t).astype(np.float32)
         # matriz do quadro à disposição dos rótulos (desenhados depois,
         # fora do escopo deste método)
         self._frame_m = m
-        if self.follow_selection and self.selection is not None:
+        if self.follow_selection and self.selection is not None and not offscreen:
             # seguir objeto: a câmera acompanha a seleção a cada quadro
             vec = self._selection_vec(self.selection, m, t)
             if vec is not None:
@@ -589,7 +692,6 @@ class SkyWidget(QOpenGLWidget):
         else:
             bg, star_fade, day = self._atmosphere(-math.pi / 2)
 
-        painter = QPainter(self)
         painter.beginNativePainting()
         r = self.renderer
         r.begin_frame(w, h, bg)
@@ -757,8 +859,9 @@ class SkyWidget(QOpenGLWidget):
         if self.fov_shapes:
             self._draw_fov_shapes(m)
 
-        # --- marcador da seleção ---
-        self._draw_selection_marker(m)
+        # --- marcador da seleção (as cartas impressas o omitem) ---
+        if not offscreen or self._offscreen_marker:
+            self._draw_selection_marker(m)
 
         r.end_frame()
         painter.endNativePainting()
@@ -766,11 +869,10 @@ class SkyWidget(QOpenGLWidget):
         # --- rótulos (QPainter em pixels lógicos) ---
         self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
         self._draw_fov_labels(painter, dpr)
-        self._draw_tools_overlay(painter, dpr)
-        self._draw_notice(painter)
+        if not offscreen:
+            self._draw_tools_overlay(painter, dpr)
+            self._draw_notice(painter)
         painter.end()
-
-        self._emit_status(t)
 
     # ------------------------------------------------------------------
     def _segments(self, pset: skygeometry.PolylineSet, m: np.ndarray | None,
@@ -1161,7 +1263,7 @@ class SkyWidget(QOpenGLWidget):
     def _fov_center_vec(self, m: np.ndarray):
         """Centro dos campos: o objeto selecionado ou o centro da vista."""
         if self.fov_follow_selection and self.selection is not None:
-            t = self.engine.time.current()
+            t = self._frame_t or self.engine.time.current()
             vec = self._selection_vec(self.selection, m, t)
             if vec is not None:
                 return self._refract(np.asarray(vec)[np.newaxis, :])[0]
@@ -1679,9 +1781,7 @@ class SkyWidget(QOpenGLWidget):
                 and len(self.const_centers)):
             from ..catalogs.constnames import label_for
 
-            m_const = self.engine.horizontal_matrix(
-                self.engine.time.current()
-            ).astype(np.float32)
+            m_const = self._frame_m
             cv = self.const_centers @ m_const.T
             cx_, cy_, cvis = self.camera.project(cv, margin=40.0)
             font = QFont("Segoe UI", 10, QFont.DemiBold)
@@ -1978,7 +2078,8 @@ class SkyWidget(QOpenGLWidget):
         colors = [
             QColor(90, 240, 165), QColor(240, 190, 90), QColor(190, 140, 240),
         ]
-        y = int(self.height() - 10 - 14 * len(self.fov_shapes))
+        logical_h = self._frame_logical[1] if self._frame_logical else self.height()
+        y = int(logical_h - 10 - 14 * len(self.fov_shapes))
         for i, shape in enumerate(self.fov_shapes):
             w = math.degrees(shape.width)
             h = math.degrees(shape.height)
