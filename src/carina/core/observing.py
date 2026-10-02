@@ -391,6 +391,7 @@ class PlanEntry:
     score_text: str = ""
     diffuse: bool = False         # brilho superficial baixo
     late: bool = False            # o slot caiu depois da janela útil
+    size_minor: float | None = None   # eixo menor (brilho superficial)
 
     @property
     def designation(self) -> str:
@@ -1008,6 +1009,7 @@ def _make_entry(engine, stars, cand: dict, when: dt.datetime, const_names: dict,
         how_to_find=finder, ra=row["ra"], dec=row["dec"], guides=guides,
         instrument=cand["instrument"], in_twilight=not window.is_dark(when),
         kind=row["_kind"], ident=row["_ident"], diffuse=diffuse,
+        size_minor=row.get("min"),
     )
     _update_position(engine, entry, when)
     return entry
@@ -1036,7 +1038,7 @@ def _enrich(engine, plan: ObservingPlan, ref_utc: dt.datetime,
         e.transit_utc, e.transit_alt = vis.transit_utc, vis.transit_alt
         e.window_start, e.window_end = vis.window_start, vis.window_end
         e.best_utc = vis.best_utc
-        sc = score_visibility(vis, e.magnitude, e.size_arcmin, None, e.klass,
+        sc = score_visibility(vis, e.magnitude, e.size_arcmin, e.size_minor, e.klass,
                               bortle=settings.bortle)
         e.score, e.score_text = sc.total, sc.explain()
 

@@ -406,7 +406,7 @@ class ObjectCard(QScrollArea):
         if klass in ("PLANET", "MOON", "SUN", "STAR"):
             instrument = "olho" if (mag is not None and mag < 5.5) else "binoculo"
         else:
-            instrument = instrument_for(mag, maj, klass)
+            instrument = instrument_for(mag, maj, klass, mnr)
         sb = surface_brightness(mag, maj, mnr) if self.ref.kind == "dso" else None
         self._tonight = Tonight(key, vis, score, instrument, sb)
         return self._tonight

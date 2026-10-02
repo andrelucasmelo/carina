@@ -113,3 +113,12 @@ def test_invalidate_on_bortle_change(ctx):
     level["v"] = 8
     card.refresh()                     # a chave mudou: recalcula sozinho
     assert card.summary()["score"] < dark
+
+
+def test_instrument_uses_minor_axis(ctx):
+    """M 8 (45′ × 30′) não é "difuso": continua alvo de binóculo."""
+    from carina.ui.object_card import ObjectCard
+
+    card = ObjectCard(ctx)
+    card.set_selection(("dso", _dso_id(ctx, "M 8")))
+    assert card.summary()["instrument"] == "binoculo"
