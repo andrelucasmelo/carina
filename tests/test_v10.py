@@ -43,18 +43,26 @@ def test_extra_catalogs_present(catalog):
         assert n >= minimum, f"{cat} tem apenas {n} objetos"
 
 
-def test_extra_catalogs_hidden_by_default(catalog):
+def test_extra_catalogs_hidden_by_default_filter(catalog):
+    """Os catálogos extras nascem fora do filtro padrão; ligar um deles no
+    filtro faz seus objetos exclusivos aparecerem — sem recarregar arrays."""
+    from carina.core.dsofilter import DsoFilter
+
+    flt = DsoFilter()
     for cat in EXTRA_CATALOGS:
-        assert cat not in catalog.visible_catalogs
-    assert set(ALL_CATALOGS) - set(EXTRA_CATALOGS) <= catalog.visible_catalogs
+        assert cat not in flt.catalogs
+    assert set(ALL_CATALOGS) - set(EXTRA_CATALOGS) <= flt.catalogs
 
-
-def test_enabling_extra_catalog_adds_objects(catalog):
-    before = len(catalog)
-    catalog.set_catalog_visible("Abell", True)
-    assert len(catalog) > before
-    catalog.set_catalog_visible("Abell", False)
-    assert len(catalog) == before
+    classic_cols = [ALL_CATALOGS.index(c) for c in ALL_CATALOGS
+                    if c not in EXTRA_CATALOGS]
+    abell_only = (catalog.cat_matrix[:, ALL_CATALOGS.index("Abell")]
+                  & ~catalog.cat_matrix[:, classic_cols].any(axis=1))
+    assert abell_only.sum() > 2000
+    total = len(catalog)
+    assert not flt.mask(catalog)[abell_only].any()
+    flt.catalogs.add("Abell")
+    assert flt.mask(catalog)[abell_only].all()
+    assert len(catalog) == total          # os arrays não mudaram
 
 
 # --- nomes de constelações ------------------------------------------------

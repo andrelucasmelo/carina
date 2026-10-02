@@ -27,6 +27,10 @@ CATALOG_FILTERS = [
     ("Sharpless (SH2)", "SH2"),
     ("Barnard (B)", "B"),
     ("Melotte (Mel)", "Mel"),
+    ("Lynds Dark Nebulae (LDN)", "LDN"),
+    ("Collinder (Cr)", "Cr"),
+    ("van den Bergh (vdB)", "VdB"),
+    ("Abell", "Abell"),
     ("Adicionados pelo usuário", "user"),
 ]
 

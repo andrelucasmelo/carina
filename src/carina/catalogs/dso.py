@@ -226,12 +226,12 @@ class DsoCatalog:
         )
 
     def set_catalog_visible(self, catalog: str, visible: bool) -> None:
-        """Liga/desliga um catálogo INTEIRO (tela de configuração)."""
+        """Compatibilidade: a exibição por catálogo passou ao filtro
+        (:class:`~carina.core.dsofilter.DsoFilter`); aqui só se anota."""
         if visible:
             self.visible_catalogs.add(catalog)
         else:
             self.visible_catalogs.discard(catalog)
-        self.reload()
 
     # ------------------------------------------------------------------
     # Arrays para renderização (somente objetos habilitados)
@@ -239,31 +239,17 @@ class DsoCatalog:
     def reload(self) -> None:
         """Reconstrói os arrays de renderização a partir do banco.
 
-        Só entram objetos habilitados cujos catálogos estão visíveis (um
-        objeto criado pelo usuário, ou sem designação, aparece sempre).
-        A ordem é por magnitude crescente — é isso que permite ao
+        Entram TODOS os objetos habilitados; o que aparece no mapa é
+        decidido por máscaras sobre estes arrays (``core/dsofilter.py``:
+        catálogos, tipos, magnitude, tamanho), sem recarregar nada. A
+        ordem é por magnitude crescente — é isso que permite ao
         renderizador manter "os N mais brilhantes" com um simples corte.
         """
-        sql = (
+        rows = self.cx.execute(
             "SELECT id, name, klass, ra, dec, mag, maj, min, pa, common"
-            " FROM objects o WHERE enabled = 1"
-        )
-        params: list = []
-        if self.visible_catalogs != set(ALL_CATALOGS):
-            marks = ",".join("?" * len(self.visible_catalogs)) or "''"
-            # visível se: adicionado pelo usuário, sem designação alguma, ou
-            # com ao menos uma designação de catálogo habilitado
-            sql += (
-                " AND (o.user_added = 1"
-                " OR NOT EXISTS(SELECT 1 FROM designations d"
-                "               WHERE d.object_id = o.id)"
-                f" OR EXISTS(SELECT 1 FROM designations d"
-                f"           WHERE d.object_id = o.id"
-                f"           AND d.catalog IN ({marks})))"
-            )
-            params = sorted(self.visible_catalogs)
-        sql += " ORDER BY CASE WHEN mag IS NULL THEN 99 ELSE mag END"
-        rows = self.cx.execute(sql, params).fetchall()
+            " FROM objects WHERE enabled = 1"
+            " ORDER BY CASE WHEN mag IS NULL THEN 99 ELSE mag END"
+        ).fetchall()
         n = len(rows)
         self.ids = np.empty(n, dtype=np.int64)
         self.xyz = np.empty((n, 3), dtype=np.float32)
@@ -289,6 +275,16 @@ class DsoCatalog:
             self.names.append(r["name"])
             self.commons.append(r["common"])
         self._id_to_row = {int(oid): i for i, oid in enumerate(self.ids)}
+        # pertencimento a catálogos (objetos × catálogos) e nome comum: a
+        # base das máscaras do filtro de exibição (core/dsofilter.py)
+        self.cat_matrix = np.zeros((n, len(ALL_CATALOGS)), dtype=bool)
+        col = {c: k for k, c in enumerate(ALL_CATALOGS)}
+        for r in self.cx.execute("SELECT object_id, catalog FROM designations"):
+            row_i = self._id_to_row.get(int(r[0]))
+            k = col.get(r[1])
+            if row_i is not None and k is not None:
+                self.cat_matrix[row_i, k] = True
+        self.has_common = np.array([bool(c) for c in self.commons], dtype=bool)
         # Messier/Caldwell: sempre rotulados, em negrito (pedido do usuário)
         mc_ids = {
             int(r[0]) for r in self.cx.execute(

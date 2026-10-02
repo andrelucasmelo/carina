@@ -14,6 +14,7 @@ from ..catalogs import names, skygeometry
 from ..catalogs.dso import DsoCatalog
 from ..catalogs.stars import StarCatalog
 from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
+from ..core.dsofilter import DsoFilter
 from ..core.engine import SkyEngine
 from .dso_manager import DsoManagerDialog
 from .infopanel import InfoPanel, build_info_html
@@ -90,6 +91,10 @@ class MainWindow(QMainWindow):
         )
         self.sky.location_name = loc.name
         self.setCentralWidget(self.sky)
+        # filtro de exibição do céu profundo salvo nas preferências (§9)
+        self.sky.set_dso_filter(
+            DsoFilter.from_json(self.settings.value("dso/filter", "", str))
+        )
         self.sky.statusUpdated.connect(self._on_status)
         self.sky.selectionChanged.connect(self._on_selection)
         self.sky.contextInfoRequested.connect(self._popup_info)
@@ -342,9 +347,11 @@ class MainWindow(QMainWindow):
         m_dso.addAction(act_manage)
 
         m_dso.addSeparator()
-        act_cats = QAction(self.tr("Configurar catálogos exibidos…"), self)
+        act_cats = QAction(
+            self.tr("Filtros de exibição (catálogos, tipos, magnitude…)…"), self
+        )
         act_cats.setShortcut("Ctrl+Shift+C")
-        act_cats.triggered.connect(self._open_catalogs)
+        act_cats.triggered.connect(self._open_dso_filter)
         m_dso.addAction(act_cats)
         act_details = QAction(self.tr("Detalhes do objeto selecionado…"), self)
         act_details.setShortcut("Ctrl+Shift+D")
@@ -646,10 +653,6 @@ class MainWindow(QMainWindow):
         else:
             self._on_layer_toggled(key, value)
 
-    def _on_catalog_toggled(self, catalog: str, visible: bool) -> None:
-        self.dso_catalog.set_catalog_visible(catalog, visible)
-        self.sky.update()
-
     def _on_time_step(self, seconds: float) -> None:
         self.engine.time.step(seconds)
         self.sky.sync_clock()
@@ -789,13 +792,24 @@ class MainWindow(QMainWindow):
             6000,
         )
 
-    def _open_catalogs(self) -> None:
-        from .catalog_dialog import CatalogDialog
+    def _open_dso_filter(self) -> None:
+        """Filtros de exibição do céu profundo (não modal: o mapa reage na
+        hora a cada mudança)."""
+        from .dso_filter_dialog import DsoFilterDialog
 
-        dlg = CatalogDialog(self.dso_catalog, self)
-        dlg.changed.connect(self.sky.update)
-        dlg.exec()
-        self.sky.update()
+        dlg = getattr(self, "_filter_dialog", None)
+        if dlg is None:
+            dlg = DsoFilterDialog(self.dso_catalog, self.sky.dso_filter, self)
+            dlg.changed.connect(self._apply_dso_filter)
+            self._filter_dialog = dlg
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
+
+    def _apply_dso_filter(self, flt) -> None:
+        """Aplica o filtro ao céu e o persiste nas preferências."""
+        self.sky.set_dso_filter(flt)
+        self.settings.set_value("dso/filter", flt.to_json())
 
     def _open_planet_paths(self) -> None:
         """Traça o caminho dos planetas nos próximos 365 dias (item 8)."""

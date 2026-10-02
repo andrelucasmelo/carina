@@ -15,6 +15,7 @@ from ..catalogs.stars import StarCatalog
 from ..core.eclipses import moon_influence_radii
 from ..core.engine import SkyEngine
 from ..core.localtime import to_local
+from ..core.dsofilter import DsoFilter
 from ..core.projection import FOV_MAX, FOV_MIN, Camera, vec_to_altaz
 from ..render.glrenderer import GLRenderer
 
@@ -223,6 +224,7 @@ class SkyWidget(QOpenGLWidget):
         self.fov_shapes: list = []          # campos de equipamentos (item 7)
         self.fov_angle: float = 0.0         # rotação do campo (rad)
         self.fov_follow_selection = True
+        self.dso_filter = DsoFilter()        # filtro de exibição (revisão §9)
 
         # centros das constelações para os rótulos (item 5)
         self.const_info = skygeometry.load_constellation_info(data_dir)
@@ -468,6 +470,12 @@ class SkyWidget(QOpenGLWidget):
         if self.mag_cap is not None:
             return min(auto, self.mag_cap, 12.0)
         return auto
+
+    def set_dso_filter(self, flt: DsoFilter) -> None:
+        """Filtro de exibição do céu profundo: catálogos, tipos, magnitude,
+        tamanho e regiões gigantes (vale para símbolos, imagens e rótulos)."""
+        self.dso_filter = flt
+        self.update()
 
     def set_bortle(self, value: int) -> None:
         """Classe de poluição luminosa (1–9): afeta magnitude-limite, brilho
@@ -919,7 +927,8 @@ class SkyWidget(QOpenGLWidget):
         maj_px = self._dso_size_px()
         # objetos com imagem no pacote (M/C + destaques) e grandes na tela
         has_img = dso.is_mc | dso.is_featured
-        rough = np.nonzero(near & has_img & (maj_px > 12.0))[0]
+        shown = self.dso_filter.mask(dso, math.degrees(cam.fov))
+        rough = np.nonzero(near & has_img & shown & (maj_px > 12.0))[0]
         if len(rough) == 0:
             return
         # projeção fina só dos pré-selecionados; os maiores têm prioridade
@@ -971,8 +980,14 @@ class SkyWidget(QOpenGLWidget):
         near = dso.xyz @ f_icrs > cos_half
         maj_px_all = self._dso_size_px()
         dso_lim = self._mag_limit() - 0.3
+        # filtro de exibição (catálogos, tipos, magnitude, tamanho, regiões
+        # gigantes): máscaras NumPy, nada de SQL por quadro
+        flt = self.dso_filter
+        shown = flt.mask(dso, math.degrees(cam.fov))
+        giant_all = (flt.big_mask(dso)
+                     if flt.big_mode in ("outline", "label") else None)
         rough = np.nonzero(
-            near & ((dso.mag <= dso_lim) | (maj_px_all >= 14.0))
+            near & shown & ((dso.mag <= dso_lim) | (maj_px_all >= 14.0))
         )[0]
         if len(rough) == 0:
             return None
@@ -997,6 +1012,11 @@ class SkyWidget(QOpenGLWidget):
             code = int(dso.klass[i])
             below = bool(below_sel[k])
             alpha = 0.85 * fade * (0.25 if below else 1.0)
+            giant = giant_all is not None and bool(giant_all[i])
+            if giant and flt.big_mode == "label":
+                continue                # só o rótulo, sem contorno
+            if giant:
+                alpha *= 0.55           # contorno fino e tracejado
             rgb = CHART_COLORS["dso"] if self.chart_mode else DSO_COLORS[code]
             color = np.array([*rgb, alpha], dtype=np.float32)
             cx, cy = xs[k], ys[k]
@@ -1017,9 +1037,12 @@ class SkyWidget(QOpenGLWidget):
                     seg[0::2, 1] = py[sel]
                     seg[1::2, 0] = px[sel + 1]
                     seg[1::2, 1] = py[sel + 1]
-                    segs.append(seg.reshape(-1, 2, 2))
+                    seg = seg.reshape(-1, 2, 2)
+                    if giant:
+                        seg = seg[::2]      # tracejado: um segmento sim, um não
+                    segs.append(seg)
                     cols.append(
-                        np.repeat(color[np.newaxis, :], 2 * len(sel), axis=0)
+                        np.repeat(color[np.newaxis, :], 2 * len(seg), axis=0)
                     )
                 continue
 
@@ -1051,13 +1074,17 @@ class SkyWidget(QOpenGLWidget):
                     dso.minor[i] * math.radians(1 / 60.0) * cam.pixel_scale / 2.0,
                     a_px * 0.35,
                 )
-                ang = np.linspace(0.0, 2.0 * math.pi, 25)
+                # regiões gigantes tracejadas precisam de mais pontos para
+                # o tracejado ainda desenhar a elipse (e não ticks soltos)
+                ang = np.linspace(0.0, 2.0 * math.pi, 97 if giant else 25)
                 ring = (
                     np.array([cx, cy])
                     + np.outer(a_px * np.cos(ang), dir_a)
                     + np.outer(b_px * np.sin(ang), dir_b)
                 )
                 seg = np.stack([ring[:-1], ring[1:]], axis=1)
+                if giant:
+                    seg = seg[::2]
             else:
                 r = float(np.clip(maj_sel[k] * 0.5, 6.0, 13.0))
                 seg = DSO_TEMPLATES[code] * r + np.array([cx, cy])

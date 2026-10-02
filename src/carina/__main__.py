@@ -389,10 +389,8 @@ def main(argv=None) -> int:
         win._open_object_window()
         dialog = win._track_windows[-1] if win._track_windows else None
     elif args.dialog == "catalogs":
-        from .ui.catalog_dialog import CatalogDialog
-
-        dialog = CatalogDialog(win.dso_catalog, win)
-        dialog.show()
+        win._open_dso_filter()
+        dialog = win._filter_dialog
     elif args.dialog == "night":
         from .ui.night_dialog import NightInfoDialog
 
