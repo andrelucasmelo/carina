@@ -16,6 +16,8 @@ __pycache__/
 # Builds desktop
 build/
 dist/
+dist_v*/
+build_v*/
 
 # Dados brutos baixados (regenerar com scripts/build_data.py)
 data/raw/
