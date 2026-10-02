@@ -174,6 +174,82 @@ def _subdivide_great_circle(p0: np.ndarray, p1: np.ndarray, max_step_deg: float)
     return pts
 
 
+# Época em que as fronteiras IAU foram definidas (Delporte, 1930): B1875.0
+B1875_JD_TT = 2405889.25858
+
+
+def _precession_to_b1875() -> np.ndarray:
+    """Matriz de rotação J2000 → equinócio B1875.0 (Skyfield, IAU 2006)."""
+    from skyfield.api import load
+    from skyfield.precessionlib import compute_precession
+
+    t = load.timescale().tt_jd(B1875_JD_TT)
+    return np.asarray(compute_precession(t.tdb), dtype=np.float64)
+
+
+def _boundary_polylines(feature_coll: dict, max_step_deg: float) -> tuple[list, list]:
+    """Fronteiras IAU como polilinhas que seguem AR/Dec constantes em B1875.
+
+    As fronteiras foram definidas como trechos de ascensão reta constante
+    (meridianos) e de declinação constante (paralelos) no equinócio
+    B1875. Um paralelo é um CÍRCULO MENOR: subdividi-lo por círculo máximo
+    (como a versão anterior fazia) gera cordas que, perto dos polos, cortam
+    reto onde o paralelo contorna — as fronteiras de Octans, Mensa e
+    Camaleão saíam retilíneas. Perto do equador a diferença some.
+
+    Por isso: precessamos os cantos J2000 → B1875, interpolamos LINEARMENTE
+    em (AR, Dec) nesse frame — o que mantém AR ou Dec constante ao longo
+    de cada trecho — e precessamos os pontos de volta a J2000. Interpolar
+    direto em J2000 quase resolve, mas um paralelo de 1875 é um círculo
+    levemente inclinado em 2000 (o polo deslocou ~0,7°) e em trechos
+    longos perto do polo sobraria desvio visível.
+    """
+    P = _precession_to_b1875()
+    Pt = P.T
+    polylines: list[list[np.ndarray]] = []
+    ids: list[str] = []
+
+    def to_radec_1875(ra_deg: float, dec_deg: float) -> tuple[float, float]:
+        v = P @ _radec_to_xyz(ra_deg, dec_deg)
+        return (
+            math.degrees(math.atan2(v[1], v[0])) % 360.0,
+            math.degrees(math.asin(max(-1.0, min(1.0, v[2])))),
+        )
+
+    def from_radec_1875(ra_deg: float, dec_deg: float) -> np.ndarray:
+        v = Pt @ _radec_to_xyz(ra_deg, dec_deg)
+        return v / np.linalg.norm(v)
+
+    for feat in feature_coll["features"]:
+        fid = str(feat.get("id", ""))
+        geom = feat["geometry"]
+        if geom["type"] == "Polygon":
+            rings = geom["coordinates"]
+        elif geom["type"] == "MultiPolygon":
+            rings = [ring for poly in geom["coordinates"] for ring in poly]
+        else:
+            continue
+        for ring in rings:
+            if len(ring) < 2:
+                continue
+            if list(ring[0]) != list(ring[-1]):
+                ring = list(ring) + [ring[0]]
+            corners = [to_radec_1875(float(a), float(b)) for a, b in ring]
+            pts = [from_radec_1875(*corners[0])]
+            for (ra0, dec0), (ra1, dec1) in zip(corners[:-1], corners[1:]):
+                dra = (ra1 - ra0 + 180.0) % 360.0 - 180.0   # caminho curto
+                ddec = dec1 - dec0
+                mid = math.radians((dec0 + dec1) / 2.0)
+                span = max(abs(dra) * math.cos(mid), abs(ddec))
+                steps = max(1, math.ceil(span / max_step_deg))
+                for k in range(1, steps + 1):
+                    t = k / steps
+                    pts.append(from_radec_1875(ra0 + dra * t, dec0 + ddec * t))
+            polylines.append(pts)
+            ids.append(fid)
+    return polylines, ids
+
+
 def _polylines_to_arrays(polylines: list[list[np.ndarray]]):
     """Concatena polilinhas em (verts float32, counts int32)."""
     counts = np.array([len(p) for p in polylines], dtype=np.int32)
@@ -231,7 +307,8 @@ def build_constellations(force: bool) -> None:
 
     # --- fronteiras IAU ---
     bounds_geo = json.loads(paths["constellations.bounds.json"].read_text(encoding="utf-8"))
-    polys, ids = _geojson_polylines(bounds_geo, max_step_deg=1.0, close_rings=True)
+    # trechos de AR/Dec constantes em B1875 (não cordas de círculo máximo)
+    polys, ids = _boundary_polylines(bounds_geo, max_step_deg=0.5)
     verts, counts = _polylines_to_arrays(polys)
     np.savez_compressed(OUT / "const_bounds.npz", verts=verts, counts=counts)
     print(f"  fronteiras: {len(counts)} polilinhas, {len(verts):,} vértices")
