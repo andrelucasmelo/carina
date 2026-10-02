@@ -264,12 +264,17 @@ class TrackCanvas(QWidget):
                 # afasta o rótulo radialmente e evita sobrepor outros
                 dx, dy = xy.x() - cx, xy.y() - cy
                 norm = max(1.0, math.hypot(dx, dy))
+                # candidatos: radiais (perto e longe) e tangenciais — perto
+                # do zênite os pontos se amontoam e só o radial colidia (D11)
+                ux, uy = dx / norm, dy / norm
+                tx, ty = -uy, ux
+                candidates = [(ux * r, uy * r) for r in (18, -18, 30, -30, 44, -44)]
+                for side in (22, -22):
+                    candidates.append((ux * 18 + tx * side, uy * 18 + ty * side))
+                    candidates.append((ux * 32 + tx * side, uy * 32 + ty * side))
                 placed = None
-                for offset in (18, -18, 30, -30):
-                    box = QRectF(
-                        xy.x() + dx / norm * offset - 24,
-                        xy.y() + dy / norm * offset - 8, 48, 16,
-                    )
+                for ox, oy in candidates:
+                    box = QRectF(xy.x() + ox - 24, xy.y() + oy - 8, 48, 16)
                     if not any(box.intersects(o) for o in taken):
                         placed = box
                         break

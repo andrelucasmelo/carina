@@ -16,6 +16,7 @@ from ..catalogs.stars import StarCatalog
 from ..config import Settings, ephemeris_dir, package_data_dir, user_data_path
 from ..core.dsofilter import DsoFilter
 from ..core.engine import SkyEngine
+from ..core.objects import ObjectRef
 from .dso_manager import DsoManagerDialog
 from .infopanel import InfoPanel, build_info_html
 from .location_dialog import LocationDialog
@@ -744,32 +745,10 @@ class MainWindow(QMainWindow):
                         "rastrear sua trajetória na noite."),
             )
             return
-        kind, key = selection
-        icrs = None
-        if kind == "star":
-            idx = int(key)
-            label = (
-                self.star_catalog.proper.get(idx)
-                or self.star_catalog.label(idx, "bayer")
-                or f"HIP {int(self.star_catalog.hip[idx])}"
-            )
-            icrs = self.star_catalog.xyz[idx]
-        elif kind == "dso":
-            data = self.dso_catalog.get(int(key))
-            if data is None:
-                return
-            label = data["name"]
-            if data.get("common"):
-                label += f" — {names.common_label(data['common'])}"
-            import math as _math
-
-            cd = _math.cos(data["dec"])
-            icrs = [
-                cd * _math.cos(data["ra"]), cd * _math.sin(data["ra"]),
-                _math.sin(data["dec"]),
-            ]
-        else:
-            label = str(key)
+        ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            return
+        label, icrs = ref.name, ref.icrs
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
@@ -1120,37 +1099,25 @@ class MainWindow(QMainWindow):
                 self.tr("Selecione um objeto (clique no céu ou use Ctrl+F)."),
             )
             return
-        kind, key = selection
+        ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            return
         # sem a miniatura embutida: esta janela já mostra a imagem grande
         html = build_info_html(
             selection, self.engine, self.star_catalog, self.const_names,
             self.dso_catalog, include_image=False,
         )
-        icrs = None
-        title = str(key)
-        image_path = None
-        if kind == "dso":
-            data = self.dso_catalog.get(int(key))
-            if data is None:
-                return
-            title = data["name"]
-            cd = _math.cos(data["dec"])
-            icrs = [cd * _math.cos(data["ra"]), cd * _math.sin(data["ra"]),
-                    _math.sin(data["dec"])]
-            image_path = image_store.image_path_for(data["name"])
-        elif kind == "star":
-            idx = int(key)
-            title = (self.star_catalog.proper.get(idx)
-                     or self.star_catalog.label(idx, "bayer") or f"HIP {idx}")
-            icrs = self.star_catalog.xyz[idx]
-        else:
+        if not ref.is_fixed:
             QMessageBox.information(
                 self, "Carina",
                 self.tr("O gráfico anual vale para objetos fixos; corpos do "
-                        "Sistema Solar mudam de posição. Use Ferramentas → "
+                        "Sistema Solar mudam de posição. Use Sistema Solar → "
                         "Caminho dos planetas."),
             )
             return
+        title = ref.data["name"] if ref.data else ref.name
+        icrs = ref.icrs
+        image_path = ref.image_path()
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:

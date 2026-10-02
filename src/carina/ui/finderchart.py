@@ -82,6 +82,29 @@ class _Gnomonic:
         return x, y
 
 
+def _draw_label_avoiding(p: QPainter, text: str, taken: list,
+                         candidates) -> None:
+    """Desenha ``text`` na primeira posição (linha de base) cuja caixa não
+    cruza nenhuma já ocupada e registra a caixa em ``taken``. Sem posição
+    livre, usa a primeira mesmo assim — melhor sobrepor do que omitir a
+    referência (revisão 2026-10, D12: rótulo do alvo em cima do da guia).
+    """
+    fm = p.fontMetrics()
+    w, h = fm.horizontalAdvance(text), fm.height()
+    chosen = None
+    for x, y in candidates:
+        box = QRectF(x - 2, y - fm.ascent(), w + 4, h)
+        if not any(box.intersects(t) for t in taken):
+            chosen = (x, y, box)
+            break
+    if chosen is None:
+        x, y = candidates[0]
+        chosen = (x, y, QRectF(x - 2, y - fm.ascent(), w + 4, h))
+    x, y, box = chosen
+    p.drawText(QPointF(x, y), text)
+    taken.append(box)
+
+
 def render_finder_chart(entry, stars, const_lines, size_px: int = 460) -> QImage:
     """Desenha a carta de localização de uma entrada do roteiro.
 
@@ -89,6 +112,7 @@ def render_finder_chart(entry, stars, const_lines, size_px: int = 460) -> QImage
     guides e catalog_id); ``stars`` é o catálogo HYG; ``const_lines`` o
     :class:`PolylineSet` das linhas de constelação (pode ser ``None``).
     """
+    taken: list = []   # caixas de texto já ocupadas (anticolisão)
     target = _unit(entry.ra, entry.dec)
 
     # Campo e centro: a carta precisa conter o alvo E as estrelas-guia,
@@ -198,6 +222,7 @@ def render_finder_chart(entry, stars, const_lines, size_px: int = 460) -> QImage
         p.fillRect(box, QColor(255, 255, 255, 220))
         p.setPen(color)
         p.drawText(box, Qt.AlignCenter, label)
+        taken.append(box)
 
     # nomes das estrelas-guia
     p.setFont(QFont("Segoe UI", 9, QFont.Bold))
@@ -210,7 +235,11 @@ def render_finder_chart(entry, stars, const_lines, size_px: int = 460) -> QImage
         p.setBrush(Qt.NoBrush)
         p.drawEllipse(QPointF(gx, gy), 9.0, 9.0)
         p.setPen(COL_GUIDE)
-        p.drawText(QPointF(gx + 12, gy + 4), g["name"])
+        adv = p.fontMetrics().horizontalAdvance(g["name"])
+        _draw_label_avoiding(p, g["name"], taken, [
+            (gx + 12, gy + 4), (gx - 12 - adv, gy + 4),
+            (gx + 12, gy - 12), (gx + 12, gy + 18),
+        ])
 
     # --- alvo: círculo duplo no estilo "finder" -------------------------
     p.setBrush(Qt.NoBrush)
@@ -220,7 +249,11 @@ def render_finder_chart(entry, stars, const_lines, size_px: int = 460) -> QImage
     p.drawEllipse(QPointF(cx, cy), 16.0, 16.0)
     p.setPen(COL_TARGET)
     p.setFont(QFont("Segoe UI", 9, QFont.Bold))
-    p.drawText(QPointF(cx + 20, cy - 12), entry.catalog_id)
+    adv = p.fontMetrics().horizontalAdvance(entry.catalog_id)
+    _draw_label_avoiding(p, entry.catalog_id, taken, [
+        (cx + 20, cy - 12), (cx - 20 - adv, cy - 12),
+        (cx + 20, cy + 26), (cx - 20 - adv, cy + 26),
+    ])
 
     # --- moldura, escala e orientação -----------------------------------
     p.setPen(QPen(COL_FRAME, 1.4))

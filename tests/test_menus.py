@@ -58,3 +58,17 @@ def test_layer_actions_cover_every_layer(window):
     from carina.ui.mainwindow import _LAYER_ACTIONS
 
     assert set(window._layer_acts) == {k for k, *_ in _LAYER_ACTIONS}
+
+
+def test_render_options_capture_and_apply(window):
+    """A fotografia do estado volta igual depois de aplicada (T13)."""
+    sky = window.sky
+    opts = sky.render_options()
+    opts.bortle = 4
+    opts.layers["grid_eq"] = True
+    opts.const_label_mode = "latin"
+    sky.apply_render_options(opts)
+    again = sky.render_options()
+    assert again.bortle == 4 and again.layers["grid_eq"] is True
+    assert again.const_label_mode == "latin" and sky.layers["const_names"]
+    assert again == sky.render_options()

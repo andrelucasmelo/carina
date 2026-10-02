@@ -476,6 +476,35 @@ class SkyWidget(QOpenGLWidget):
             return min(auto, self.mag_cap, 12.0)
         return auto
 
+    def render_options(self):
+        """Fotografia do estado de exibição (ver ``render/options.py``)."""
+        from ..render.options import RenderOptions
+
+        return RenderOptions(
+            layers=dict(self.layers), chart_mode=self.chart_mode,
+            bortle=int(self.bortle), mag_cap=self.mag_cap,
+            name_mode=self.name_mode, dso_name_mode=self.dso_name_mode,
+            const_label_mode=self.const_label_mode,
+            prefer_caldwell=bool(self.prefer_caldwell),
+            dso_filter=self.dso_filter.to_json(),
+        )
+
+    def apply_render_options(self, opts) -> None:
+        """Aplica uma fotografia do estado de exibição de uma vez."""
+        for key, value in opts.layers.items():
+            if key in self.layers:
+                self.layers[key] = bool(value)
+        self.chart_mode = bool(opts.chart_mode)
+        self.bortle = max(1, min(9, int(opts.bortle)))
+        self.mag_cap = opts.mag_cap
+        self.name_mode = opts.name_mode
+        self.dso_name_mode = opts.dso_name_mode
+        self.const_label_mode = opts.const_label_mode
+        self.layers["const_names"] = opts.const_label_mode != "none"
+        self.prefer_caldwell = bool(opts.prefer_caldwell)
+        self.dso_filter = DsoFilter.from_json(opts.dso_filter)
+        self.update()
+
     def set_dso_filter(self, flt: DsoFilter) -> None:
         """Filtro de exibição do céu profundo: catálogos, tipos, magnitude,
         tamanho e regiões gigantes (vale para símbolos, imagens e rótulos)."""
