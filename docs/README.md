@@ -4,7 +4,7 @@ Bem-vindo. Esta pasta reúne tudo o que você precisa para **instalar, usar
 e tirar proveito** do Carina — do primeiro clique ao planejamento de uma
 noite inteira de observação.
 
-> **Versão documentada: 0.15.0** — produto em desenvolvimento. Recursos e
+> **Versão documentada: 0.16.0** — produto em desenvolvimento. Recursos e
 > telas podem mudar entre versões; quando isso acontecer, esta pasta é
 > atualizada junto.
 
@@ -29,6 +29,7 @@ Se você **nunca abriu o programa**, siga esta ordem:
 | [Funcionalidades](FUNCIONALIDADES.md) | Tudo o que o programa faz, recurso por recurso, com o que esperar de cada um |
 | [Interface](INTERFACE.md) | Referência completa: barra de menus, barra lateral, painéis, mouse |
 | [Atalhos de teclado](ATALHOS.md) | Folha de referência, pronta para imprimir |
+| [O que há de novo](NOVIDADES.md) | As novidades de cada versão |
 
 ### Para observar
 
@@ -37,7 +38,7 @@ Se você **nunca abriu o programa**, siga esta ordem:
 | [Planejamento de observação](PLANEJAMENTO.md) | Hoje à noite, pontuação de observabilidade, horizonte do quintal, roteiros, linha do tempo, calendário de noites escuras e o PDF de campo |
 | [Diário e listas](DIARIO.md) | Minhas listas de alvos, o diário de observação e onde ficam os seus dados |
 | [Observação e astrofotografia](ASTROFOTOGRAFIA.md) | Simulador de enquadramento, rotacionador, zona da Lua, rastreamento noturno, Bortle |
-| [Impressão e exportação](IMPRESSAO.md) | Mapas anotados, exportações em PNG/JPG/PDF/SVG e o modo carta |
+| [Impressão e cartas](IMPRESSAO.md) | Gerador de carta celeste com moldura, perfis e atlas, editor de anotações, exportações e o modo mapa |
 
 ### Para entender e resolver
 

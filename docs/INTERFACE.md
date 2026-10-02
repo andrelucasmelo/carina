@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.15.0 — produto em desenvolvimento.
+> Carina 0.16.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -10,7 +10,7 @@ Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│  Arquivo  Tempo  Exibir  Céu profundo  Ferramentas  …     │ ← menus
+│  Arquivo  Exibir  Tempo  Local  Objetos  Sistema Solar  … │ ← menus
 ├────┬─────────────────────────────────────────┬───────────┤
 │ 🔘 │                                          │           │
 │ 🔘 │                                          │ Informa-  │
@@ -18,6 +18,7 @@ Cada menu, botão e painel, com o que faz e o atalho correspondente.
 │ 🔘 │                                          │ (dock,    │
 │ ⋮  │                                          │  opcional)│
 ├────┴─────────────────────────────────────────┴───────────┤
+│  ▓▓▒▒░░  18h  20h  22h  00h  02h  04h  ░░▒▒▓▓             │ ← linha do tempo da noite
 │  Rio de Janeiro · 24/08/2026 22:00 · pausado · FOV 30°   │ ← estado
 └──────────────────────────────────────────────────────────┘
    ↑ barra lateral
@@ -111,7 +112,7 @@ O tamanho do passo sai de *Tempo → Passo dos botões*.
 | Rastrear | Rastreamento noturno do objeto selecionado |
 | Campo de visão | Simulador de enquadramento |
 | Planejar | Escolha rápida de um roteiro |
-| Imprimir | Gerador de mapas anotados |
+| Imprimir | Gerador de carta celeste (`Ctrl+Shift+P`) |
 | Informações | Crepúsculos e noite |
 
 ---
@@ -126,7 +127,9 @@ Oito menus, agrupados por tarefa. A lista completa de atalhos está em
 | Item | Atalho | O que faz |
 |---|---|---|
 | Exportar vista… | `Ctrl+S` | Salva a tela atual em PNG, JPG ou PDF |
-| Gerar mapa para impressão… | `Ctrl+Shift+P` | Editor de mapa anotado |
+| Gerar carta celeste… | `Ctrl+Shift+P` | Carta para imprimir com moldura, perfis e atlas ([IMPRESSAO.md](IMPRESSAO.md)) |
+| Anotar a vista atual… | | Editor de anotações sobre a tela em modo mapa |
+| Preferências… | `Ctrl+,` | Fonte da interface, rótulos do céu, instrumento da nota |
 | Sair | | Fecha o programa |
 
 ### Exibir
@@ -142,8 +145,31 @@ Quatro submenus de camadas e os controles gerais da vista.
 
 Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 [CATALOGOS.md](CATALOGOS.md)), **Modo mapa para impressão** (`Ctrl+M`),
-**Seguir objeto selecionado** (`F`), **Voltar à vista anterior**
-(`Backspace`), **Rótulos na barra lateral** e a exibição dos painéis.
+**Modo noturno (vermelho)** (`Ctrl+N`), **Tela cheia** (`F11`), **Modo
+observação** (`Ctrl+Shift+F`), **Linha do tempo da noite**, **Seguir objeto
+selecionado** (`F`), **Voltar à vista anterior** (`Backspace`), **Rótulos
+na barra lateral** e a exibição dos painéis.
+
+- **Modo noturno** pinta céu e interface inteiros em vermelho escuro, sem
+  azul nem verde, para não desfazer a adaptação do olho ao escuro. Fica
+  salvo: se você fechar o programa no modo noturno, ele reabre assim.
+
+<div align="center">
+<img src="imagens/modo-noturno.png" alt="Modo noturno" width="80%">
+</div>
+
+- **Modo observação** é para o lado do telescópio: os painéis somem, os
+  rótulos do céu crescem e um cartão mostra o **próximo alvo** do roteiro
+  aberto, com cronômetro, altura, direção e instrumento, e botões para ir
+  até ele, marcar como observado e andar pelas paradas.
+
+<div align="center">
+<img src="imagens/modo-observacao.png" alt="Cartão do modo observação" width="60%">
+</div>
+
+- **Linha do tempo da noite** fica no rodapé: do pôr ao nascer do Sol, com
+  as cores do crepúsculo e uma faixa clara enquanto a Lua está no céu.
+  Clique ou arraste para levar o relógio àquela hora.
 
 ### Tempo
 
@@ -166,6 +192,7 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 | Localização… | `Ctrl+L` | Escolha da cidade (745 embarcadas) e coordenadas |
 | Crepúsculos e noite… | `Ctrl+I` | Horários do Sol e das três faixas de crepúsculo, Lua |
 | Horizonte do quintal… | | Desenhe a silhueta de prédios e árvores ([PLANEJAMENTO.md](PLANEJAMENTO.md#o-horizonte-do-quintal)) |
+| Locais salvos ▸ | | Guarde o local atual (com Bortle e horizonte) e troque com um clique |
 
 ### Objetos
 
@@ -207,7 +234,10 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Documentação | `F1` | Abre esta documentação |
+| Ajuda do Carina | `F1` | Esta documentação, dentro do programa, com índice e busca |
+| O que há de novo | | As novidades da versão (abre sozinho depois de uma atualização) |
+| Abrir a documentação no navegador | | Os mesmos arquivos, no navegador |
+| Assistente de primeiro uso… | | Cidade, céu e instrumento em três passos |
 | Atalhos do teclado e do mouse… | `Ctrl+Shift+K` | Tabela pesquisável, lida dos próprios menus |
 | Sobre o Carina | | Versão e créditos dos dados |
 

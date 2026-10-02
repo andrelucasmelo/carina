@@ -1,6 +1,6 @@
 # Primeiros passos
 
-> Carina 0.15.0 — produto em desenvolvimento.
+> Carina 0.16.0 — produto em desenvolvimento.
 
 Um passeio guiado, do primeiro clique até um plano de observação impresso
 na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
@@ -9,8 +9,15 @@ na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
 
 ## 1. A primeira abertura
 
-Ao abrir, o Carina mostra o **céu de agora**, visto do **Rio de Janeiro**
-(o padrão de fábrica), olhando para o norte.
+Na primeira vez, um **assistente de três passos** pergunta **onde você
+observa** (a cidade, que também define o fuso horário), **como é o seu
+céu** (a escala de Bortle, com uma sugestão pela população da cidade) e
+**com o que você observa** (olho nu, binóculo ou telescópio). No fim, ele
+oferece desenhar o horizonte do quintal e mostrar o que vale a pena esta
+noite. Dá para pular e refazer depois em *Ajuda → Assistente de primeiro
+uso*.
+
+Depois disso, o Carina mostra o **céu de agora**, visto do seu local.
 
 <div align="center">
 <img src="imagens/tela-principal.png" alt="Tela principal" width="90%">
@@ -23,6 +30,11 @@ Três coisas para reparar:
 - **A barra lateral**, à esquerda: os interruptores do que aparece no céu
   e os atalhos das ferramentas.
 - **A barra de menus**, em cima: tudo o que o programa sabe fazer.
+- **A linha do tempo da noite**, logo acima da barra de estado: clique ou
+  arraste nela para percorrer a noite.
+
+Dúvida em qualquer ponto? **`F1`** abre esta documentação dentro do
+programa.
 
 ---
 

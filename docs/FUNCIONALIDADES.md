@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.15.0 — produto em desenvolvimento.
+> Carina 0.16.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -228,11 +228,37 @@ Detalhes em [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
 
 Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
+- **Gerador de carta celeste** (`Ctrl+Shift+P`): enquadramento (vista,
+  objeto, constelação inteira, campo do equipamento, rotação), papel A4,
+  A3 ou Carta, tema papel, escuro ou vermelho, estrelas e nomes até uma
+  magnitude, conteúdo à escolha, moldura com título, bússola, escala e
+  legenda, perfis salvos e **atlas** multipágina (paradas do roteiro,
+  itens da lista ou constelações visíveis);
+
 - **Modo mapa** (`Ctrl+M`): inverte para traços escuros sobre fundo
   branco, próprio para papel;
 - **Gerador de mapas** (`Ctrl+Shift+P`): anote livremente sobre a carta —
   textos, setas, formas e desenho à mão — e imprima ou exporte;
 - **Exportar vista** (`Ctrl+S`): salva a tela em imagem ou PDF.
+
+---
+
+## No campo
+
+- **Modo noturno** (`Ctrl+N`): céu e interface em vermelho escuro, sem azul
+  nem verde.
+- **Tela cheia** (`F11`) e **modo observação** (`Ctrl+Shift+F`): painéis
+  escondidos, rótulos maiores, cartão do próximo alvo com cronômetro.
+- **Linha do tempo da noite** no rodapé: clique ou arraste para percorrer
+  a noite.
+- **Locais salvos** (*Local*): o quintal, o sítio e a viagem a um clique.
+- **Preferências** (`Ctrl+,`): fonte da interface e dos rótulos, instrumento
+  da nota.
+
+## Ajuda
+
+- **Ajuda interna** (`F1`), **O que há de novo** e o **assistente de
+  primeiro uso**.
 
 ---
 
@@ -264,11 +290,10 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.15.0 **não há**:
+Para não criar expectativa errada, na versão 0.16.0 **não há**:
 
 - cometas e asteroides;
 - satélites artificiais (ISS, Starlink);
 - controle de telescópio (ASCOM, INDI);
-- modo de visão noturna (tela vermelha);
 - tradução para outros idiomas — a interface é só em português, embora o
   código já esteja preparado para tradução.

@@ -1,6 +1,6 @@
 # Instalação
 
-> Carina 0.15.0 — produto em desenvolvimento.
+> Carina 0.16.0 — produto em desenvolvimento.
 
 Há dois caminhos: usar o **executável pronto** (recomendado para
 observar) ou rodar **a partir do código** (para acompanhar o

@@ -562,7 +562,11 @@ def main(argv=None) -> int:
 
                     spec.framing, spec.target = "constellation", f"const:{args.chart_const}"
                     spec.fov_deg = constellation_fov(win.sky, args.chart_const)
-                    spec.title = args.chart_const
+                    from .catalogs.constnames import CONSTELLATIONS
+
+                    latin, pt = CONSTELLATIONS.get(args.chart_const,
+                                                   (args.chart_const, args.chart_const))
+                    spec.title = f"{pt} ({latin})"
                 page = cd.build_page(spec)
                 pw = PrintMapWindow(page, spec.title, win, page_mm=spec.page_mm())
                 pw.write_pdf(args.chart_pdf)

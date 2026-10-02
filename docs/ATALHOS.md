@@ -8,7 +8,8 @@ valem com a janela principal ativa.
 | Onde | Ação | Atalho |
 |---|---|---|
 | Arquivo | Exportar vista | `Ctrl+S` |
-| Arquivo | Gerar mapa para impressão | `Ctrl+Shift+P` |
+| Arquivo | Gerar carta celeste | `Ctrl+Shift+P` |
+| Arquivo | Preferências | `Ctrl+,` |
 | Exibir ▸ Objetos | Planetas, Sol e Lua | `P` |
 | Exibir ▸ Objetos | Objetos de céu profundo | `D` |
 | Exibir ▸ Objetos | Imagens dos objetos (DSS) no céu | `I` |
@@ -25,6 +26,9 @@ valem com a janela principal ativa.
 | Exibir ▸ Céu | Solo opaco (desmarque para ver abaixo do horizonte) | `G ou V` |
 | Exibir | Filtros do céu profundo | `Ctrl+Shift+C` |
 | Exibir | Modo mapa para impressão | `Ctrl+M` |
+| Exibir | Modo noturno (vermelho) | `Ctrl+N` |
+| Exibir | Tela cheia | `F11` |
+| Exibir | Modo observação | `Ctrl+Shift+F` |
 | Exibir | Seguir objeto selecionado | `F` |
 | Exibir | Voltar à vista anterior | `Backspace` |
 | Tempo | Agora | `8` |
@@ -53,7 +57,7 @@ valem com a janela principal ativa.
 | Planejar | Hoje à noite | `T` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |
-| Ajuda | Documentação | `F1` |
+| Ajuda | Ajuda do Carina | `F1` |
 | Ajuda | Atalhos do teclado e do mouse | `Ctrl+Shift+K` |
 
 | Gesto | Efeito |

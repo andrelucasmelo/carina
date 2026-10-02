@@ -11,8 +11,8 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.15.0-blue)](#estado-do-projeto)
-[![testes](https://img.shields.io/badge/testes-271%20passando-brightgreen)](#qualidade)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.16.0-blue)](#estado-do-projeto)
+[![testes](https://img.shields.io/badge/testes-300%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
 
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.15.0 — **em desenvolvimento**
+> ### Versão 0.16.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -58,7 +58,8 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 📓 | **Diário e listas** | Listas de alvos com a nota da noite e diário de observação com condições, guardados no seu computador |
 | 🗺️ | **Cartas de campo** | PDF com a carta geral da noite, checklist e uma carta de localização por objeto, em tema claro, escuro ou vermelho |
 | 📷 | **Astrofotografia** | Simulador de enquadramento (inclusive Seestar S50/S30), zona de influência da Lua e rastreamento noturno |
-| 🖨️ | **Impressão** | Mapas anotáveis à mão livre, exportáveis em PNG, PDF e SVG |
+| 🖨️ | **Cartas celestes** | Gerador de cartas com moldura, legenda, escala e bússola, em papel, escuro ou vermelho; perfis e atlas multipágina; anotações à mão livre |
+| 🔴 | **No campo** | Modo noturno vermelho, tela cheia, modo observação com o próximo alvo e cronômetro, linha do tempo da noite no rodapé |
 
 <div align="center">
 <img src="docs/imagens/tela-principal.png" alt="Tela principal do Carina" width="90%">
@@ -145,7 +146,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **271 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **300 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
   renderização;
 - **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield
