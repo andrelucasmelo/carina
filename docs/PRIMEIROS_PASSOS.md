@@ -1,6 +1,6 @@
 # Primeiros passos
 
-> Carina 0.13.2 — produto em desenvolvimento.
+> Carina 0.15.0 — produto em desenvolvimento.
 
 Um passeio guiado, do primeiro clique até um plano de observação impresso
 na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
@@ -70,6 +70,11 @@ Escolha a sua e veja a tela mudar. Se você mora na cidade e escolheu 8,
 o céu esvazia — é exatamente o que seus olhos vão encontrar lá fora. **É
 melhor descobrir isso aqui do que depois de montar o telescópio.**
 
+Tem prédio, muro ou árvore escondendo parte do céu? Vá em *Local →
+Horizonte do quintal…* e desenhe a silhueta por cima das estrelas do
+momento. Daí em diante, o solo sobe até ela e as notas e roteiros só
+contam com o céu que você enxerga de verdade.
+
 ---
 
 ## 4. Navegue pelo céu
@@ -113,8 +118,11 @@ estrelas sumirem.
 
 Ache **M 42** (a Nebulosa de Órion) com `Ctrl+F` e clique nela.
 
-O painel da direita mostra a ficha: designações, tipo, magnitude,
-tamanho, constelação, coordenadas e a posição no céu **agora**.
+O painel da direita mostra a ficha. No alto, uma **nota de 0 a 100** diz
+se vale a pena esta noite, e por quê. A seção **Hoje** traz quando ela
+nasce, culmina e se põe, a janela útil, a melhor hora e um gráfico da
+noite. Embaixo, a posição agora, o que esperar ver e botões como
+**★ Minha lista** e **✓ Observado** (o seu diário).
 
 Agora clique com o **botão direito** sobre ela. O menu oferece:
 
@@ -143,7 +151,10 @@ só com a imagem limpa.
 
 Chegamos ao que diferencia o Carina de um planetário comum.
 
-Vá em *Planejar → Visual → **Melhores Objetos da Noite***.
+Pressione **`T`**: o **Hoje à noite** resume a noite, a Lua e os cinco
+melhores alvos para o seu céu. É o melhor jeito de começar.
+
+Depois vá em *Planejar → Roteiros → **Melhores Objetos da Noite***.
 
 <div align="center">
 <img src="imagens/plano-melhores.png" alt="Plano de observação" width="90%">

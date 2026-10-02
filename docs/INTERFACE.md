@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.13.2 — produto em desenvolvimento.
+> Carina 0.15.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -54,9 +54,10 @@ e diz a hora em que ele nasce.
 - **Janela de detalhes…** — imagem grande e gráfico anual de altitude
 - **Selecionar e centralizar** · **Seguir X** · **Rastrear na noite…**
 - **Ir para a melhor hora desta noite** — salta o relógio para a maior
-  altitude com céu escuro nas próximas 24 h (e pausa)
+  altitude dentro da janela útil, já com o seu horizonte (e pausa)
 - **Ir para quando nasce** — aparece quando o objeto está sob o horizonte
 - **Enquadrar com equipamento…** — abre o simulador de campo centrado nele
+- **★ Acrescentar à minha lista** · **✓ Marcar como observado…**
 - **Copiar nome** · **Copiar coordenadas** (AR/Dec J2000 e Az/Alt atuais)
 
 **Sobre o céu vazio**
@@ -101,6 +102,7 @@ O tamanho do passo sai de *Tempo → Passo dos botões*.
 
 | Botão | Função |
 |---|---|
+| Hoje | Hoje à noite: a noite, a Lua, os melhores alvos e os planetas (`T`) |
 | Medir | Clique em dois pontos para medir a separação angular |
 | Zoom por área | Arraste um retângulo para enquadrar |
 | Modo mapa | Alterna para o esquema de impressão |
@@ -153,6 +155,7 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 | Velocidade normal | `7` | Volta a 1× |
 | Ir para data/hora… | `Ctrl+T` | Salta para um instante, na **hora do observador** |
 | **Ir para ▸** | | Pôr do sol · Início da noite astronômica · Meia-noite local · Fim da noite astronômica · Nascer do sol (pausa no instante) |
+| Calendário de noites escuras… | `Ctrl+Shift+N` | Horas sem Lua de cada noite do mês; clique leva à data |
 | Passo dos botões | | De 1 minuto a 1 ano |
 | Retroceder / avançar | `Ctrl+←` `Ctrl+→` | Um passo para trás ou para frente |
 
@@ -162,17 +165,21 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 |---|---|---|
 | Localização… | `Ctrl+L` | Escolha da cidade (745 embarcadas) e coordenadas |
 | Crepúsculos e noite… | `Ctrl+I` | Horários do Sol e das três faixas de crepúsculo, Lua |
+| Horizonte do quintal… | | Desenhe a silhueta de prédios e árvores ([PLANEJAMENTO.md](PLANEJAMENTO.md#o-horizonte-do-quintal)) |
 
 ### Objetos
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Buscar… | `Ctrl+F` | Busca unificada com ir-para (aceita nomes em português) |
-| Informações do objeto selecionado | `Ctrl+J` | Abre o painel lateral |
+| Buscar… | `Ctrl+F` | Nomes, designações, Bayer e constelações, com altitude e nota; `Ctrl+Enter` acrescenta à lista |
+| Informações do objeto selecionado | `Ctrl+J` | Abre a ficha no painel lateral |
 | Detalhes e gráfico anual… | `Ctrl+Shift+D` | Imagem grande e gráfico anual |
 | Rastrear na noite… | `Ctrl+R` | Carta polar da trajetória |
-| Ir para a melhor hora desta noite | | Salta o relógio para a maior altitude com céu escuro |
+| Ir para a melhor hora desta noite | | Salta o relógio para a melhor hora da janela útil |
 | Ir para quando nasce | | Salta o relógio para pouco depois do nascer |
+| Minhas listas… | `Ctrl+Shift+L` | Listas de alvos com a nota da noite ([DIARIO.md](DIARIO.md)) |
+| ★ Acrescentar seleção à minha lista | `Ctrl+B` | Acrescenta o objeto selecionado |
+| Diário de observação… | `Ctrl+Shift+J` | Registros, busca e exportação CSV |
 | Gerenciar catálogo de céu profundo… | `Ctrl+D` | CRUD completo, categorias, habilitar/desabilitar |
 
 ### Sistema Solar
@@ -191,7 +198,8 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 
 | Item | Atalho | O que faz |
 |---|---|---|
-| Roteiros ▸ (dez roteiros) | | Ver [PLANEJAMENTO.md](PLANEJAMENTO.md) |
+| Hoje à noite… | `T` | Resumo da noite com os melhores alvos |
+| Roteiros ▸ | | Maratonas, melhores objetos, roteiro da minha lista, destaques ([PLANEJAMENTO.md](PLANEJAMENTO.md)) |
 | Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |
 
@@ -207,38 +215,51 @@ Abaixo dos submenus: **Filtros do céu profundo…** (`Ctrl+Shift+C`, ver
 
 ## Painéis e janelas
 
-### Painel de informações (direita)
+### Ficha do objeto (direita)
 
-Mostra a ficha do objeto selecionado, atualizada a cada segundo: nome,
-designações, tipo, magnitude, tamanho, constelação, coordenadas J2000 e
-a posição **agora** (azimute e altitude). Para objetos de céu profundo,
-traz também a miniatura da imagem.
+<div align="center">
+<img src="imagens/ficha.png" alt="Ficha do objeto" width="38%">
+</div>
 
-Abra com `Ctrl+J` ou em *Exibir → Informações*.
+A mesma ficha aparece no painel lateral, no popup do botão direito
+(*Informações de X*, que pode ficar no topo) e na janela de detalhes:
+
+- **resumo** — nome, tipo, constelação, magnitude, tamanho, designações e
+  a imagem do levantamento (céu profundo);
+- **nota da noite** — de 0 a 100, com a explicação;
+- **Hoje** — nasce, culmina, se põe, janela útil, melhor hora, a Lua, o
+  instrumento sugerido e o gráfico da noite;
+- **Posição agora** — AR/Dec J2000 e da data, azimute e altitude, ângulo
+  horário (subindo ou já culminou) e massa de ar;
+- **O que esperar** — ao olho, ao binóculo e ao telescópio; nas estrelas,
+  a cor, a distância em anos-luz e o tipo espectral;
+- **Seu diário** — quantas vezes você observou, a última nota e as listas
+  em que o objeto está;
+- **botões** — Centralizar, Seguir, Rastrear, Detalhes, Enquadrar, Melhor
+  hora, ★ Minha lista, ✓ Observado e Copiar.
+
+Abra com `Ctrl+J` ou clicando num objeto.
 
 ### Janela de detalhes
 
-Imagem grande, ficha completa e o **gráfico de altitude ao longo do ano**,
-amostrado a cada dez dias, com duas curvas:
+Imagem grande, a ficha completa e o **gráfico de altitude ao longo do
+ano**, amostrado a cada dez dias, com duas curvas:
 
 - **laranja** — a altitude no meio da noite astronômica. O pico é a
   melhor época do ano para o objeto;
 - **azul** — a altitude máxima que ele alcança naquela noite.
 
-A barra de estado resume: *"Melhor época: 12/12 — 72° no meio da noite"*.
+Passe o mouse sobre o gráfico para ler a data e as altitudes.
 
 ### Janela de planejamento
 
-Lista do roteiro com horário, objeto, tipo, magnitude, tamanho, altitude,
-**instrumento recomendado**, constelação e distância à Lua. Cores:
+Tabela do roteiro, painel com carta e gráfico, linha do tempo arrastável e
+filtros. Descrição completa em
+[PLANEJAMENTO.md](PLANEJAMENTO.md#a-janela-de-planejamento).
 
-- **laranja** — o objeto está perto da Lua e será prejudicado;
-- **azul** — foi agendado com o céu ainda claro (só entrou por ser
-  bem brilhante).
+### Hoje à noite, Minhas listas, Diário e Calendário
 
-Duplo clique leva ao objeto no mapa. O menu **Configurar** ajusta e
-recalcula na hora; **Arquivo** pré-visualiza (`Ctrl+Shift+V`) e exporta
-o PDF (`Ctrl+P`).
+Ver [PLANEJAMENTO.md](PLANEJAMENTO.md) e [DIARIO.md](DIARIO.md).
 
 ### Janela de rastreamento
 

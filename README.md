@@ -11,8 +11,8 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.14.0-blue)](#estado-do-projeto)
-[![testes](https://img.shields.io/badge/testes-185%20passando-brightgreen)](#qualidade)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.15.0-blue)](#estado-do-projeto)
+[![testes](https://img.shields.io/badge/testes-271%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
 
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.14.0 — **em desenvolvimento**
+> ### Versão 0.15.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -52,8 +52,11 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 🔭 | **Céu profundo** | 18.632 objetos de 11 catálogos, filtro de exibição por catálogo/tipo/magnitude/tamanho, nomes em português e 1.179 imagens reais do levantamento DSS embarcadas |
 | 🪐 | **Sistema Solar** | Planetas, Sol e Lua com fase geométrica; trajetórias anuais, oposições e elongações máximas |
 | 🌑 | **Eclipses** | Previsão de eclipses solares e lunares, com a visibilidade calculada para o seu local |
-| 📋 | **Planejamento** | Dez tipos de roteiro — maratonas Messier e Caldwell, destaques do mês e da estação, melhores objetos da noite |
-| 🗺️ | **Cartas de campo** | PDF com checklist e uma carta de localização por objeto: setas, distâncias em graus e rota de star-hopping |
+| 🌙 | **Hoje à noite** | Em uma tecla: a noite, a Lua, as horas escuras sem ela e os melhores alvos para o seu céu, cada um com nota de 0 a 100 explicada |
+| 📋 | **Planejamento** | Roteiros com nasce/culmina/se põe e janela útil de cada alvo, linha do tempo arrastável, filtros e calendário de noites escuras |
+| 🏠 | **Horizonte do quintal** | Desenhe a silhueta de prédios e árvores; o céu, as notas e os roteiros passam a respeitá-la |
+| 📓 | **Diário e listas** | Listas de alvos com a nota da noite e diário de observação com condições, guardados no seu computador |
+| 🗺️ | **Cartas de campo** | PDF com a carta geral da noite, checklist e uma carta de localização por objeto, em tema claro, escuro ou vermelho |
 | 📷 | **Astrofotografia** | Simulador de enquadramento (inclusive Seestar S50/S30), zona de influência da Lua e rastreamento noturno |
 | 🖨️ | **Impressão** | Mapas anotáveis à mão livre, exportáveis em PNG, PDF e SVG |
 
@@ -92,8 +95,10 @@ executável — está em **[docs/INSTALACAO.md](docs/INSTALACAO.md)**.
 2. **Ajuste o céu ao seu quintal** — *Exibir → Poluição luminosa* e
    escolha sua classe de Bortle. O céu na tela passa a mostrar o que
    você realmente enxerga daí.
-3. **Peça um plano** — *Planejar → Visual → Melhores Objetos da Noite*.
-4. **Leve para o campo** — na janela do plano, `Ctrl+Shift+V`
+3. **Veja o que vale hoje** — tecla **T** (*Hoje à noite*): a noite, a Lua
+   e os melhores alvos para o seu céu, com nota e melhor hora.
+4. **Peça um plano** — *Planejar → Roteiros → Melhores Objetos da Noite*.
+5. **Leve para o campo** — na janela do plano, `Ctrl+Shift+V`
    pré-visualiza e `Ctrl+P` gera o PDF com as cartas de busca.
 
 O passeio guiado completo está em
@@ -140,8 +145,11 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **185 testes automatizados** cobrindo projeção, efemérides, eclipses,
-  crepúsculos, rastreamento, planejamento e renderização;
+- **271 testes automatizados** cobrindo projeção, efemérides, eclipses,
+  crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
+  renderização;
+- **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield
+  em três datas e duas latitudes: erro abaixo de um minuto;
 - **eclipses** validados contra o cânone da NASA: datas, tipos e
   magnitudes de 2026–2028 batem exatamente;
 - **oposição de Marte** em 20/02/2027 e elongações de Vênus entre 40° e

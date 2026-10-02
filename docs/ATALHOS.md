@@ -33,6 +33,7 @@ valem com a janela principal ativa.
 | Tempo | Mais rápido | `L` |
 | Tempo | Velocidade normal (1x) | `7` |
 | Tempo | Ir para data/hora | `Ctrl+T` |
+| Tempo | Calendário de noites escuras | `Ctrl+Shift+N` |
 | Tempo | Retroceder um passo | `Ctrl+Left` |
 | Tempo | Avançar um passo | `Ctrl+Right` |
 | Local | Localização | `Ctrl+L` |
@@ -41,11 +42,15 @@ valem com a janela principal ativa.
 | Objetos | Informações do objeto selecionado | `Ctrl+J` |
 | Objetos | Detalhes e gráfico anual | `Ctrl+Shift+D` |
 | Objetos | Rastrear na noite | `Ctrl+R` |
+| Objetos | Minhas listas | `Ctrl+Shift+L` |
+| Objetos | ★ Acrescentar seleção à minha lista | `Ctrl+B` |
+| Objetos | Diário de observação | `Ctrl+Shift+J` |
 | Objetos | Gerenciar catálogo de céu profundo | `Ctrl+D` |
 | Sistema Solar | Eclipses | `Ctrl+E` |
 | Sistema Solar | Exibir caminhos dos planetas | `Shift+P` |
 | Sistema Solar | Exibir previsão da Lua no céu | `Shift+M` |
 | Sistema Solar | Zona de influência da Lua (astrofoto) | `U` |
+| Planejar | Hoje à noite | `T` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |
 | Ajuda | Documentação | `F1` |

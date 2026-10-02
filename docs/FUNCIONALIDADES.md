@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.13.2 — produto em desenvolvimento.
+> Carina 0.15.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -168,23 +168,42 @@ simulação ao instante do eclipse.
 
 ## Planejamento de observação
 
-Dez tipos de roteiro, no menu *Planejar → Visual*. Detalhes completos em
-[PLANEJAMENTO.md](PLANEJAMENTO.md).
+Detalhes completos em [PLANEJAMENTO.md](PLANEJAMENTO.md).
 
-| Roteiro | O que traz |
-|---|---|
-| **Maratona Messier** | Os 110 clássicos observáveis na noite |
-| **Maratona Caldwell** | Os 109 da lista complementar |
-| **Aglomerados abertos** | Os mais brilhantes da noite |
-| **Aglomerados globulares** | Idem |
-| **Nebulosas** | De emissão, reflexão e planetárias |
-| **Nebulosas escuras** | Selecionadas por tamanho, para contraste |
-| **Melhores objetos da noite** | Os mais espetaculares + planetas + Lua |
-| **Destaques do mês** | O que vale a pena o mês inteiro |
-| **Destaques da estação** | Idem, para o trimestre |
-| **Estrelas brilhantes** | As mais brilhantes, com a cor e como achá-las |
+- **Hoje à noite** (`T`): crepúsculos, a Lua e as horas escuras sem ela,
+  os cinco melhores alvos de céu profundo e os planetas que valem a pena,
+  com ir para, melhor hora e roteiro dos melhores.
+- **Pontuação de observabilidade**: nota de 0 a 100 para a noite em toda
+  ficha, lista, busca e roteiro, com a explicação em português (altitude,
+  tempo de janela, Lua e se o objeto aguenta o seu céu).
+- **Nasce, culmina e se põe** de qualquer objeto, com a janela útil e a
+  melhor hora, e um gráfico da noite na ficha.
+- **Horizonte do quintal** (*Local → Horizonte do quintal…*): desenhe a
+  silhueta de prédios e árvores sobre o céu do instante; o solo, as notas
+  e os roteiros passam a respeitá-la.
+- **Roteiros** (*Planejar → Roteiros*): maratonas Messier e Caldwell,
+  temáticas, melhores objetos, **roteiro da minha lista**, destaques do mês
+  e da estação, estrelas brilhantes.
+- **Janela de planejamento**: tabela com designação e nome, nota e janela
+  útil; carta de localização e gráfico da noite ao lado; **linha do tempo**
+  arrastável; filtros por instrumento, tipo, altitude e Lua; ir para no
+  mapa e na hora; reordenar e remover.
+- **Calendário de noites escuras** (`Ctrl+Shift+N`): horas sem Lua de cada
+  noite do mês, com as três melhores destacadas.
+- **PDF de campo** com a carta geral da noite, checklist e cartas de
+  localização, em tema claro, escuro ou vermelho; exportação em CSV e
+  texto.
 
-Todos geram **PDF de campo** com checklist e cartas de localização.
+## Diário e listas
+
+Detalhes em [DIARIO.md](DIARIO.md).
+
+- **Minhas listas** (`Ctrl+Shift+L`): várias listas com nome, a nota de
+  cada item nesta noite, anotações e roteiro da lista. Acrescente com ★ na
+  ficha, no botão direito, `Ctrl+B` ou `Ctrl+Enter` na busca.
+- **Diário de observação** (`Ctrl+Shift+J`): registre data, local,
+  instrumento, Bortle, seeing, transparência, avaliação e nota; o
+  histórico aparece na ficha do objeto; exportação em CSV.
 
 ---
 
@@ -224,8 +243,14 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 - **Medição angular**: escolha a ferramenta na barra lateral e clique em
   dois pontos para medir a separação;
 - **Zoom por área**: arraste um retângulo para enquadrar exatamente;
-- **Busca** (`Ctrl+F`): estrelas, objetos de céu profundo e corpos do
-  Sistema Solar, com ir-para animado.
+- **Ficha do objeto**: a mesma no painel lateral, no popup do botão
+  direito (que pode ficar no topo) e na janela de detalhes — nota da
+  noite, seção Hoje, posição ao vivo (J2000 e da data, ângulo horário,
+  massa de ar), o que esperar, distância e tipo espectral das estrelas,
+  seu diário e os botões de ação;
+- **Busca** (`Ctrl+F`): nomes, designações, **Bayer** em várias grafias
+  ("alfa ori", "α Ori", "alpha orionis") e **constelações** (vai ao centro
+  e destaca), com a altitude agora e a nota da noite em cada resultado.
 - **Navegação**: zoom ancorado no cursor, duplo clique para centralizar,
   setas e `+`/`−`, tooltip ao pairar, **seguir objeto** (`F`), voltar à
   vista anterior (`Backspace`), "Qual constelação é esta?" e "Ir para a
@@ -239,7 +264,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.14.0 **não há**:
+Para não criar expectativa errada, na versão 0.15.0 **não há**:
 
 - cometas e asteroides;
 - satélites artificiais (ISS, Starlink);

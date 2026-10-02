@@ -1,3 +1,3 @@
 """Carina — planetário desktop em Python (PySide6 + OpenGL + Skyfield)."""
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"

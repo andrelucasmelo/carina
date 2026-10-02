@@ -1,130 +1,213 @@
 # Planejamento de observação
 
-> Carina 0.13.2 — produto em desenvolvimento.
+> Carina 0.15.0 — produto em desenvolvimento.
 
-Aqui está o que diferencia o Carina de um planetário comum: ele não só
-mostra o céu, como **monta o roteiro da sua noite** e o entrega impresso,
-pronto para o campo.
+O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
+que horas?"** em todo lugar, e transforma a resposta num roteiro da noite
+que você leva impresso para o campo.
 
 ---
 
-## Os dez roteiros
+## Hoje à noite (tecla T)
 
-Menu *Planejar → Visual*.
+*Planejar → Hoje à noite…*, a tecla **T** ou o botão **Hoje** da barra
+lateral.
 
-### Maratonas de catálogo
+<div align="center">
+<img src="imagens/hoje-a-noite.png" alt="Hoje à noite" width="70%">
+</div>
 
-| Roteiro | Objetos |
+Numa página só:
+
+- **a noite** — pôr do sol, crepúsculos civil, náutico e astronômico,
+  nascer do sol;
+- **a Lua** — fase, iluminação, nascer e ocaso, e quantas horas de noite
+  astronômica ficam **sem ela**;
+- **uma frase sobre a noite** — "Noite excelente para céu profundo: 5,3 h
+  de céu escuro sem Lua";
+- **os cinco melhores alvos de céu profundo**, pela pontuação de
+  observabilidade (com o seu céu e o seu horizonte), no máximo dois do
+  mesmo tipo;
+- **os planetas** que valem a pena, com a melhor hora.
+
+Dali você vai ao objeto no mapa, leva o relógio à **melhor hora**,
+acrescenta à sua lista (★) ou monta o roteiro dos melhores objetos.
+
+---
+
+## A pontuação de observabilidade
+
+Toda ficha, lista, busca e roteiro mostra uma **nota de 0 a 100** para a
+noite, com o porquê em português:
+
+> **Boa (68):** alto no céu (71° às 04:15), 4 h 16 min de janela, Lua (55%)
+> a 36° atrapalha, exige céu razoável (Bortle 5)
+
+Quatro fatores entram na conta:
+
+| Fator | O que mede |
 |---|---|
-| **Maratona Messier** | Os 110 objetos do catálogo de Charles Messier |
-| **Maratona Caldwell** | Os 109 da lista complementar de Patrick Moore |
+| **Altitude** | Na melhor hora da noite. 15° ou menos vale zero; 60° ou mais, o máximo |
+| **Tempo** | Minutos utilizáveis na noite escura, acima da altitude mínima e do seu horizonte. Duas horas valem o máximo |
+| **Lua** | Iluminação × proximidade ao longo da janela, mais o clareamento geral do céu quando ela está acima do horizonte |
+| **Céu** | O objeto aguenta o seu céu? Magnitude contra a magnitude limite do instrumento e, para objetos extensos, **brilho superficial** contra o brilho do fundo do céu do seu Bortle |
 
-A tradição da maratona Messier é ver o maior número possível numa só
-noite. O Carina ordena os alvos pela **urgência**: quem se põe primeiro
-vai primeiro. Por isso o roteiro costuma abrir com as galáxias de Virgem
-e da Cabeleira, que estão mergulhando no oeste.
+O fator céu multiplica os outros: um objeto fraco demais para o seu céu
+não fica bom só por estar alto. É ele que separa **M 31**, de núcleo
+brilhante, de **M 33**, grande e difusa.
 
-### Maratonas temáticas
-
-| Roteiro | Critério |
+| Nota | Leitura |
 |---|---|
-| **Aglomerados abertos** | Magnitude até 8,0 |
-| **Aglomerados globulares** | Magnitude até 9,5 |
-| **Nebulosas** | Emissão, reflexão e planetárias até magnitude 10,0 |
-| **Nebulosas escuras** | Tamanho a partir de 40′ — elas não têm magnitude, vivem de contraste |
+| 75 a 100 | Excelente |
+| 55 a 74 | Boa |
+| 35 a 54 | Razoável |
+| 1 a 34 | Difícil |
+| 0 | Não visível — com o motivo ("não nasce", "fica atrás do seu horizonte"…) |
 
-### Melhores objetos da noite
+> A nota usa o **Bortle** escolhido em *Exibir → Céu → Poluição luminosa*
+> e o **horizonte do quintal** ativo. Mudou um dos dois? As fichas abertas
+> se recalculam sozinhas.
 
-Reúne o que há de mais espetacular: objetos de céu profundo com nome
-próprio famoso, **os planetas** acima do horizonte e **a Lua** (quando
-há fase para ver). O passo é esticado para o roteiro **cobrir a noite
-inteira** — é um passeio, não uma corrida.
+---
 
-### Listas do período
+## Nasce, culmina, se põe
+
+A seção **Hoje** da ficha de qualquer objeto (clique nele) mostra:
+
+- **nasce · se põe** — com a refração padrão no horizonte, como nos
+  almanaques; "circumpolar" quando não se põe;
+- **culmina** — a hora e a altura máxima;
+- **janela útil** — de quando a quando o objeto fica acima da altitude
+  mínima **e** do seu horizonte, dentro da noite escura;
+- **melhor hora** — a maior altitude dentro da janela;
+- **a Lua** naquela hora e o **instrumento** sugerido;
+- **o gráfico da noite** — altitude por hora, com as faixas do
+  crepúsculo, a altitude mínima tracejada, o seu horizonte em marrom, a
+  janela útil em verde e o "agora" em vermelho. Passe o mouse para ler.
+
+Os horários batem com o almanaque do Skyfield com erro abaixo de um
+minuto.
+
+---
+
+## O horizonte do quintal
+
+*Local → Horizonte do quintal…*
+
+Quase ninguém observa de um horizonte plano. Prédios, muros e árvores
+escondem uma faixa do céu, e o Carina passa a levar isso em conta.
+
+<div align="center">
+<img src="imagens/horizonte-editor.png" alt="Editor do horizonte" width="85%">
+</div>
+
+O editor mostra um panorama de 0° a 360° de azimute por 0° a 60° de
+altitude, com as estrelas e os planetas **deste instante** e, se houver
+um objeto selecionado, a **trajetória dele** durante a noite. Assim fica
+fácil desenhar a silhueta olhando onde as estrelas somem atrás do prédio:
+
+- **clique** num lugar vazio para acrescentar um ponto;
+- **arraste** um ponto para movê-lo;
+- **botão direito** num ponto o remove;
+- **Modelo…** traz perfis prontos (plano, muro de 10°, vale, prédio ao
+  sul);
+- **Importar / Exportar CSV** troca perfis com outros programas
+  (`azimute;altitude`, vírgula ou ponto decimal).
+
+Você pode guardar vários perfis (o quintal, o sítio, a varanda) e marcar
+qual está em uso. O perfil ativo:
+
+- **eleva o solo** até a silhueta, e os rótulos de quem fica atrás dela
+  somem;
+- **recorta a janela útil** e reduz a nota de quem passa a noite
+  escondido;
+- **tira do roteiro** o objeto que só estaria visível atrás do prédio.
+
+<div align="center">
+<img src="imagens/horizonte-ceu.png" alt="Silhueta do horizonte no céu" width="85%">
+</div>
+
+---
+
+## Os roteiros
+
+*Planejar → Roteiros*.
 
 | Roteiro | O que traz |
 |---|---|
-| **Destaques do mês** | Objetos bem posicionados em **todas** as noites do mês |
-| **Destaques da estação** | Idem, para o trimestre da estação |
+| **Maratona Messier / Caldwell** | Os 110 e os 109 objetos clássicos, em ordem de urgência |
+| **Aglomerados abertos / globulares** | Até magnitude 8,0 e 9,5 |
+| **Nebulosas** | Emissão, reflexão e planetárias até magnitude 10,0 |
+| **Nebulosas escuras** | A partir de 40′ — vivem de contraste, não de brilho |
+| **Melhores objetos da noite** | Os famosos, os planetas e a Lua, espalhados pela noite inteira |
+| **Roteiro da minha lista** | Os itens da sua lista (veja [Diário e listas](DIARIO.md)) |
+| **Destaques do mês / da estação** | Objetos bem posicionados em **todas** as noites do período, sem horário |
+| **Estrelas brilhantes** | As mais brilhantes da noite, com a cor de cada uma |
 
-Estes dois **não têm horário de parada**: são listas do que vale a pena
-durante todo o período. O critério é exigente de propósito — o objeto
-precisa passar da altitude mínima nos dias 5, 15 e 25 de cada mês, para
-que a lista continue verdadeira em qualquer noite.
+A ordem é a da **urgência**: quem se põe primeiro vai primeiro. Cada
+objeto ganha um horário dentro da própria janela útil, espaçado pelo
+tempo por objeto que você configurou.
 
 > **A estação é calculada pela sua latitude.** A mesma data de agosto é
-> *Inverno* no Rio de Janeiro e *Verão* em Paris, e as listas são
-> diferentes — como devem ser.
-
-Para não concentrar tudo no zênite da estação, há um **teto por
-constelação**: sem ele, os quarenta objetos do inverno austral cairiam
-todos em Sagitário.
-
-### Estrelas brilhantes
-
-As mais brilhantes da sua noite, ordenadas por brilho — que é como se
-aprende o céu. Cada uma traz a constelação, a **cor da estrela** (do
-índice B−V) e a rota até ela.
+> *Inverno* no Rio de Janeiro e *Verão* em Paris.
 
 ---
 
-## A janela da noite
-
-Menu *Planejar → Configurar planejamento* (`Ctrl+Shift+O`), ou o menu
-**Configurar** de dentro de qualquer janela de plano.
+## A janela de planejamento
 
 <div align="center">
-<img src="imagens/config-planejamento.png" alt="Configuração do planejamento" width="70%">
+<img src="imagens/plano-melhores.png" alt="Janela de planejamento" width="95%">
 </div>
 
-### Ritmo
+### A tabela
 
-- **Tempo por objeto** (3 a 10 minutos, padrão 4): quanto tempo você
-  pretende passar em cada alvo. É o que espaça as paradas.
-- **Altitude mínima** (padrão 20°): abaixo disso a atmosfera degrada
-  demais a imagem, e o objeto é descartado do roteiro.
+Cada linha traz o horário, a **designação e o nome** (M 8 — Nebulosa da
+Lagoa), tipo, magnitude, altitude no horário, a **janela útil**, a
+**nota da noite**, o **instrumento** (com "difuso" quando o brilho
+superficial é baixo), a constelação, a distância à Lua (vazia quando ela
+está abaixo do horizonte) e ✓ quando o objeto já está no seu diário.
 
-### Início e fim
+As cores ajudam:
 
-Cada extremo da noite pode vir de:
+- **vermelho** — o horário caiu depois do fim da janela útil (acontece
+  quando você reordena);
+- **laranja** — perto da Lua;
+- **azul** — agendado com o céu ainda claro (só entra por ser brilhante).
 
-| Opção | Quando começa/termina |
+### O painel ao lado
+
+Clique numa linha e veja, sem abrir o PDF, a **carta de localização**, o
+**gráfico da noite** do objeto e as instruções: o que ver, ao binóculo e
+como encontrar.
+
+### A linha do tempo
+
+Embaixo, um gráfico de barras da noite: no topo, as cores do céu pelo
+crepúsculo e a faixa clara enquanto a Lua está no céu; abaixo, uma linha
+por parada, com a **janela útil** (traço fino) e o **horário agendado**
+(bloco colorido pela nota). **Arraste o bloco** para mudar o horário de
+uma parada: ela vai para a posição certa e as demais são reagendadas.
+
+### Os botões de cada linha
+
+| Botão | O que faz |
 |---|---|
-| **Noite astronômica** (padrão) | Quando o Sol está 18° abaixo do horizonte — o céu de fato escuro |
-| **Crepúsculo civil** | Logo após o pôr do sol (Sol a 6°) |
-| **Pôr / nascer do sol** | O instante do ocaso e do nascer |
-| **Horário fixo** | Uma hora que você digita |
+| **Ir para no mapa** | Centraliza o objeto |
+| **Ir para na hora** | Leva também o relógio ao horário da parada |
+| **Rastrear** | Trajetória da noite em carta polar |
+| **✓ Observado** | Registra no diário |
+| **Anotar…** | Nota que vai junto no PDF |
+| **Subir / Descer / Remover** | Edita o roteiro e reagenda os horários |
 
-O horário fixo é interpretado no **fuso do observador** — se você
-configurou o Atacama, "22:00" é 22:00 de lá.
+### Os filtros
 
-### A regra do céu claro
-
-Esta é a parte importante. Se você esticar a janela para além da noite
-astronômica, o trecho com o céu ainda claro **só recebe objetos bem
-brilhantes** — magnitude até 5,5 por padrão, ajustável.
-
-A razão é prática: agendar uma galáxia de magnitude 10 num céu ainda
-azul é frustração garantida. Nesses horários entram Vênus, a Lua,
-M 42, M 45 e companhia. Eles aparecem **em azul** na lista e marcados
-como **"céu claro"** no PDF.
-
-Se você mantiver o padrão (noite astronômica), essa regra nunca chega a
-atuar — a janela inteira já é escura.
+A barra acima da tabela recalcula o roteiro com: **instrumento** que você
+tem (só o que vale a pena até ele), **tipos** de objeto, **máximo** de
+objetos, **altitude mínima** e **distância mínima da Lua**.
 
 ---
 
-## Lendo o roteiro
-
-<div align="center">
-<img src="imagens/plano-melhores.png" alt="Janela de planejamento" width="90%">
-</div>
-
-Cada linha traz hora sugerida, objeto, nome próprio, tipo, magnitude,
-tamanho, altitude naquele horário, **instrumento recomendado**,
-constelação e distância à Lua.
-
-### O instrumento recomendado
+## O instrumento recomendado
 
 O menor instrumento com que o alvo vale a pena:
 
@@ -135,97 +218,107 @@ O menor instrumento com que o alvo vale a pena:
 | **Pequeno telescópio** | Até 10,5 |
 | **Telescópio médio** | Mais fraco que isso |
 
-Objetos **muito grandes** (mais de 1°) ganham um degrau de vantagem: o
-brilho se espalha, mas o contraste de campo largo compensa — é o caso
-das Híades, do Véu e das Nuvens de Magalhães. Nebulosas escuras são
-sempre alvo de binóculo: elas vivem de contraste, não de brilho.
+Dois ajustes:
 
-### As cores
+- objetos **muito grandes** (mais de 1°) ganham um degrau: o contraste
+  de campo largo compensa — é o caso das Híades e das Nuvens de
+  Magalhães;
+- galáxias e nebulosas **difusas** perdem um degrau quando o brilho
+  superficial passa de 13,5 mag/arcmin², e outro acima de 15. A
+  magnitude 7,9 de M 101 sugeria binóculo, mas a luz espalhada por 24′ a
+  deixa no limite até num telescópio pequeno.
 
-- **Laranja** — o objeto está perto da Lua e será prejudicado. O raio da
-  zona lunar cresce com a fase: uma Lua cheia lava o céu a dezenas de
-  graus.
-- **Azul** — foi agendado com o céu ainda claro.
-
-### O painel de detalhes
-
-Clique numa linha e veja embaixo:
-
-- **melhor horário** e a altura naquele instante;
-- **o que ver** — o que esperar do objeto conforme o tipo;
-- **ao binóculo 10×50** — o que se enxerga com o instrumento mais comum;
-- **como encontrar** — a rota de star-hopping.
+Nebulosas escuras são sempre alvo de binóculo.
 
 ---
 
-## As cartas de localização
+## A janela da noite
 
-Cada objeto do PDF ganha uma carta desenhada no estilo dos atlas
-impressos:
+*Planejar → Configurar planejamento* (`Ctrl+Shift+O`), ou *Configurar*
+dentro da janela do roteiro.
 
 <div align="center">
-<img src="imagens/carta-busca.png" alt="Carta de localização" width="60%">
+<img src="imagens/config-planejamento.png" alt="Configuração do planejamento" width="70%">
 </div>
 
-O que está desenhado:
+- **Tempo por objeto** (3 a 10 minutos, padrão 4).
+- **Altitude mínima** (padrão 20°) — vale para o roteiro, a ficha, a
+  busca, as listas e o "Hoje à noite".
+- **Início e fim** — noite astronômica (padrão), crepúsculo civil, pôr ou
+  nascer do sol, ou um horário fixo no fuso do observador.
+- **A regra do céu claro** — fora da noite astronômica só entram objetos
+  bem brilhantes (até magnitude 5,5, ajustável).
 
-- **as estrelas do campo**, com o tamanho pelo brilho, e as linhas das
-  constelações em cinza claro;
-- **o alvo**, num círculo duplo vermelho;
-- **a estrela-guia principal**, ligada ao alvo por uma **seta vermelha
-  tracejada**, com a **distância em graus** escrita sobre ela;
-- **duas ou três referências extras**, em azul, também com as distâncias
-  — uma guia dá a direção, mas **duas permitem triangular** e confirmar
-  que você chegou ao campo certo;
-- a **rosa de orientação** com a seta do norte, e o leste à esquerda,
-  que é a convenção celeste (o contrário dos mapas terrestres);
-- a **barra de escala** em graus e o campo total da carta.
+---
 
-O texto conta a mesma história: *"Comece por Deneb Algedi (Capricórnio),
-de magnitude 2,8, e caminhe 7,2° para sul. Para confirmar o campo,
-triangule: Aldhanab (3,0) fica a 14,5° do alvo, norte dele."*
+## Calendário de noites escuras
 
-> As referências são escolhidas entre as estrelas de magnitude até 3,6 —
-> as que se veem a olho nu de qualquer quintal. Se não houver duas por
-> perto, o corte é afrouxado por etapas até magnitude 5.
+*Tempo → Calendário de noites escuras…* (`Ctrl+Shift+N`).
+
+<div align="center">
+<img src="imagens/calendario-noites.png" alt="Calendário de noites escuras" width="75%">
+</div>
+
+Para cada noite do mês: a fase da Lua desenhada como você a vê do seu
+hemisfério e as **horas de noite astronômica sem Lua** (número e barra).
+As três melhores noites ganham contorno verde. Clique num dia para levar
+a simulação ao anoitecer daquela data — é a forma mais rápida de escolher
+o fim de semana da viagem ao céu escuro.
 
 ---
 
 ## Levando para o campo
 
-### Pré-visualizar
+### PDF
 
-`Ctrl+Shift+V` abre o roteiro exatamente como ele vai sair impresso —
-o próprio PDF, num visualizador com rolagem e zoom. Confira antes de
-gastar papel.
+`Ctrl+Shift+V` pré-visualiza e `Ctrl+P` exporta. O arquivo tem:
 
-### Exportar
+1. **capa** com a **carta geral da noite** — o céu inteiro visto de
+   baixo, com cada parada numerada na posição do seu horário e o seu
+   horizonte sombreado;
+2. **checklist** — uma linha por parada, com caixa para marcar;
+3. **um cartão por objeto** — carta de localização à esquerda e
+   instruções à direita, com nasce, culmina, se põe, janela e nota.
 
-`Ctrl+P` gera o arquivo. Ele tem duas seções:
+Todas as páginas têm cabeçalho e número. Em *Arquivo → Tema do PDF*
+escolha **claro** (papel), **escuro** (o visual do Carina, para tablet)
+ou **vermelho** (para não perder a adaptação ao escuro no campo).
 
-1. **Checklist da noite** — uma linha por objeto, com **caixa para
-   marcar**, horário, nome, tipo, altitude, instrumento e constelação;
-2. **Um cartão por objeto** — a carta de localização à esquerda e, à
-   direita, as instruções completas.
+<div align="center">
+<img src="imagens/carta-geral.png" alt="Carta geral da noite" width="55%">
+</div>
 
-O PDF de uma maratona Messier completa tem cerca de 25 páginas. Não
-economize papel: o texto é medido antes de desenhado, e nenhuma linha
-se sobrepõe à seguinte.
+### As cartas de localização
+
+<div align="center">
+<img src="imagens/carta-busca.png" alt="Carta de localização" width="60%">
+</div>
+
+Estrelas do campo pelo brilho, linhas das constelações, o alvo num
+círculo duplo, a **estrela-guia principal** ligada ao alvo por uma seta
+com a distância em graus e **duas ou três referências extras** para
+triangular. A rosa mostra o norte e o leste à esquerda, a convenção
+celeste.
+
+### CSV e texto
+
+*Arquivo → Exportar CSV* gera uma planilha (separador `;`, vírgula
+decimal). *Exportar texto* gera uma lista simples, boa para levar no
+celular.
 
 ---
 
 ## Dicas de uso
 
-**Comece pelos "Melhores objetos"** se você é iniciante ou está com
-visita. É o roteiro que impressiona.
+**Abra o "Hoje à noite" no fim da tarde.** Em dez segundos você sabe se a
+noite vale a pena e por onde começar.
 
-**Use "Destaques do mês" para planejar com antecedência** — a lista vale
-o mês inteiro, então serve para decidir a data da saída.
+**Desenhe o seu horizonte uma vez.** Todas as notas e roteiros passam a
+falar do *seu* céu, não de um horizonte ideal.
 
-**Ajuste o tempo por objeto ao seu ritmo real.** Quatro minutos é o
-padrão para observação visual rápida. Se você desenha o que vê, ou
-fotografa, ponha 10 e aceite ver menos objetos.
+**Monte uma lista ao longo da semana** (★ em qualquer objeto) e, na
+noite, use *Roteiro da minha lista*: o Carina agenda só o que estiver ao
+alcance e diz o que ficou de fora.
 
-**Não force a janela para o pôr do sol** achando que vai ganhar tempo.
-Você ganha, mas só para os alvos brilhantes — e é isso que o programa
-vai agendar ali.
+**Ajuste o tempo por objeto ao seu ritmo real.** Se você desenha ou
+fotografa, ponha 10 minutos e aceite ver menos objetos.

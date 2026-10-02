@@ -1,6 +1,6 @@
 # Impressão e exportação
 
-> Carina 0.13.2 — produto em desenvolvimento.
+> Carina 0.15.0 — produto em desenvolvimento.
 
 Tudo o que o Carina desenha pode sair da tela: em imagem, em PDF ou em
 papel.

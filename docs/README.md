@@ -4,7 +4,7 @@ Bem-vindo. Esta pasta reúne tudo o que você precisa para **instalar, usar
 e tirar proveito** do Carina — do primeiro clique ao planejamento de uma
 noite inteira de observação.
 
-> **Versão documentada: 0.13.2** — produto em desenvolvimento. Recursos e
+> **Versão documentada: 0.15.0** — produto em desenvolvimento. Recursos e
 > telas podem mudar entre versões; quando isso acontecer, esta pasta é
 > atualizada junto.
 
@@ -34,7 +34,8 @@ Se você **nunca abriu o programa**, siga esta ordem:
 
 | Documento | Conteúdo |
 |---|---|
-| [Planejamento de observação](PLANEJAMENTO.md) | Os dez roteiros, a configuração da janela da noite, as cartas de busca e o PDF de campo |
+| [Planejamento de observação](PLANEJAMENTO.md) | Hoje à noite, pontuação de observabilidade, horizonte do quintal, roteiros, linha do tempo, calendário de noites escuras e o PDF de campo |
+| [Diário e listas](DIARIO.md) | Minhas listas de alvos, o diário de observação e onde ficam os seus dados |
 | [Observação e astrofotografia](ASTROFOTOGRAFIA.md) | Simulador de enquadramento, rotacionador, zona da Lua, rastreamento noturno, Bortle |
 | [Impressão e exportação](IMPRESSAO.md) | Mapas anotados, exportações em PNG/JPG/PDF/SVG e o modo carta |
 
