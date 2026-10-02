@@ -172,6 +172,8 @@ class MainWindow(QMainWindow):
         self._restore_view_state()
         self.act_sidebar_labels.setChecked(
             self.settings.value("ui/sidebar_labels", False, bool))
+        if self.settings.value("ui/night_mode", False, bool):
+            self.act_night.setChecked(True)     # no campo, abre já no vermelho
 
         report = self.dso_catalog.migration_report
         if report:
@@ -309,6 +311,9 @@ class MainWindow(QMainWindow):
         self.act_chart = self._add(m_view, self.tr("Modo mapa para impressão"),
                                    None, "Ctrl+M", checkable=True)
         self.act_chart.toggled.connect(self._on_chart_from_menu)
+        self.act_night = self._add(m_view, self.tr("Modo noturno (vermelho)"),
+                                   None, "Ctrl+N", checkable=True)
+        self.act_night.toggled.connect(self._toggle_night)
         self.act_follow = self._add(m_view, self.tr("Seguir objeto selecionado"),
                                     None, "F", checkable=True)
         self.act_follow.toggled.connect(self._toggle_follow)
@@ -507,6 +512,25 @@ class MainWindow(QMainWindow):
         self.engine.time.set_datetime(target)
         self.engine.time.set_speed(0.0)
         self.sky.sync_clock()
+
+    def _toggle_night(self, on: bool) -> None:
+        """Exibir ▸ Modo noturno (Ctrl+N): céu e interface em vermelho (v0.16 T2)."""
+        from .nightmode import NightMode
+
+        if not hasattr(self, "_night"):
+            self._night = NightMode()
+        self._night.apply(on)
+        if on:
+            self.sky.set_theme("red")
+        else:
+            self.sky.set_theme("light" if self.act_chart.isChecked() else "dark")
+        self.act_chart.setEnabled(not on)       # papel branco no vermelho ofuscaria
+        self.card.show_image = not on           # fotos coloridas quebram a adaptação
+        self._refresh_cards(reselect=True)
+        if not getattr(self, "skip_state_save", False):
+            self.settings.set_value("ui/night_mode", on)
+        self.statusBar().showMessage(
+            self.tr("Modo noturno ligado") if on else self.tr("Modo noturno desligado"), 4000)
 
     def _open_dark_calendar(self) -> None:
         """Tempo ▸ Calendário de noites escuras (v0.15 T12)."""

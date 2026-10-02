@@ -46,6 +46,8 @@ def _parse_args(argv):
     parser.add_argument("--planet-path", metavar="NOME", default=None,
                         help="traça o caminho anual de um planeta (testes)")
     parser.add_argument("--bortle", type=int, default=None)
+    parser.add_argument("--night", action="store_true",
+                        help="abre em modo noturno (testes)")
     parser.add_argument("--offscreen", metavar="CAMINHO", default=None,
                         help="também grava um quadro renderizado fora da tela (testes)")
     parser.add_argument("--offscreen-theme", default=None, choices=["dark", "light", "red"])
@@ -372,6 +374,10 @@ def main(argv=None) -> int:
 
         win.setAttribute(Qt.WA_ShowWithoutActivating, True)
         win.setWindowFlag(Qt.WindowStaysOnBottomHint, True)
+
+    if args.screenshot or args.bench:
+        # capturas são reprodutíveis: modo noturno só quando pedido
+        win.act_night.setChecked(bool(args.night))
 
     if args.horizon_preset:
         from .core.horizon import PRESETS
