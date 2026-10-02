@@ -205,6 +205,11 @@ def main(argv=None) -> int:
     app.setApplicationName(APP_NAME)
     app.setOrganizationName(ORG_NAME)
 
+    # botões padrão dos diálogos em português (OK/Cancelar/Fechar…)
+    from .i18n import install_qt_translations
+
+    install_qt_translations(app)
+
     # ícone do aplicativo: vale para a janela, a barra de tarefas e os
     # diálogos (todos herdam o ícone da aplicação)
     from .config import app_icon_path
