@@ -388,6 +388,8 @@ class MainWindow(QMainWindow):
         self._add(m_local, self.tr("Localização…"), self._edit_location, "Ctrl+L")
         self._add(m_local, self.tr("Crepúsculos e noite…"), self._open_night_info, "Ctrl+I")
         self._add(m_local, self.tr("Horizonte do quintal…"), self._open_horizon)
+        self._saved_menu = m_local.addMenu(self.tr("Locais salvos"))
+        self._saved_menu.aboutToShow.connect(self._fill_saved_locations)
 
         # --- Objetos ---------------------------------------------------
         m_objs = bar.addMenu(self.tr("&Objetos"))
@@ -454,7 +456,11 @@ class MainWindow(QMainWindow):
 
         # --- Ajuda -----------------------------------------------------
         m_help = bar.addMenu(self.tr("A&juda"))
-        self._add(m_help, self.tr("Documentação"), self._open_docs, "F1")
+        self._add(m_help, self.tr("Ajuda do Carina"), self._open_help, "F1")
+        self._add(m_help, self.tr("O que há de novo"),
+                  lambda: self._open_help("NOVIDADES.md"))
+        self._add(m_help, self.tr("Abrir a documentação no navegador"), self._open_docs)
+        self._add(m_help, self.tr("Assistente de primeiro uso…"), self.run_first_run)
         self._add(m_help, self.tr("Atalhos do teclado e do mouse…"),
                   self._open_shortcuts, "Ctrl+Shift+K")
         m_help.addSeparator()
@@ -1768,11 +1774,116 @@ class MainWindow(QMainWindow):
     def _edit_location(self) -> None:
         dlg = LocationDialog(self.settings.location(), self)
         if dlg.exec():
-            loc = dlg.location()
-            self.settings.set_location(loc)
-            self.engine.set_location(loc)
-            self.sky.location_name = loc.name
-            self.sky.update()
+            self._apply_location(dlg.location())
+
+    def _apply_location(self, loc) -> None:
+        """Muda o local do observador (diálogo, assistente, locais salvos)."""
+        self.settings.set_location(loc)
+        self.engine.set_location(loc)
+        self.sky.location_name = loc.name
+        self._slider_night_key = None
+        self.sky.update()
+        self._refresh_cards()
+
+    def _apply_bortle(self, level: int) -> None:
+        level = max(1, min(9, int(level)))
+        self._set_bortle(level)
+        if level in self._bortle_acts:
+            self._bortle_acts[level].setChecked(True)
+
+    # --- locais salvos (v0.16 T6) --------------------------------------------
+    def _fill_saved_locations(self) -> None:
+        menu = self._saved_menu
+        menu.clear()
+        names_ = self.userdata.profiles("location")
+        for name in names_:
+            act = menu.addAction(name)
+            act.triggered.connect(lambda _c=False, n=name: self._use_saved_location(n))
+        if names_:
+            menu.addSeparator()
+        menu.addAction(self.tr("Salvar local atual…")).triggered.connect(
+            self._save_location)
+        if names_:
+            menu.addAction(self.tr("Excluir local salvo…")).triggered.connect(
+                self._delete_location)
+
+    def _save_location(self) -> None:
+        from dataclasses import asdict
+
+        loc = self.settings.location()
+        name, ok = QInputDialog.getText(self, self.tr("Salvar local"), self.tr("Nome:"),
+                                        text=loc.name.split(",")[0])
+        if not ok or not name.strip():
+            return
+        data = asdict(loc)
+        data["bortle"] = int(self.sky.bortle)
+        data["horizon"] = self.horizon_profile.name if self.horizon_profile else ""
+        self.userdata.save_profile("location", name.strip(), data)
+        self.statusBar().showMessage(self.tr("Local \"{n}\" salvo").format(n=name.strip()), 5000)
+
+    def _use_saved_location(self, name: str) -> None:
+        from ..config import ObserverLocation
+
+        data = self.userdata.profile("location", name)
+        if not data:
+            return
+        fields = {k: data[k] for k in ("name", "latitude", "longitude", "elevation", "timezone")
+                  if k in data}
+        self._apply_location(ObserverLocation(**fields))
+        if data.get("bortle"):
+            self._apply_bortle(data["bortle"])
+        horizon = data.get("horizon") or None
+        if horizon is None or self.userdata.horizon(horizon) is not None:
+            self.userdata.set_active_horizon(horizon)
+            self._apply_horizon(self.userdata.active_horizon())
+        self.statusBar().showMessage(self.tr("Local: {n}").format(n=name), 5000)
+
+    def _delete_location(self) -> None:
+        names_ = self.userdata.profiles("location")
+        name, ok = QInputDialog.getItem(self, self.tr("Excluir local"), self.tr("Local:"),
+                                        names_, 0, False)
+        if ok and name:
+            self.userdata.delete_profile("location", name)
+
+    # --- ajuda, novidades e primeiro uso (v0.16 T6) ---------------------------
+    def _open_help(self, page: str = "README.md") -> None:
+        from .help_viewer import HelpViewer
+
+        viewer = HelpViewer(page, self)
+        viewer.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._help_viewer = viewer
+        viewer.show()
+
+    def show_whats_new_if_needed(self) -> None:
+        """Na primeira abertura de uma versão nova, mostra as novidades."""
+        last = self.settings.value("ui/last_version", "", str)
+        self.settings.set_value("ui/last_version", __version__)
+        if last and last != __version__:
+            self._open_help("NOVIDADES.md")
+
+    def run_first_run(self) -> bool:
+        """Assistente de 3 passos (cidade, céu, instrumento)."""
+        from .first_run import FirstRunWizard
+
+        wiz = FirstRunWizard(self.settings.location(), int(self.sky.bortle),
+                             self.settings.value("card/instrument", "pequeno", str), self)
+        self._first_run = wiz
+        accepted = bool(wiz.exec())
+        self.settings.set_value("ui/first_run_done", True)
+        self.settings.set_value("ui/last_version", __version__)
+        if not accepted:
+            return False
+        values = wiz.result_values()
+        self._apply_location(values["location"])
+        self._apply_bortle(values["bortle"])
+        self.settings.set_value("card/instrument", values["instrument"])
+        self._refresh_cards()
+        if values["horizon"]:
+            self._open_horizon()
+        if values["tonight"]:
+            self._open_tonight()
+        return True
+
 
     def _about(self) -> None:
         QMessageBox.about(

@@ -50,7 +50,8 @@ def test_view_menu_has_submenus_and_help_has_docs(window):
     help_menu = next(a.menu() for a in window.menuBar().actions()
                      if a.text().replace("&", "") == "Ajuda")
     titles = [a.text() for a in help_menu.actions() if not a.isSeparator()]
-    assert any("Documentação" in t for t in titles)
+    assert any("Ajuda do Carina" in t for t in titles)          # F1 interna (v0.16)
+    assert any("documentação" in t for t in titles)
     assert any("Atalhos" in t for t in titles)
 
 

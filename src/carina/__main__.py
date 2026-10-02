@@ -40,7 +40,7 @@ def _parse_args(argv):
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
-                 "lists", "tonight", "calendar", "chart"],
+                 "lists", "tonight", "calendar", "chart", "help", "firstrun"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -381,6 +381,13 @@ def main(argv=None) -> int:
         win.setAttribute(Qt.WA_ShowWithoutActivating, True)
         win.setWindowFlag(Qt.WindowStaysOnBottomHint, True)
 
+    if not (args.screenshot or args.bench or args.marathon or args.dialog):
+        # primeira abertura: assistente; depois de atualizar: novidades
+        if not win.settings.value("ui/first_run_done", False, bool):
+            QTimer.singleShot(500, win.run_first_run)
+        else:
+            QTimer.singleShot(900, win.show_whats_new_if_needed)
+
     if args.screenshot or args.bench:
         # capturas são reprodutíveis: modo noturno só quando pedido
         win.act_night.setChecked(bool(args.night))
@@ -438,6 +445,15 @@ def main(argv=None) -> int:
     elif args.dialog == "print":
         win._open_print_map()
         dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "help":
+        win._open_help(args.dialog_text or "NOVIDADES.md")
+        dialog = win._help_viewer
+    elif args.dialog == "firstrun":
+        from .ui.first_run import FirstRunWizard
+
+        dialog = FirstRunWizard(win.settings.location(), int(win.sky.bortle))
+        dialog.show()
+        dialog.next()
     elif args.dialog == "chart":
         win._open_chart_dialog()
         dialog = win._chart_dialog

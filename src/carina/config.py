@@ -24,6 +24,13 @@ def package_data_dir() -> Path:
     return Path(__file__).resolve().parents[2] / "data" / "processed"
 
 
+def docs_dir() -> Path:
+    """Documentação do usuário (``docs/``), embarcada no build (v0.16)."""
+    if hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS) / "docs"
+    return Path(__file__).resolve().parents[2] / "docs"
+
+
 def package_ephemeris_dir() -> Path:
     """Diretório da efeméride embarcada no build (ADR-012)."""
     if hasattr(sys, "_MEIPASS"):

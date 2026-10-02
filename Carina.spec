@@ -8,6 +8,7 @@ from PyInstaller.utils.hooks import collect_submodules
 datas = [
     ('data/processed', 'data/processed'),
     ('data/ephemeris', 'data/ephemeris'),
+    ('docs', 'docs'),          # Ajuda F1 interna (v0.16)
 ]
 hiddenimports = []
 datas += collect_data_files('skyfield')
