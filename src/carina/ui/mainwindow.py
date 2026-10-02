@@ -409,6 +409,7 @@ class MainWindow(QMainWindow):
 
         # --- Planejar --------------------------------------------------
         m_plan = bar.addMenu(self.tr("&Planejar"))
+        self._add(m_plan, self.tr("Hoje à noite…"), self._open_tonight, "T")
         m_rot = m_plan.addMenu(self.tr("Roteiros"))
         for kind, label in (("M", self.tr("Maratona Messier…")),
                             ("C", self.tr("Maratona Caldwell…")),
@@ -720,6 +721,34 @@ class MainWindow(QMainWindow):
                 t=self.card.copy_text() if self.card.selection == selection
                 else self.sky.describe_selection(selection)), 5000)
 
+    def _open_tonight(self) -> None:
+        """Planejar ▸ Hoje à noite (T) — v0.15 T11."""
+        from ..core.tonight import tonight_summary
+        from .tonight_panel import TonightPanel
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            summary = tonight_summary(
+                self.engine, self.dso_catalog, self.engine.time.current_datetime(),
+                bortle=self.sky.bortle, horizon=self.horizon_profile,
+                min_alt=self._plan_settings().min_altitude,
+                instrument=self.settings.value("card/instrument", "pequeno", str))
+        finally:
+            QApplication.restoreOverrideCursor()
+        panel = TonightPanel(summary, self.settings.location().name, self)
+        panel.setAttribute(Qt.WA_DeleteOnClose, True)
+        panel.gotoRequested.connect(self._goto_ident)
+        panel.gotoAtTimeRequested.connect(self._goto_ident_at)
+        panel.addToListRequested.connect(self._add_ident_to_list)
+        panel.planRequested.connect(lambda: self._open_marathon("BEST"))
+        self._tonight_panel = panel
+        panel.show()
+
+    def _add_ident_to_list(self, kind: str, ident: str) -> None:
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        if ref is not None:
+            self._add_to_list(ref.selection)
+
     def _search_goto(self, selection) -> None:
         """Resultado da busca: constelação vai ao centro com destaque."""
         if selection[0] == "const":
@@ -893,6 +922,7 @@ class MainWindow(QMainWindow):
             "marathon": self._ask_marathon,
             "print": self._open_print_map,
             "info": self._open_night_info,
+            "tonight": self._open_tonight,
         }[kind]()
 
     def _ask_marathon(self) -> None:

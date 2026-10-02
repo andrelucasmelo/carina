@@ -141,6 +141,16 @@ def _icon(kind: str) -> QIcon:
         p.drawRect(QRectF(7, 4, 12, 6))
         p.drawRect(QRectF(4, 10, 18, 8))
         p.drawRect(QRectF(7, 17, 12, 6))
+    elif kind == "tonight":
+        # Lua crescente com uma estrela
+        p.setBrush(fg)
+        p.drawEllipse(QRectF(4, 6, 14, 14))
+        p.setBrush(QColor(30, 34, 44))
+        p.setPen(Qt.NoPen)
+        p.drawEllipse(QRectF(8, 4, 13, 13))
+        p.setPen(QPen(fg, 1.6))
+        p.drawLine(20, 16, 20, 22)
+        p.drawLine(17, 19, 23, 19)
     elif kind == "info":
         p.drawEllipse(QRectF(4, 4, 18, 18))
         p.setFont(QFont("Segoe UI", 11, QFont.Bold))
@@ -184,7 +194,7 @@ class SideToolBar(QWidget):
         "now": "Agora", "measure": "Medir", "zoom": "Zoom área",
         "chart": "Mapa", "moonpath": "Lua 28 d", "search": "Buscar",
         "track": "Rastrear", "fov": "Campo", "marathon": "Planejar",
-        "print": "Imprimir", "info": "Noite",
+        "print": "Imprimir", "info": "Noite", "tonight": "Hoje",
     }
 
     STYLE = """
@@ -272,6 +282,7 @@ class SideToolBar(QWidget):
         self.layer_buttons["moon_forecast"] = btn_moon
 
         for kind, tip in (
+            ("tonight", "Hoje à noite (T)"),
             ("search", "Buscar objeto"), ("track", "Rastrear na noite"),
             ("fov", "Campo de visão"), ("marathon", "Planejar maratona"),
             ("print", "Mapa para impressão"), ("info", "Crepúsculos e noite"),

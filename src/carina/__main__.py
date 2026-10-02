@@ -40,7 +40,7 @@ def _parse_args(argv):
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
-                 "lists"],
+                 "lists", "tonight"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -417,6 +417,9 @@ def main(argv=None) -> int:
     elif args.dialog == "print":
         win._open_print_map()
         dialog = win._track_windows[-1] if win._track_windows else None
+    elif args.dialog == "tonight":
+        win._open_tonight()
+        dialog = win._tonight_panel
     elif args.dialog == "lists":
         win._open_lists()
         dialog = win._lists_window
