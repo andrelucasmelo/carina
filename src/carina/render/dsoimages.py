@@ -106,3 +106,235 @@ def soft_highlights(a: np.ndarray, knee: float = 200.0) -> np.ndarray:
     with np.errstate(divide="ignore", invalid="ignore"):
         scale = np.where(lum > knee, compressed / lum, 1.0)
     return a * scale.astype(np.float32)
+
+
+@dataclass
+class _Entry:
+    """Registro do cache: id da textura na GPU + tique de último uso (LRU)."""
+
+    texture: int
+    last_used: int
+
+
+class DsoImageLayer:
+    """Cache de texturas das imagens de céu profundo, por nome do objeto."""
+
+    def __init__(self, fov_map: dict[str, float] | None = None) -> None:
+        self._entries: dict[str, _Entry] = {}
+        self._missing: set[str] = set()
+        self._tick = 0
+        # campos por objeto do manifesto de destaques (mesmo FOV do download)
+        self.fov_map: dict[str, float] = dict(fov_map or {})
+        # decodificação assíncrona: o PNG é lido e preparado num worker
+        # (o GIL é liberado no I/O e nas ufuncs grandes do NumPy); só o
+        # upload da textura — ~1 ms — acontece no quadro de renderização.
+        # Sem isso, cada textura nova custava ~45 ms DENTRO do quadro.
+        self._pool = None
+        self._pending: dict[str, object] = {}   # name -> Future
+
+    def fov_for(self, name: str, maj_arcmin: float | None) -> float:
+        """Campo do recorte: o do manifesto (verdade absoluta — foi o campo
+        efetivamente baixado) ou a fórmula padrão como reserva."""
+        return self.fov_map.get(name) or image_fov_deg(maj_arcmin)
+
+    def loading(self) -> bool:
+        """Há decodificações em andamento/prontas aguardando upload?
+
+        O SkyWidget usa isto para agendar uma repintura curta: sem ela, as
+        imagens só apareceriam no próximo tique do relógio (1 s).
+        """
+        return bool(self._pending)
+
+    def clear(self, renderer) -> None:
+        """Esvazia o cache de GPU (troca de contexto GL, encerramento)."""
+        for entry in self._entries.values():
+            renderer.delete_texture(entry.texture)
+        self._entries.clear()
+
+    @staticmethod
+    def _decode(path: str, floor: float) -> np.ndarray | None:
+        """Lê e prepara o RGB de um recorte — roda num worker, fora do quadro."""
+        from PySide6.QtGui import QImage
+
+        img = QImage(path)
+        if img.isNull():
+            return None
+        img = img.convertToFormat(QImage.Format_RGB888)
+        w, h = img.width(), img.height()
+        buf = np.frombuffer(img.constBits(), dtype=np.uint8)
+        rgb = buf.reshape(h, img.bytesPerLine())[:, : w * 3].reshape(h, w, 3)
+        return prepare_rgb(rgb.copy(), floor_percentile=floor)
+
+    def _texture_for(self, renderer, name: str) -> int | None:
+        """Textura do objeto: do cache, ou agenda a decodificação.
+
+        Retorna ``None`` enquanto a imagem ainda não está pronta — o objeto
+        simplesmente aparece um ou dois quadros depois, sem travar nada.
+        """
+        entry = self._entries.get(name)
+        if entry is not None:
+            entry.last_used = self._tick
+            return entry.texture
+        if name in self._missing:
+            return None
+
+        # decodificação pronta? faz só o upload (barato) e entra no cache
+        fut = self._pending.get(name)
+        if fut is not None:
+            if not fut.done():
+                return None
+            del self._pending[name]
+            rgb = fut.result()
+            if rgb is None:
+                self._missing.add(name)
+                return None
+            tex = renderer.create_texture(rgb)
+            if len(self._entries) >= MAX_TEXTURES:
+                oldest = min(self._entries.items(),
+                             key=lambda kv: kv[1].last_used)
+                renderer.delete_texture(oldest[1].texture)
+                del self._entries[oldest[0]]
+            self._entries[name] = _Entry(tex, self._tick)
+            return tex
+
+        from ..catalogs import images as image_store
+
+        path = image_store.image_path_for(name)
+        if path is None:
+            self._missing.add(name)
+            return None
+        if self._pool is None:
+            from concurrent.futures import ThreadPoolExecutor
+
+            self._pool = ThreadPoolExecutor(
+                max_workers=2, thread_name_prefix="dsoimg"
+            )
+        # campos grandes (Nuvens de Magalhães): o objeto ocupa boa parte do
+        # recorte, então o piso de fundo precisa ser mais baixo
+        fov = self.fov_map.get(name, 0.0)
+        floor = 30.0 if fov > 6.0 else 55.0
+        self._pending[name] = self._pool.submit(self._decode, str(path), floor)
+        return None
+
+    # índices dos triângulos de uma grade 5×5 (fixos — computados uma vez)
+    _GRID_N = 5
+    _GRID_IDX = None
+
+    @classmethod
+    def _grid_indices(cls) -> np.ndarray:
+        """Triangulação fixa da grade 5×5 (dois triângulos por célula)."""
+        if cls._GRID_IDX is None:
+            n = cls._GRID_N
+            idx = []
+            for r in range(n - 1):
+                for c in range(n - 1):
+                    a0 = r * n + c
+                    idx += [a0, a0 + 1, a0 + n, a0 + 1, a0 + n + 1, a0 + n]
+            cls._GRID_IDX = np.asarray(idx, dtype=np.int64)
+        return cls._GRID_IDX
+
+    # ------------------------------------------------------------------
+    def draw(self, renderer, camera, project, dso, rows, alpha: float) -> int:
+        """Desenha as imagens dos objetos indicados.
+
+        ``rows`` são índices no catálogo; ``project`` é a função de projeção
+        do widget (aplica refração e câmera). Devolve quantas foram desenhadas.
+
+        Duas decisões de desempenho:
+
+        * no máximo :data:`LOADS_PER_FRAME` texturas novas são decodificadas
+          por quadro — as demais entram nos quadros seguintes. Sem isso, um
+          zoom que revela dezenas de imagens travava a interface por
+          centenas de ms de uma vez;
+        * as grades 5×5 de TODOS os objetos são projetadas numa única
+          chamada (o custo fixo de cada chamada pequena de projeção/refração
+          dominava o tempo com muitos objetos na tela).
+        """
+        self._tick += 1
+        pole = np.array([0.0, 0.0, 1.0])
+        n = self._GRID_N
+        tri = self._grid_indices()
+        submits_left = SUBMITS_PER_FRAME
+        uploads_left = UPLOADS_PER_FRAME
+
+        # 1) resolve texturas respeitando os orçamentos do quadro: novas
+        #    decodificações vão para os workers; uploads prontos são caros
+        #    o suficiente (~1 ms) para também serem limitados
+        chosen: list[tuple[int, int]] = []      # (índice no catálogo, textura)
+        for i in rows:
+            name = dso.names[i]
+            if self._entries.get(name) is None:
+                if name in self._missing:
+                    continue
+                fut = self._pending.get(name)
+                if fut is None:
+                    if submits_left <= 0:
+                        continue
+                    submits_left -= 1
+                elif fut.done():
+                    if uploads_left <= 0:
+                        continue
+                    uploads_left -= 1
+                else:
+                    continue                     # worker ainda decodificando
+            tex = self._texture_for(renderer, name)
+            if tex is not None:
+                chosen.append((int(i), tex))
+        if not chosen:
+            return 0
+
+        # 2) monta todas as grades (M,25,3) por broadcasting
+        ts = np.linspace(-1.0, 1.0, n)
+        gx, gy = np.meshgrid(ts, ts)
+        gxf = gx.ravel()[None, :, None]          # (1,25,1)
+        gyf = gy.ravel()[None, :, None]
+        uv = np.column_stack([((gx + 1) / 2).ravel(),
+                              ((gy + 1) / 2).ravel()])
+
+        sel = np.array([i for i, _ in chosen], dtype=np.int64)
+        U = np.asarray(dso.xyz[sel], dtype=np.float64)
+        U /= np.linalg.norm(U, axis=1, keepdims=True)
+        north = pole[None, :] - U * (U @ pole)[:, None]
+        nn = np.linalg.norm(north, axis=1, keepdims=True)
+        north = np.where(nn > 1e-6, north / np.maximum(nn, 1e-9),
+                         np.array([1.0, 0.0, 0.0])[None, :])
+        east = np.cross(np.broadcast_to(pole, U.shape), U)
+        east /= np.maximum(np.linalg.norm(east, axis=1, keepdims=True), 1e-9)
+        halfs = np.array([
+            math.tan(math.radians(
+                self.fov_for(dso.names[i], float(dso.maj[i])) / 2.0
+            )) for i, _ in chosen
+        ])[:, None, None]
+
+        # Convenção do recorte (hips2fits/TAN): norte em cima e LESTE À
+        # ESQUERDA — logo a borda esquerda da textura (gx=-1) precisa cair
+        # no lado LESTE do céu (sinal negativo no termo leste).
+        offs = (
+            U[:, None, :]
+            - halfs * gxf * east[:, None, :]
+            - halfs * gyf * north[:, None, :]
+        )
+        offs /= np.linalg.norm(offs, axis=2, keepdims=True)
+
+        # 3) UMA projeção para todos os vértices de todas as grades
+        x, y, _vis = project(offs.reshape(-1, 3), 1e9)
+        screen_all = np.column_stack([x, y]).reshape(len(chosen), n * n, 2)
+
+        # 4) um draw call por textura (inevitável), com dados já prontos
+        drawn = 0
+        max_span = 40.0 * max(camera.width, camera.height)
+        for k, (_i, tex) in enumerate(chosen):
+            screen = screen_all[k]
+            span = np.hypot(
+                screen[:, 0].max() - screen[:, 0].min(),
+                screen[:, 1].max() - screen[:, 1].min(),
+            )
+            # pequeno demais não aparece; grande demais é a grade quebrada
+            # atravessando o polo da projeção (descarta para não riscar a tela)
+            if span < MIN_SIZE_PX or span > max_span:
+                continue
+            renderer.draw_textured_triangles(
+                screen[tri], uv[tri], alpha, texture=tex, additive=True
+            )
+            drawn += 1
+        return drawn
