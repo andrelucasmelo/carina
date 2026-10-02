@@ -40,6 +40,7 @@ class PlanSettingsDialog(QDialog):
 
     def __init__(self, settings: PlanSettings, parent=None) -> None:
         super().__init__(parent)
+        self._base = settings      # filtros do plano (v0.15) atravessam o diálogo
         self.setWindowTitle(self.tr("Configurar planejamento"))
         self.setMinimumWidth(520)
         self._s = settings
@@ -157,7 +158,10 @@ class PlanSettingsDialog(QDialog):
         """Configuração escolhida (já dentro das faixas válidas)."""
         t0 = self.time_start.time()
         t1 = self.time_end.time()
-        return PlanSettings(
+        import dataclasses
+
+        return dataclasses.replace(
+            self._base,
             minutes_per_object=self.spin_minutes.value(),
             start_mode=self.combo_start.currentData(),
             end_mode=self.combo_end.currentData(),
@@ -187,6 +191,10 @@ def load_settings(store) -> PlanSettings:
         min_altitude=float(store.value("plan/min_alt", d.min_altitude, float)),
         twilight_mag_limit=float(store.value(
             "plan/twilight_mag", d.twilight_mag_limit, float)),
+        instrument_max=str(store.value("plan/instrument_max", "", str)),
+        classes=tuple(c for c in str(store.value("plan/classes", "", str)).split(",") if c),
+        max_objects=int(store.value("plan/max_objects", 0, int)),
+        moon_min_sep=float(store.value("plan/moon_min_sep", 0.0, float)),
     ).clamp()
 
 
@@ -198,6 +206,10 @@ def save_settings(store, s: PlanSettings) -> None:
     store.set_value("plan/custom_start", s.custom_start.strftime("%H:%M"))
     store.set_value("plan/custom_end", s.custom_end.strftime("%H:%M"))
     store.set_value("plan/min_alt", s.min_altitude)
+    store.set_value("plan/instrument_max", s.instrument_max)
+    store.set_value("plan/classes", ",".join(s.classes))
+    store.set_value("plan/max_objects", s.max_objects)
+    store.set_value("plan/moon_min_sep", s.moon_min_sep)
     store.set_value("plan/twilight_mag", s.twilight_mag_limit)
 
 

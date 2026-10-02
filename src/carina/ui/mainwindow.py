@@ -1087,11 +1087,21 @@ class MainWindow(QMainWindow):
     def _build_plan(self, kind: str, settings):
         """Calcula o plano do tipo pedido com a configuração dada."""
         from ..core.observing import (
-            build_bright_stars, build_marathon, build_period_plan,
+            build_bright_stars, build_from_list, build_marathon, build_period_plan,
         )
 
         now = self.engine.time.current_datetime()
-        if kind == "STARS":
+        settings.bortle = self.sky.bortle          # pontuação com o céu atual
+        if kind.startswith("LIST:"):
+            name = kind[5:]
+            lid = self.userdata.list_id(name)
+            items = self.userdata.items(lid) if lid is not None else []
+            plan = build_from_list(
+                self.engine, self.dso_catalog, self.star_catalog, items, now,
+                self.const_names, settings=settings, horizon=self.horizon_profile,
+                title=self.tr("Roteiro: {n}").format(n=name),
+            )
+        elif kind == "STARS":
             plan = build_bright_stars(
                 self.engine, self.star_catalog, now, self.const_names,
                 settings=settings,
@@ -1105,7 +1115,7 @@ class MainWindow(QMainWindow):
         else:
             plan = build_marathon(
                 self.engine, self.dso_catalog, self.star_catalog, kind, now,
-                self.const_names, settings=settings,
+                self.const_names, settings=settings, horizon=self.horizon_profile,
             )
         plan.location = self.settings.location().name
         return plan

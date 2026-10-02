@@ -77,14 +77,25 @@ INSTRUMENT_LABEL = {
 }
 
 
+INSTRUMENT_ORDER = ("olho", "binoculo", "pequeno", "medio")
+SB_DIFFUSE = 13.5         # mag/arcmin²: acima disso o objeto é "difuso"
+SB_VERY_DIFFUSE = 15.0
+
+
 def instrument_for(mag: float | None, size_arcmin: float | None,
-                   klass: str = "") -> str:
+                   klass: str = "", minor: float | None = None) -> str:
     """Menor instrumento com que o objeto vale a pena.
 
     Objetos MUITO grandes (mais de 1°) ganham um degrau de vantagem: o
     brilho se espalha, mas o contraste de campo largo compensa — é o caso
     das Híades, do Véu ou das Nuvens de Magalhães. Nebulosas escuras não
     têm magnitude e vivem de contraste: são alvo de binóculo.
+
+    Galáxias e nebulosas **difusas** perdem um degrau por brilho
+    superficial (acima de 13,5 mag/arcmin²) e outro acima de 15: a
+    magnitude integrada de M 101 (7,9) sugeria binóculo, mas a luz
+    espalhada por 24′ a deixa no limite até em telescópio pequeno
+    (revisão 2026-10, v0.15).
     """
     if klass == "DARK":
         return "binoculo"
@@ -94,12 +105,30 @@ def instrument_for(mag: float | None, size_arcmin: float | None,
     limit_naked = MAG_NAKED_EYE + (1.0 if big else 0.0)
     limit_bino = MAG_BINOCULAR + (1.0 if big else 0.0)
     if mag <= limit_naked:
-        return "olho"
-    if mag <= limit_bino:
-        return "binoculo"
-    if mag <= MAG_SMALL_SCOPE:
-        return "pequeno"
-    return "medio"
+        level = 0
+    elif mag <= limit_bino:
+        level = 1
+    elif mag <= MAG_SMALL_SCOPE:
+        level = 2
+    else:
+        level = 3
+    if klass in ("GAL", "NEB"):
+        from .score import surface_brightness
+
+        sb = surface_brightness(mag, size_arcmin, minor)
+        if sb is not None:
+            level += int(sb > SB_DIFFUSE) + int(sb > SB_VERY_DIFFUSE)
+    return INSTRUMENT_ORDER[min(level, 3)]
+
+
+def is_diffuse(mag, size_arcmin, minor, klass: str) -> bool:
+    """Objeto extenso de brilho superficial baixo (aviso "difuso")."""
+    if klass not in ("GAL", "NEB"):
+        return False
+    from .score import surface_brightness
+
+    sb = surface_brightness(mag, size_arcmin, minor)
+    return sb is not None and sb > SB_DIFFUSE
 
 
 @dataclass
@@ -120,12 +149,33 @@ class PlanSettings:
     custom_end: dt.time = dt.time(5, 0)
     min_altitude: float = MIN_ALT_DEG
     twilight_mag_limit: float = MAG_NAKED_EYE   # brilho exigido no crepúsculo
+    # filtros do plano (v0.15): vazio/zero = sem filtro
+    instrument_max: str = ""      # maior instrumento disponível
+    classes: tuple = ()           # classes aceitas (GC, OC, GAL…)
+    max_objects: int = 0
+    moon_min_sep: float = 0.0     # graus; descarta alvos mais perto da Lua
+    bortle: int = 4               # céu do observador (pontuação)
 
     def clamp(self) -> "PlanSettings":
         """Garante valores dentro das faixas aceitas."""
         self.minutes_per_object = max(3, min(10, int(self.minutes_per_object)))
         self.min_altitude = max(5.0, min(60.0, float(self.min_altitude)))
+        self.max_objects = max(0, int(self.max_objects))
+        self.moon_min_sep = max(0.0, min(90.0, float(self.moon_min_sep)))
+        self.bortle = max(1, min(9, int(self.bortle)))
+        if self.instrument_max not in INSTRUMENT_ORDER:
+            self.instrument_max = ""
+        self.classes = tuple(self.classes or ())
         return self
+
+    def accepts(self, instrument: str, klass: str) -> bool:
+        """O objeto passa nos filtros de instrumento e de classe?"""
+        if self.classes and klass not in self.classes:
+            return False
+        if self.instrument_max and klass not in ("PLANET", "MOON", "STAR"):
+            return (INSTRUMENT_ORDER.index(instrument)
+                    <= INSTRUMENT_ORDER.index(self.instrument_max))
+        return True
 
 
 @dataclass
@@ -327,6 +377,27 @@ class PlanEntry:
     instrument: str = "pequeno"   # menor instrumento que vale a pena
     in_twilight: bool = False     # agendado fora da noite astronômica
     note: str = ""                # observação livre (planos genéricos)
+    # v0.15: visibilidade, pontuação e identidade estável
+    kind: str = "dso"             # 'dso' | 'star' | 'body'
+    ident: str = ""               # nome / HIP / corpo (banco do usuário)
+    rise_utc: dt.datetime | None = None
+    transit_utc: dt.datetime | None = None
+    set_utc: dt.datetime | None = None
+    transit_alt: float = 0.0
+    window_start: dt.datetime | None = None
+    window_end: dt.datetime | None = None
+    best_utc: dt.datetime | None = None
+    score: int = 0
+    score_text: str = ""
+    diffuse: bool = False         # brilho superficial baixo
+    late: bool = False            # o slot caiu depois da janela útil
+
+    @property
+    def label(self) -> str:
+        """Designação + nome próprio, para listas e tabelas."""
+        if self.common and self.common.lower() not in self.catalog_id.lower():
+            return f"{self.catalog_id} — {self.common}"
+        return self.catalog_id
 
 
 @dataclass
@@ -344,6 +415,64 @@ class ObservingPlan:
     window_label: str = ""
     subtitle: str = ""            # período coberto (mês, estação…)
     timed: bool = True            # False = lista curada, sem horários
+    skipped_names: list = field(default_factory=list)   # fora de alcance
+    kind: str = ""                # tipo do roteiro (M, C, BEST, LIST…)
+    # contexto para reagendar depois de reordenar/remover (v0.15)
+    engine: object = field(default=None, repr=False, compare=False)
+    settings: object = field(default=None, repr=False, compare=False)
+    horizon: object = field(default=None, repr=False, compare=False)
+
+    # -- edição do roteiro ----------------------------------------------
+    def remove(self, index: int) -> PlanEntry:
+        """Tira uma parada e reagenda as seguintes."""
+        entry = self.entries.pop(index)
+        self.reschedule()
+        return entry
+
+    def move(self, index: int, new_index: int) -> None:
+        """Muda uma parada de lugar e reagenda."""
+        entry = self.entries.pop(index)
+        self.entries.insert(max(0, min(len(self.entries), new_index)), entry)
+        self.reschedule()
+
+    def reorder(self, order: list[int]) -> None:
+        """Nova ordem dada pelos índices atuais (permutação completa)."""
+        if sorted(order) != list(range(len(self.entries))):
+            raise ValueError("ordem inválida")
+        self.entries = [self.entries[i] for i in order]
+        self.reschedule()
+
+    def set_slot(self, index: int, when: dt.datetime) -> None:
+        """Fixa o horário de uma parada (arrastar na linha do tempo): ela
+        vai para a posição cronológica e as demais são reagendadas."""
+        entry = self.entries.pop(index)
+        pos = sum(1 for e in self.entries if e.when_utc <= when)
+        self.entries.insert(pos, entry)
+        self.reschedule(pinned={id(entry): when})
+
+    def reschedule(self, pinned: dict | None = None) -> None:
+        """Recalcula os horários em sequência, na ordem atual.
+
+        Cada parada começa quando a anterior termina (``minutes_per_object``)
+        ou quando a sua janela útil abre, o que vier depois; se o horário
+        cair depois do fim da janela, a parada é marcada como ``late``.
+        Altitude, azimute e distância à Lua são recalculados no horário
+        novo. Planos sem horário (listas do mês/estação) não mudam.
+        """
+        if not self.timed or self.engine is None or self.night_start is None:
+            return
+        pinned = pinned or {}
+        step = dt.timedelta(minutes=self.minutes_per_object)
+        cursor = self.night_start
+        for e in self.entries:
+            when = pinned.get(id(e))
+            if when is None:
+                when = cursor
+                if e.window_start is not None and when < e.window_start:
+                    when = e.window_start
+            e.late = e.window_end is not None and when > e.window_end
+            _update_position(self.engine, e, when)
+            cursor = when + step
 
 
 def _constellation_name(abbr: str | None, const_names: dict) -> str:
@@ -478,7 +607,7 @@ def _catalog_rows(dso, catalog: str) -> list[tuple[dict, str]]:
     """Objetos de um catálogo designado (M/C), com o rótulo 'M 42'."""
     rows = dso.cx.execute(
         "SELECT o.id, o.name, o.common, o.klass, o.type, o.ra, o.dec,"
-        " o.mag, o.maj, o.con, d.ident FROM objects o"
+        " o.mag, o.maj, o.min, o.con, d.ident FROM objects o"
         " JOIN designations d ON d.object_id = o.id"
         " WHERE d.catalog = ? AND o.enabled = 1"
         " ORDER BY CAST(d.ident AS INTEGER)",
@@ -507,7 +636,7 @@ def _class_rows(dso, kind: str) -> list[tuple[dict, str]]:
         where, order = "o.klass = 'DARK' AND o.maj >= 40.0", "o.maj DESC"
     rows = dso.cx.execute(
         "SELECT o.id, o.name, o.common, o.klass, o.type, o.ra, o.dec,"
-        f" o.mag, o.maj, o.con FROM objects o WHERE {where} AND o.enabled = 1"
+        f" o.mag, o.maj, o.min, o.con FROM objects o WHERE {where} AND o.enabled = 1"
         f" ORDER BY {order} LIMIT 110",
     ).fetchall()
     return [(dict(r), r["name"]) for r in rows]
@@ -526,7 +655,7 @@ def _best_rows(dso) -> list[tuple[dict, str]]:
     marks = ",".join("?" * len(_NOT_SHOWPIECES))
     rows = dso.cx.execute(
         "SELECT o.id, o.name, o.common, o.klass, o.type, o.ra, o.dec,"
-        " o.mag, o.maj, o.con FROM objects o"
+        " o.mag, o.maj, o.min, o.con FROM objects o"
         " WHERE o.enabled = 1 AND o.common != '' AND o.klass != 'DARK'"
         f" AND o.type NOT IN ({marks})"
         " AND (o.mag <= 8.0 OR o.maj >= 90.0)"
@@ -547,7 +676,8 @@ def _best_rows(dso) -> list[tuple[dict, str]]:
     return out
 
 
-def _solar_system_candidates(engine, t_mid) -> list[tuple[dict, str]]:
+def _solar_system_candidates(engine, t_mid,
+                             include_moon: bool = False) -> list[tuple[dict, str]]:
     """Planetas (e a Lua) como candidatos dos "Melhores Objetos da Noite".
 
     A posição usada é a do MEIO da noite: os planetas se movem menos de um
@@ -563,7 +693,7 @@ def _solar_system_candidates(engine, t_mid) -> list[tuple[dict, str]]:
         ("Júpiter", -2.4), ("Saturno", 0.6), ("Urano", 5.7),
         ("Netuno", 7.9),
     ]
-    if illum >= 0.05:
+    if illum >= 0.05 or include_moon:
         # a Lua só entra quando há fase para ver (na nova não há alvo)
         bodies.insert(0, ("Lua", -11.0))
     for name, mag in bodies:
@@ -580,7 +710,7 @@ def _solar_system_candidates(engine, t_mid) -> list[tuple[dict, str]]:
             "id": -1, "name": name, "common": name, "klass": klass,
             "type": klass, "ra": ra, "dec": dec,
             "mag": (round(illum * 100) / 10 - 11 if name == "Lua" else mag),
-            "maj": None, "con": "",
+            "maj": None, "min": None, "con": "",
         }
         out.append((row, name))
     return out
@@ -594,61 +724,124 @@ def build_marathon(engine, dso, stars, kind: str, ref_utc: dt.datetime,
                    const_names: dict, min_alt: float | None = None,
                    minutes_per_object: int | None = None,
                    max_objects: int | None = None,
-                   settings: PlanSettings | None = None) -> ObservingPlan:
+                   settings: PlanSettings | None = None,
+                   horizon=None) -> ObservingPlan:
     """Monta o roteiro da maratona ``kind`` para a noite de ``ref_utc``.
 
-    Ver a doc do módulo para o algoritmo. A janela e o ritmo vêm de
-    ``settings`` (:class:`PlanSettings`); os parâmetros soltos existem
-    por compatibilidade e sobrescrevem os campos correspondentes.
+    Ver a doc do módulo para o algoritmo. A janela, o ritmo e os filtros
+    vêm de ``settings`` (:class:`PlanSettings`); os parâmetros soltos
+    existem por compatibilidade e sobrescrevem os campos correspondentes.
+    ``horizon`` é o horizonte do quintal (``core.horizon.HorizonProfile``):
+    um alvo atrás do prédio não entra no roteiro.
     """
-    from ..catalogs.dso import type_label
-
     settings = (settings or PlanSettings()).clamp()
     if minutes_per_object is not None:
         settings.minutes_per_object = int(minutes_per_object)
     if min_alt is not None:
         settings.min_altitude = float(min_alt)
-    min_alt = settings.min_altitude
+    if max_objects:
+        settings.max_objects = int(max_objects)
 
-    # 1) janela da noite conforme a configuração (padrão: astronômica)
     window = resolve_window(engine, ref_utc, settings)
-    start, end = window.start, window.end
-
-    # 2) candidatos do tipo pedido
     if kind in ("M", "C"):
-        candidates_rows = _catalog_rows(dso, kind)
+        rows = _catalog_rows(dso, kind)
     elif kind == "BEST":
-        t_mid = engine.ts.from_datetime(start + (end - start) / 2)
-        candidates_rows = (_best_rows(dso)
-                           + _solar_system_candidates(engine, t_mid))
+        t_mid = engine.ts.from_datetime(window.start + (window.end - window.start) / 2)
+        rows = _best_rows(dso) + _solar_system_candidates(engine, t_mid)
     else:
-        candidates_rows = _class_rows(dso, kind)
+        rows = _class_rows(dso, kind)
+    return _schedule(engine, stars, rows, MARATHON_TITLES.get(kind, kind), kind,
+                     ref_utc, const_names, settings, window, horizon,
+                     stretch=(kind == "BEST"))
 
-    # 3) grade de amostragem da noite (15 min) e efemérides comuns
+
+def build_from_list(engine, dso, stars, items: list[dict], ref_utc: dt.datetime,
+                    const_names: dict, settings: PlanSettings | None = None,
+                    horizon=None, title: str = "Minha lista") -> ObservingPlan:
+    """Roteiro da noite a partir de uma lista do usuário (v0.15 T7/T9).
+
+    ``items`` são dicionários com ``kind`` e ``ident`` (como os do
+    ``carina.sqlite``). O que não está ao alcance nesta noite — abaixo da
+    altitude mínima, atrás do horizonte do quintal, fora dos filtros —
+    vai para ``plan.skipped_names``.
+    """
+    from .objects import ObjectRef
+
+    settings = (settings or PlanSettings()).clamp()
+    window = resolve_window(engine, ref_utc, settings)
+    t_mid = engine.ts.from_datetime(window.start + (window.end - window.start) / 2)
+    bodies = {label: (row, label) for row, label in
+              _solar_system_candidates(engine, t_mid, include_moon=True)}
+    rows: list[tuple[dict, str]] = []
+    missing: list[str] = []
+    for item in items:
+        kind, ident = item["kind"], item["ident"]
+        if kind == "body":
+            if ident in bodies:
+                rows.append(bodies[ident])
+            else:
+                missing.append(item.get("name", ident))
+            continue
+        ref = ObjectRef.from_ident(kind, ident, stars, dso)
+        if ref is None:
+            missing.append(item.get("name", ident))
+            continue
+        if kind == "dso":
+            d = ref.data
+            row = {k: d.get(k) for k in ("id", "name", "common", "klass", "type", "ra",
+                                         "dec", "mag", "maj", "min", "con")}
+            label = d["name"]
+        else:
+            i = int(ref.key)
+            ra, dec = ref.ra_dec
+            row = {"id": -1, "name": ref.name, "common": stars.proper.get(i, ""),
+                   "klass": "STAR", "type": "*", "ra": ra, "dec": dec,
+                   "mag": float(stars.mag[i]), "maj": None, "min": None,
+                   "con": stars.con.get(i, ""), "_star_index": i}
+            label = ref.name
+        row["_kind"], row["_ident"] = kind, ident
+        rows.append((row, label))
+    plan = _schedule(engine, stars, rows, title, "LIST", ref_utc, const_names,
+                     settings, window, horizon)
+    plan.skipped_names = missing + plan.skipped_names
+    plan.skipped += len(missing)
+    return plan
+
+
+def _schedule(engine, stars, candidates_rows, title: str, kind: str,
+              ref_utc: dt.datetime, const_names: dict, settings: PlanSettings,
+              window: ObservingWindow, horizon=None,
+              stretch: bool = False) -> ObservingPlan:
+    """Agendador comum às maratonas e às listas do usuário.
+
+    1. grade de 15 min na janela da noite, com a Lua;
+    2. janela de visibilidade de cada candidato: acima da altitude mínima
+       **e** acima do horizonte do quintal; objetos fracos ficam restritos
+       à noite astronômica;
+    3. filtros do plano (instrumento, classes, distância da Lua);
+    4. ordem por urgência (quem se põe antes vai antes) e slots sequenciais;
+    5. entradas com posição exata, visibilidade da noite e pontuação.
+    """
+    min_alt = settings.min_altitude
+    start, end = window.start, window.end
     n = max(2, int((end - start).total_seconds() / (SAMPLE_MINUTES * 60)))
-    times = [start + dt.timedelta(minutes=SAMPLE_MINUTES * i)
-             for i in range(n + 1)]
+    times = [start + dt.timedelta(minutes=SAMPLE_MINUTES * i) for i in range(n + 1)]
     ts = engine.ts.from_datetimes(times)
-    mats = [engine.horizontal_matrix(t) for t in ts]
+    mats = np.stack([engine.horizontal_matrix(t) for t in ts])      # (T,3,3)
 
     moon_app = engine.site.at(ts).observe(engine.eph["moon"]).apparent()
-    moon_alt, moon_az, _ = moon_app.altaz()
-    moon_alt = np.radians(moon_alt.degrees)
-    moon_az = np.radians(moon_az.degrees)
+    m_alt, m_az, _ = moon_app.altaz()
+    moon_alt = np.radians(m_alt.degrees)
+    moon_az = np.radians(m_az.degrees)
     illum = float(engine.moon_illumination(engine.ts.from_datetime(ref_utc)))
-    r_crit, _ = moon_influence_radii(illum)
 
     plan = ObservingPlan(
-        title=MARATHON_TITLES.get(kind, kind),
-        night_start=start, night_end=end, location="",
-        moon_illumination=illum,
-        minutes_per_object=settings.minutes_per_object,
-        window_label=window.label,
+        title=title, night_start=start, night_end=end, location="",
+        moon_illumination=illum, minutes_per_object=settings.minutes_per_object,
+        window_label=window.label, kind=kind, engine=engine, settings=settings,
+        horizon=horizon,
     )
 
-    # 4) janela de visibilidade de cada candidato.
-    #    Objetos fracos ficam restritos à noite astronômica: no crepúsculo
-    #    o céu ainda tem luz e só alvos bem brilhantes valem a tentativa.
     dark_first = dark_last = None
     if window.dark_start is not None and window.dark_end is not None:
         for i, when in enumerate(times):
@@ -658,45 +851,54 @@ def build_marathon(engine, dso, stars, kind: str, ref_utc: dt.datetime,
 
     candidates = []
     for row, label in candidates_rows:
-        cd = math.cos(row["dec"])
-        vec = np.array(
-            [cd * math.cos(row["ra"]), cd * math.sin(row["ra"]),
-             math.sin(row["dec"])]
-        )
-        alts = np.array([
-            math.asin(max(-1.0, min(1.0, float((vec @ m.T)[2]))))
-            for m in mats
-        ])
-        usable = np.nonzero(np.degrees(alts) >= min_alt)[0]
-        if len(usable) == 0:
+        row.setdefault("_kind", "body" if row["klass"] in ("PLANET", "MOON") else "dso")
+        row.setdefault("_ident", row["name"])
+        instrument = instrument_for(row["mag"], row.get("maj"), row["klass"],
+                                    row.get("min"))
+        if not settings.accepts(instrument, row["klass"]):
             plan.skipped += 1
+            plan.skipped_names.append(label)
             continue
-        first, last = int(usable[0]), int(usable[-1])
-
+        cd = math.cos(row["dec"])
+        vec = np.array([cd * math.cos(row["ra"]), cd * math.sin(row["ra"]),
+                        math.sin(row["dec"])])
+        h = np.einsum("tij,j->ti", mats, vec)
+        alts = np.degrees(np.arcsin(np.clip(h[:, 2], -1.0, 1.0)))
+        azs = np.degrees(np.arctan2(h[:, 1], h[:, 0])) % 360.0
+        ok = alts >= min_alt
+        if horizon is not None and not horizon.is_flat:
+            ok &= ~horizon.blocks(azs, alts)
         mag = row["mag"]
         bright = mag is not None and mag <= settings.twilight_mag_limit
         if not bright and dark_first is not None:
-            # recorta a janela do objeto para dentro da noite escura
-            first = max(first, dark_first)
-            last = min(last, dark_last)
-            if first > last:
-                plan.skipped += 1
-                continue
-        candidates.append({
-            "row": row, "label": label, "vec": vec,
-            "first": first, "last": last,
-        })
+            dark = np.zeros(len(times), dtype=bool)
+            dark[dark_first:dark_last + 1] = True
+            ok &= dark
+        if settings.moon_min_sep > 0 and row["klass"] not in ("MOON",):
+            ca = np.cos(np.radians(alts))
+            cos_sep = (np.sin(np.radians(alts)) * np.sin(moon_alt)
+                       + ca * np.cos(moon_alt) * np.cos(np.radians(azs) - moon_az))
+            sep = np.degrees(np.arccos(np.clip(cos_sep, -1.0, 1.0)))
+            ok &= (moon_alt <= 0) | (sep >= settings.moon_min_sep)
+        usable = np.nonzero(ok)[0]
+        if len(usable) == 0:
+            plan.skipped += 1
+            plan.skipped_names.append(label)
+            continue
+        candidates.append({"row": row, "label": label, "vec": vec,
+                           "first": int(usable[0]), "last": int(usable[-1]),
+                           "instrument": instrument})
 
-    # 5) escalonamento por urgência: quem se põe antes é observado antes.
-    #    O cursor avança o tempo configurado por objeto; na maratona da
-    #    noite inteira o passo é esticado para preencher toda a janela.
     candidates.sort(key=lambda c: (c["last"], c["first"]))
-    if max_objects:
-        candidates = candidates[:max_objects]
+    if settings.max_objects:
+        for c in candidates[settings.max_objects:]:
+            plan.skipped_names.append(c["label"])
+        plan.skipped += max(0, len(candidates) - settings.max_objects)
+        candidates = candidates[:settings.max_objects]
 
     night_minutes = (end - start).total_seconds() / 60.0
     step_min = float(settings.minutes_per_object)
-    if kind == "BEST" and candidates:
+    if stretch and candidates:
         step_min = max(step_min, night_minutes / (len(candidates) + 1))
 
     scheduled: list[tuple[dt.datetime, dict]] = []
@@ -706,84 +908,127 @@ def build_marathon(engine, dso, stars, kind: str, ref_utc: dt.datetime,
         last_min = cand["last"] * SAMPLE_MINUTES
         when_min = max(cursor, first_min)
         if when_min > last_min:
-            # o slot só abriria depois de o objeto sair de alcance:
-            # observa-o no último instante ainda válido (fora de ordem,
-            # mas é isso que um maratonista faria)
-            when_min = last_min
+            when_min = last_min      # fora de ordem, mas ainda ao alcance
         scheduled.append((start + dt.timedelta(minutes=when_min), cand))
         cursor = when_min + step_min
     scheduled.sort(key=lambda s: s[0])
 
-    # 6) entradas finais com alt/az EXATOS no horário agendado
     for when, cand in scheduled:
-        row = cand["row"]
-        t_exact = engine.ts.from_datetime(when)
-        m_exact = engine.horizontal_matrix(t_exact)
-        v_h = cand["vec"] @ m_exact.T
-        alt_rad = math.asin(max(-1.0, min(1.0, float(v_h[2]))))
-        az = math.atan2(float(v_h[1]), float(v_h[0])) % (2 * math.pi)
-
-        # separação da Lua no índice de grade mais próximo (erro < 8 min
-        # de movimento lunar ≈ 0,07° — irrelevante para o aviso)
-        gi = min(len(times) - 1,
-                 int(round((when - start).total_seconds() / 60.0
-                           / SAMPLE_MINUTES)))
-        cos_sep = (
-            math.sin(alt_rad) * math.sin(moon_alt[gi])
-            + math.cos(alt_rad) * math.cos(moon_alt[gi])
-            * math.cos(az - moon_az[gi])
-        )
-        moon_up = moon_alt[gi] > 0
-        sep = (math.degrees(math.acos(max(-1.0, min(1.0, cos_sep))))
-               if moon_up else 999.0)
-
-        klass = row["klass"]
-        if klass in ("PLANET", "MOON"):
-            what, bino = SOLAR_HINTS.get(
-                row["name"], (VISUAL_HINTS["OTHER"], BINOCULAR_HINTS["OTHER"])
-            )
-            finder = ("É o ponto mais brilhante da região — visível a olho "
-                      "nu; aponte diretamente." if row["name"] != "Netuno"
-                      else "Use a busca do Carina para centralizar e siga "
-                           "as estrelas do campo.")
-            guides: list[dict] = []
-            tipo = "Lua" if klass == "MOON" else "Planeta"
-            moon_w = False if klass == "MOON" else (
-                moon_up and sep < math.degrees(r_crit))
-        else:
-            what = VISUAL_HINTS.get(klass, VISUAL_HINTS["OTHER"])
-            bino = BINOCULAR_HINTS.get(klass, BINOCULAR_HINTS["OTHER"])
-            finder, guides = _build_finder(
-                stars, row["ra"], row["dec"],
-                _constellation_name(row["con"], const_names),
-            )
-            tipo = type_label(row["type"])
-            moon_w = moon_up and sep < math.degrees(r_crit)
-
-        plan.entries.append(PlanEntry(
-            when_utc=when,
-            name=row["name"],
-            common=names.common_label(row["common"]),
-            catalog_id=cand["label"],
-            klass=klass,
-            type_label=tipo,
-            magnitude=row["mag"],
-            size_arcmin=row["maj"],
-            altitude=math.degrees(alt_rad),
-            azimuth=math.degrees(az),
-            constellation=_constellation_name(row["con"], const_names),
-            moon_sep=sep,
-            moon_warning=moon_w,
-            what_to_see=what,
-            binocular=bino,
-            how_to_find=finder,
-            ra=row["ra"],
-            dec=row["dec"],
-            guides=guides,
-            instrument=instrument_for(row["mag"], row["maj"], klass),
-            in_twilight=not window.is_dark(when),
-        ))
+        plan.entries.append(_make_entry(engine, stars, cand, when, const_names,
+                                        window, illum))
+    _enrich(engine, plan, ref_utc, settings, horizon)
     return plan
+
+
+def _moon_at(engine, t) -> tuple[float, float]:
+    """(altitude, azimute) da Lua em radianos no instante t."""
+    alt, az, _ = engine.site.at(t).observe(engine.eph["moon"]).apparent().altaz()
+    return alt.radians, az.radians
+
+
+def _update_position(engine, entry: PlanEntry, when: dt.datetime) -> None:
+    """Põe a parada no horário dado: altitude, azimute e Lua recalculados."""
+    from .eclipses import moon_influence_radii
+
+    t = engine.ts.from_datetime(when)
+    m = engine.horizontal_matrix(t)
+    cd = math.cos(entry.dec)
+    vec = np.array([cd * math.cos(entry.ra), cd * math.sin(entry.ra), math.sin(entry.dec)])
+    v_h = vec @ m.T
+    alt = math.asin(max(-1.0, min(1.0, float(v_h[2]))))
+    az = math.atan2(float(v_h[1]), float(v_h[0])) % (2 * math.pi)
+    m_alt, m_az = _moon_at(engine, t)
+    cos_sep = (math.sin(alt) * math.sin(m_alt)
+               + math.cos(alt) * math.cos(m_alt) * math.cos(az - m_az))
+    up = m_alt > 0
+    sep = math.degrees(math.acos(max(-1.0, min(1.0, cos_sep)))) if up else 999.0
+    r_crit, _ = moon_influence_radii(float(engine.moon_illumination(t)))
+    entry.when_utc = when
+    entry.altitude = math.degrees(alt)
+    entry.azimuth = math.degrees(az)
+    entry.moon_sep = sep
+    entry.moon_warning = (entry.klass != "MOON" and up
+                          and sep < math.degrees(r_crit))
+
+
+def _make_entry(engine, stars, cand: dict, when: dt.datetime, const_names: dict,
+                window: ObservingWindow, illum: float) -> PlanEntry:
+    from ..catalogs.dso import type_label
+
+    row = cand["row"]
+    klass = row["klass"]
+    if klass in ("PLANET", "MOON"):
+        what, bino = SOLAR_HINTS.get(
+            row["name"], (VISUAL_HINTS["OTHER"], BINOCULAR_HINTS["OTHER"]))
+        finder = ("É o ponto mais brilhante da região — visível a olho nu; "
+                  "aponte diretamente." if row["name"] != "Netuno"
+                  else "Use a busca do Carina para centralizar e siga as "
+                       "estrelas do campo.")
+        guides: list[dict] = []
+        tipo = "Lua" if klass == "MOON" else "Planeta"
+    elif klass == "STAR":
+        idx = row.get("_star_index")
+        what = (_star_color_hint(float(stars.ci[idx])) if idx is not None
+                else VISUAL_HINTS["OTHER"])
+        bino = ("A olho nu já é evidente; ao binóculo a cor fica mais nítida "
+                "e as companheiras de campo aparecem.")
+        finder, guides = _build_finder(
+            stars, row["ra"], row["dec"],
+            _constellation_name(row["con"], const_names), skip_index=idx)
+        tipo = "Estrela"
+    else:
+        what = VISUAL_HINTS.get(klass, VISUAL_HINTS["OTHER"])
+        bino = BINOCULAR_HINTS.get(klass, BINOCULAR_HINTS["OTHER"])
+        finder, guides = _build_finder(
+            stars, row["ra"], row["dec"],
+            _constellation_name(row["con"], const_names))
+        tipo = type_label(row["type"])
+    diffuse = is_diffuse(row["mag"], row.get("maj"), row.get("min"), klass)
+    if diffuse:
+        what += (" Objeto difuso (brilho superficial baixo): precisa de céu "
+                 "escuro e visão periférica.")
+    entry = PlanEntry(
+        when_utc=when, name=row["name"],
+        common=names.common_label(row["common"]) if klass not in ("STAR",)
+        else (row["common"] or ""),
+        catalog_id=cand["label"], klass=klass, type_label=tipo,
+        magnitude=row["mag"], size_arcmin=row.get("maj"), altitude=0.0,
+        azimuth=0.0, constellation=_constellation_name(row["con"], const_names),
+        moon_sep=999.0, moon_warning=False, what_to_see=what, binocular=bino,
+        how_to_find=finder, ra=row["ra"], dec=row["dec"], guides=guides,
+        instrument=cand["instrument"], in_twilight=not window.is_dark(when),
+        kind=row["_kind"], ident=row["_ident"], diffuse=diffuse,
+    )
+    _update_position(engine, entry, when)
+    return entry
+
+
+def _enrich(engine, plan: ObservingPlan, ref_utc: dt.datetime,
+            settings: PlanSettings, horizon=None) -> None:
+    """Nasce/culmina/se põe, janela útil e pontuação de cada parada.
+
+    Resolução da grade (10 min, interpolada) — refinar ao segundo para
+    cem objetos custaria segundos sem mudar nada no roteiro.
+    """
+    from .score import score_visibility
+    from .visibility import Target, compute_visibility, night_grid
+
+    grid = night_grid(engine, ref_utc)
+    for e in plan.entries:
+        target = (Target(body=e.name) if e.klass in ("PLANET", "MOON")
+                  else Target.from_radec(e.ra, e.dec, e.label))
+        try:
+            vis = compute_visibility(engine, target, ref_utc, settings.min_altitude,
+                                     horizon, grid=grid, refine=False)
+        except Exception:     # noqa: BLE001 — um corpo estranho não derruba o plano
+            continue
+        e.rise_utc, e.set_utc = vis.rise_utc, vis.set_utc
+        e.transit_utc, e.transit_alt = vis.transit_utc, vis.transit_alt
+        e.window_start, e.window_end = vis.window_start, vis.window_end
+        e.best_utc = vis.best_utc
+        sc = score_visibility(vis, e.magnitude, e.size_arcmin, None, e.klass,
+                              bortle=settings.bortle)
+        e.score, e.score_text = sc.total, sc.explain()
 
 
 # ---------------------------------------------------------------------------
@@ -841,7 +1086,7 @@ def _curated_rows(dso, limit: int = 400) -> list:
     marks = ",".join("?" * len(_NOT_SHOWPIECES))
     return dso.cx.execute(
         "SELECT o.id, o.name, o.common, o.klass, o.type, o.ra, o.dec,"
-        " o.mag, o.maj, o.con FROM objects o"
+        " o.mag, o.maj, o.min, o.con FROM objects o"
         " WHERE o.enabled = 1"
         f"   AND o.type NOT IN ({marks})"
         "   AND (o.name LIKE 'M %' OR o.name LIKE 'NGC%'"
@@ -957,7 +1202,7 @@ def build_period_plan(engine, dso, stars, kind: str, ref_utc: dt.datetime,
             stars, row["ra"], row["dec"],
             _constellation_name(row["con"], const_names),
         )
-        instrument = instrument_for(row["mag"], row["maj"], row["klass"])
+        instrument = instrument_for(row["mag"], row["maj"], row["klass"], row["min"])
         plan.entries.append(PlanEntry(
             when_utc=mid.utc_datetime(),
             name=row["name"],
@@ -980,6 +1225,8 @@ def build_period_plan(engine, dso, stars, kind: str, ref_utc: dt.datetime,
             instrument=instrument,
             note=(f"Altitude média no meio da noite: {mean_alt:.0f}°; "
                   f"chega a {best_alt:.0f}° no período."),
+            kind="dso", ident=row["name"],
+            diffuse=is_diffuse(row["mag"], row["maj"], row["min"], row["klass"]),
         ))
     return plan
 
@@ -1061,10 +1308,14 @@ def build_bright_stars(engine, stars, ref_utc: dt.datetime,
             instrument="olho",
             in_twilight=not window.is_dark(times[best]),
             note=stars.full_designation(idx),
+            kind="star",
+            ident=f"HIP {int(stars.hip[idx])}" if stars.hip[idx] else f"STAR {idx}",
         ))
         if len(plan.entries) >= max_objects:
             break
     plan.entries.sort(key=lambda e: e.magnitude)
+    plan.engine, plan.settings, plan.kind = engine, settings, "STARS"
+    _enrich(engine, plan, ref_utc, settings)
     return plan
 
 
