@@ -62,6 +62,52 @@ class Camera:
         """Multiplica o campo de visão (fator < 1 aproxima), com limites."""
         self.fov = max(FOV_MIN, min(FOV_MAX, self.fov * factor))
 
+    def zoom_at(self, factor: float, px: float, py: float) -> None:
+        """Zoom mantendo fixo o ponto do céu sob o pixel (px, py).
+
+        Depois de mudar o campo, resolve (az, alt) para o vetor que estava
+        sob o cursor voltar a projetar em (px, py): Newton em duas
+        variáveis com jacobiano numérico — converge em 3–4 passos mesmo
+        nos cantos. Sem isto o zoom era sempre no centro (revisão 2026-10).
+        """
+        target = self.unproject(px, py)
+        self.zoom(factor)
+        self.aim_pixel_at(target, px, py)
+
+    def _pixel_of(self, vec: np.ndarray) -> tuple[float, float]:
+        x, y, _vis = self.project(vec[np.newaxis, :], margin=1e9)
+        return float(x[0]), float(y[0])
+
+    def aim_pixel_at(self, target: np.ndarray, px: float, py: float,
+                     tol_px: float = 0.05, iters: int = 8) -> None:
+        """Gira a câmera (az, alt) até ``target`` cair no pixel (px, py)."""
+        h = 1e-4
+        for _ in range(iters):
+            x, y = self._pixel_of(target)
+            ex, ey = x - px, y - py
+            if math.hypot(ex, ey) < tol_px:
+                return
+            az0, alt0 = self.az, self.alt
+            self.set_direction(az0 + h, alt0)
+            xa, ya = self._pixel_of(target)
+            self.set_direction(az0, alt0 + h)
+            xb, yb = self._pixel_of(target)
+            self.set_direction(az0, alt0)
+            j11, j12 = (xa - x) / h, (xb - x) / h
+            j21, j22 = (ya - y) / h, (yb - y) / h
+            det = j11 * j22 - j12 * j21
+            if abs(det) < 1e-9:
+                return                      # jacobiano singular (polo)
+            daz = -(j22 * ex - j12 * ey) / det
+            dalt = -(-j21 * ex + j11 * ey) / det
+            # passo limitado para não saltar por cima da solução
+            scale = min(1.0, math.radians(20.0) / max(abs(daz), abs(dalt), 1e-12))
+            self.set_direction(az0 + daz * scale, alt0 + dalt * scale)
+
+    def center_on_pixel(self, px: float, py: float) -> None:
+        """Leva o ponto do céu sob (px, py) para o centro da tela."""
+        self.set_direction(*vec_to_altaz(self.unproject(px, py)))
+
     def _update_basis(self) -> None:
         """Reconstrói a base ortonormal (right, up, forward) da câmera.
 

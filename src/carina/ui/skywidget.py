@@ -15,7 +15,7 @@ from ..catalogs.stars import StarCatalog
 from ..core.eclipses import moon_influence_radii
 from ..core.engine import SkyEngine
 from ..core.localtime import to_local
-from ..core.projection import FOV_MAX, FOV_MIN, Camera
+from ..core.projection import FOV_MAX, FOV_MIN, Camera, vec_to_altaz
 from ..render.glrenderer import GLRenderer
 
 # Cores (r, g, b, a)
@@ -191,6 +191,8 @@ class SkyWidget(QOpenGLWidget):
     contextInfoRequested = Signal(object)
     contextDetailsRequested = Signal(object)
     contextTrackRequested = Signal(object)
+    followChanged = Signal(bool)       # seguir objeto ligado/desligado
+    noticeShown = Signal(str)          # aviso exibido no alto do céu
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
                  data_dir, parent=None):
@@ -249,6 +251,10 @@ class SkyWidget(QOpenGLWidget):
         self.cardinals = skygeometry.cardinal_vectors()
         self.ground_verts, self.ground_tris = skygeometry.build_ground()
         self._goto_anim = None
+        self.follow_selection = False       # câmera acompanha a seleção
+        self._history: list = []            # vistas anteriores (Backspace)
+        self._hover = None                  # objeto sob o cursor (tooltip)
+        self._notice: tuple | None = None   # (texto, prazo) do aviso
 
         # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
         from ..render.dsoimages import DsoImageLayer
@@ -524,6 +530,11 @@ class SkyWidget(QOpenGLWidget):
         # matriz do quadro à disposição dos rótulos (desenhados depois,
         # fora do escopo deste método)
         self._frame_m = m
+        if self.follow_selection and self.selection is not None:
+            # seguir objeto: a câmera acompanha a seleção a cada quadro
+            vec = self._selection_vec(self.selection, m, t)
+            if vec is not None:
+                cam.set_direction(*vec_to_altaz(vec))
 
         if self.chart_mode:
             bg, star_fade, day = np.array([1.0, 1.0, 1.0]), 1.0, 0.0
@@ -698,6 +709,7 @@ class SkyWidget(QOpenGLWidget):
         self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
         self._draw_fov_labels(painter, dpr)
         self._draw_tools_overlay(painter, dpr)
+        self._draw_notice(painter)
         painter.end()
 
         self._emit_status(t)
@@ -1579,7 +1591,7 @@ class SkyWidget(QOpenGLWidget):
             painter.setFont(font)
             fm = QFontMetrics(font)
             pen = (QColor(70, 90, 120) if self.chart_mode
-                   else QColor(120, 150, 190))
+                   else QColor(140, 172, 215))
             painter.setPen(pen)
             for i, info in enumerate(self.const_info):
                 if not cvis[i]:
@@ -1682,16 +1694,22 @@ class SkyWidget(QOpenGLWidget):
                 )
             else:
                 pen_up, pen_mc, pen_down = (
-                    QColor(150, 168, 190), QColor(235, 226, 190),
-                    QColor(64, 70, 82),
+                    QColor(176, 192, 214), QColor(235, 226, 190),
+                    QColor(84, 92, 106),
                 )
             shown = 0
             # duas passadas: M/C primeiro (prioridade), depois os demais
-            order = sorted(range(len(idx)),
-                           key=lambda k: not bool(dso.is_mc[idx[k]]))
+            sel_id = (int(self.selection[1]) if self.selection
+                      and self.selection[0] == "dso" else None)
+            order = sorted(
+                range(len(idx)),
+                key=lambda k: (int(dso.ids[idx[k]]) != sel_id,
+                               not bool(dso.is_mc[idx[k]])),
+            )
             for k in order:
                 i = int(idx[k])
-                is_mc = bool(dso.is_mc[i])
+                # M/C e o objeto SELECIONADO são sempre rotulados
+                is_mc = bool(dso.is_mc[i]) or int(dso.ids[i]) == sel_id
                 if not is_mc and shown >= 30:
                     continue
                 if not (is_mc or dso.mag[i] <= label_lim or maj_px[k] > 30.0):
@@ -1787,7 +1805,13 @@ class SkyWidget(QOpenGLWidget):
         return state.vec if state is not None else None
 
     def goto_object(self, selection, animate: bool = True) -> None:
-        """Seleciona e centraliza a câmera no objeto (busca / 'ir para')."""
+        """Seleciona e centraliza a câmera no objeto (busca / 'ir para').
+
+        Se o objeto está abaixo do horizonte, avisa com a hora em que
+        nasce (revisão 2026-10, D5) — antes o usuário ficava olhando para
+        o solo sem explicação. A vista anterior vai para o histórico
+        (Backspace volta).
+        """
         t = self.engine.time.current()
         m = self.engine.horizontal_matrix(t).astype(np.float32)
         vec = self._selection_vec(selection, m, t)
@@ -1796,31 +1820,17 @@ class SkyWidget(QOpenGLWidget):
         if selection != self.selection:
             self.selection = selection
             self.selectionChanged.emit(selection)
-        alt1 = math.asin(max(-1.0, min(1.0, float(vec[2]))))
-        az1 = math.atan2(float(vec[1]), float(vec[0]))
-        cam = self.camera
-        if self._goto_anim is not None:
-            self._goto_anim.stop()
+        self._push_view()
+        az1, alt1 = vec_to_altaz(vec)
+        if alt1 < 0.0:
+            self._warn_below_horizon(selection, alt1)
         if not animate:
-            cam.set_direction(az1, alt1)
+            if self._goto_anim is not None:
+                self._goto_anim.stop()
+            self.camera.set_direction(az1, alt1)
             self.update()
             return
-        az0, alt0 = cam.az, cam.alt
-        daz = _wrap_pi(az1 - az0)
-        dalt = alt1 - alt0
-        anim = QVariantAnimation(self)
-        anim.setDuration(650)
-        anim.setStartValue(0.0)
-        anim.setEndValue(1.0)
-        anim.setEasingCurve(QEasingCurve.InOutCubic)
-
-        def step(v: float) -> None:
-            cam.set_direction(az0 + daz * v, alt0 + dalt * v)
-            self.update()
-
-        anim.valueChanged.connect(step)
-        anim.start()
-        self._goto_anim = anim
+        self._animate_to(az1, alt1)
 
     def clear_selection(self) -> None:
         """Desfaz a seleção atual (Esc, menu de contexto)."""
@@ -1932,6 +1942,8 @@ class SkyWidget(QOpenGLWidget):
         cam = self.camera
         if abs(x1 - x0) < 12 or abs(y1 - y0) < 12:
             return
+        self._push_view()
+        self._stop_following()
         v_center = cam.unproject((x0 + x1) / 2.0, (y0 + y1) / 2.0)
         alt = math.asin(max(-1.0, min(1.0, float(v_center[2]))))
         az = math.atan2(float(v_center[1]), float(v_center[0]))
@@ -2025,11 +2037,14 @@ class SkyWidget(QOpenGLWidget):
             daz = _wrap_pi(az_c - az_p)
             dalt = alt_c - alt_p
             cam = self.camera
+            self._stop_following()
             cam.set_direction(cam.az - daz, cam.alt - dalt)
             self.update()
         else:
             t = self.engine.time.current()
             self._emit_status(t)
+            if self.mouse_mode == "pan":
+                self._update_hover(x, y, event.globalPosition().toPoint())
 
     def mouseReleaseEvent(self, event) -> None:
         """Fim da interação: aplica o zoom por retângulo ou, se o mouse mal
@@ -2074,14 +2089,233 @@ class SkyWidget(QOpenGLWidget):
         return None
 
     def keyPressEvent(self, event) -> None:
-        """Esc limpa a seleção; os atalhos de camada são das ACTIONS do
-        menu (com janela ativa), não deste widget."""
-        if event.key() == Qt.Key_Escape:
+        """Teclado: Esc limpa a seleção; setas deslocam a vista; + / − e
+        PgUp / PgDn mudam o zoom; Backspace volta à vista anterior. Os
+        atalhos de camada são das ACTIONS do menu, não deste widget."""
+        key = event.key()
+        step = 0.15 * self.camera.height
+        if key == Qt.Key_Escape:
             self.clear_selection()
+        elif key == Qt.Key_Left:
+            self.pan_by_pixels(-step, 0.0)
+        elif key == Qt.Key_Right:
+            self.pan_by_pixels(step, 0.0)
+        elif key == Qt.Key_Up:
+            self.pan_by_pixels(0.0, -step)
+        elif key == Qt.Key_Down:
+            self.pan_by_pixels(0.0, step)
+        elif key in (Qt.Key_Plus, Qt.Key_Equal, Qt.Key_PageUp):
+            self.zoom_at(0.82)
+        elif key in (Qt.Key_Minus, Qt.Key_Underscore, Qt.Key_PageDown):
+            self.zoom_at(1.0 / 0.82)
+        elif key == Qt.Key_Backspace:
+            self.go_back()
         else:
             super().keyPressEvent(event)
 
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Navegação (revisão 2026-10: zoom no cursor, duplo clique, teclado,
+    # seguir objeto, vista anterior, aviso de horizonte)
+    # ------------------------------------------------------------------
+    def zoom_at(self, factor: float, px: float | None = None,
+                py: float | None = None) -> None:
+        """Zoom mantendo fixo o ponto do céu sob (px, py), em pixels físicos.
+
+        Sem âncora o zoom é no centro (comportamento antigo). Com âncora,
+        depois de mudar o campo a câmera gira o quanto for preciso para o
+        mesmo vetor voltar a cair sob o cursor — duas iterações bastam,
+        a projeção é quase linear nessa vizinhança.
+        """
+        if px is None or py is None:
+            self.camera.zoom(factor)
+        else:
+            self.camera.zoom_at(factor, px, py)
+        self.update()
+
+    def pan_by_pixels(self, dx: float, dy: float) -> None:
+        """Desloca a vista: o ponto que estava a (dx, dy) do centro vai
+        para o centro (funciona em qualquer orientação da câmera)."""
+        cam = self.camera
+        cam.center_on_pixel(cam.width / 2.0 + dx, cam.height / 2.0 + dy)
+        self._stop_following()
+        self.update()
+
+    def _push_view(self) -> None:
+        """Guarda a vista atual para 'voltar' (Backspace)."""
+        cam = self.camera
+        self._history.append((cam.az, cam.alt, cam.fov))
+        del self._history[:-30]
+
+    def go_back(self) -> bool:
+        """Volta à vista anterior; False se não há histórico."""
+        if not self._history:
+            return False
+        az, alt, fov = self._history.pop()
+        self._stop_following()
+        self.camera.fov = fov
+        self.camera.set_direction(az, alt)
+        self.update()
+        return True
+
+    def set_follow_selection(self, on: bool) -> None:
+        """Seguir objeto: a câmera acompanha a seleção enquanto o tempo
+        corre (desliga sozinho quando o usuário arrasta ou usa as setas)."""
+        on = bool(on and self.selection is not None)
+        if on != self.follow_selection:
+            self.follow_selection = on
+            self.followChanged.emit(on)
+        self.update()
+
+    def _stop_following(self) -> None:
+        if self.follow_selection:
+            self.follow_selection = False
+            self.followChanged.emit(False)
+
+    def _animate_to(self, az1: float, alt1: float) -> None:
+        """Gira suavemente a câmera até (az1, alt1)."""
+        cam = self.camera
+        if self._goto_anim is not None:
+            self._goto_anim.stop()
+        az0, alt0 = cam.az, cam.alt
+        daz = _wrap_pi(az1 - az0)
+        dalt = alt1 - alt0
+        anim = QVariantAnimation(self)
+        anim.setDuration(650)
+        anim.setStartValue(0.0)
+        anim.setEndValue(1.0)
+        anim.setEasingCurve(QEasingCurve.InOutCubic)
+
+        def step(v: float) -> None:
+            cam.set_direction(az0 + daz * v, alt0 + dalt * v)
+            self.update()
+
+        anim.valueChanged.connect(step)
+        anim.start()
+        self._goto_anim = anim
+
+    def mouseDoubleClickEvent(self, event) -> None:
+        """Duplo clique centraliza o ponto do céu sob o cursor."""
+        if event.button() != Qt.LeftButton or self.mouse_mode != "pan":
+            return
+        x, y = self._device_pos(event)
+        self._push_view()
+        self._stop_following()
+        self._animate_to(*vec_to_altaz(self.camera.unproject(x, y)))
+
+    # --- tooltip ao pairar ---------------------------------------------
+    def hover_text(self, target) -> str:
+        """Nome · magnitude · altitude do objeto, para o tooltip."""
+        kind, key = target
+        t = self.engine.time.current()
+        vec = self._selection_vec(target, self._frame_m, t)
+        alt = ""
+        if vec is not None:
+            alt = f" · alt {math.degrees(math.asin(max(-1.0, min(1.0, float(vec[2]))))):.0f}°"
+        mag = ""
+        if kind == "star":
+            mag = f" · mag {float(self.stars.mag[int(key)]):.1f}"
+        elif kind == "dso":
+            data = self.dso.get(int(key))
+            if data and data.get("mag") is not None:
+                mag = f" · mag {data['mag']:.1f}"
+        return f"{self.describe_selection(target)}{mag}{alt}"
+
+    def _update_hover(self, x: float, y: float, global_pos) -> None:
+        from PySide6.QtWidgets import QToolTip
+
+        target = self.object_at(x, y)
+        if target == self._hover:
+            return
+        self._hover = target
+        if target is None:
+            QToolTip.hideText()
+        else:
+            QToolTip.showText(global_pos, self.hover_text(target), self)
+
+    # --- aviso de horizonte ----------------------------------------------
+    def next_rise_utc(self, selection, hours: float = 26.0):
+        """Próximo instante em que o objeto passa do horizonte (ou None)."""
+        import datetime as dt
+
+        start = self.engine.time.current_datetime()
+        step = dt.timedelta(minutes=10)
+        prev_alt = None
+        for i in range(int(hours * 6) + 1):
+            when = start + step * i
+            t = self.engine.ts.from_datetime(when)
+            m = self.engine.horizontal_matrix(t).astype(np.float32)
+            vec = self._selection_vec(selection, m, t)
+            if vec is None:
+                return None
+            alt = float(vec[2])
+            if prev_alt is not None and prev_alt < 0.0 <= alt:
+                return when
+            prev_alt = alt
+        return None
+
+    def goto_when_rises(self, selection) -> None:
+        """Avança o relógio para pouco depois do nascer e centraliza."""
+        import datetime as dt
+
+        rise = self.next_rise_utc(selection)
+        if rise is None:
+            self.show_notice(self.tr("Este objeto não nasce nas próximas 24 h."))
+            return
+        self.engine.time.set_datetime(rise + dt.timedelta(minutes=30))
+        self.sync_clock()
+        self.goto_object(selection)
+
+    def show_notice(self, text: str, seconds: float = 7.0) -> None:
+        """Faixa de aviso no alto do céu (some sozinha)."""
+        import time as _time
+
+        self._notice = (text, _time.monotonic() + seconds)
+        self.noticeShown.emit(text)
+        QTimer.singleShot(int(seconds * 1000) + 50, self.update)
+        self.update()
+
+    def _draw_notice(self, painter: QPainter) -> None:
+        import time as _time
+
+        if self._notice is None:
+            return
+        text, deadline = self._notice
+        if _time.monotonic() > deadline:
+            self._notice = None
+            return
+        from PySide6.QtCore import QRectF
+        from PySide6.QtGui import QFontMetrics
+
+        font = QFont("Segoe UI", 10, QFont.DemiBold)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        w_t = fm.horizontalAdvance(text) + 28
+        h_t = fm.height() + 14
+        rect = QRectF((self.width() - w_t) / 2.0, 14.0, w_t, h_t)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor(20, 24, 32, 215))
+        painter.drawRoundedRect(rect, 8.0, 8.0)
+        painter.setPen(QColor(255, 214, 140))
+        painter.drawText(rect, Qt.AlignCenter, text)
+
+    def _warn_below_horizon(self, selection, alt_rad: float) -> None:
+        """Aviso com a hora do nascer quando se vai a um objeto sob o solo."""
+        name = self.describe_selection(selection)
+        rise = self.next_rise_utc(selection)
+        if rise is None:
+            text = self.tr(
+                "{n} está abaixo do horizonte ({a:.0f}°) e não nasce nas "
+                "próximas 24 h"
+            ).format(n=name, a=math.degrees(alt_rad))
+        else:
+            text = self.tr(
+                "{n} está abaixo do horizonte ({a:.0f}°) — nasce às {h}"
+            ).format(n=name, a=math.degrees(alt_rad),
+                     h=to_local(rise).strftime("%H:%M"))
+        self.show_notice(text)
+
     def object_at(self, device_x: float, device_y: float):
         """Objeto sob o ponto dado, sem alterar a seleção atual."""
         best = None
@@ -2190,10 +2424,10 @@ class SkyWidget(QOpenGLWidget):
         return name
 
     def wheelEvent(self, event) -> None:
-        """Zoom pela roda: ~18% por clique, entre FOV_MIN e FOV_MAX."""
+        """Zoom pela roda (~18% por clique), ancorado no ponto sob o cursor."""
         delta = event.angleDelta().y()
         if delta == 0:
             return
         factor = 0.82 if delta > 0 else 1.0 / 0.82
-        self.camera.zoom(factor)
-        self.update()
+        x, y = self._device_pos(event)
+        self.zoom_at(factor, x, y)
