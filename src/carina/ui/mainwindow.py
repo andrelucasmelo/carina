@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QApplication, QDockWidget, QFileDialog, QInputDialog, QMainWindow,
-    QMessageBox, QWidget,
+    QLabel, QMessageBox, QWidget,
 )
 
 from .. import __version__
@@ -51,6 +51,24 @@ _LAYER_ACTIONS = [
     ("atmosphere", "Atmosfera", "A", True),
     ("refraction", "Refração atmosférica", "R", True),
 ]
+
+
+class _ClickLabel(QLabel):
+    """Campo da barra de estado que reage ao clique (hora → data/hora;
+    local → localização; campo → volta a 90°)."""
+
+    clicked = Signal()
+
+    def __init__(self, tip: str, parent=None) -> None:
+        super().__init__(parent)
+        self.setToolTip(tip)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setStyleSheet("padding: 0 8px;")
+
+    def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt)
+        if event.button() == Qt.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
 
 
 class MainWindow(QMainWindow):
@@ -100,6 +118,24 @@ class MainWindow(QMainWindow):
         self.sky.contextInfoRequested.connect(self._popup_info)
         self.sky.contextDetailsRequested.connect(self._open_object_window)
         self.sky.contextTrackRequested.connect(lambda _s: self._open_track())
+        self.sky.contextFovRequested.connect(self._open_fov_for)
+        self.sky.layerToggleRequested.connect(self._on_layer_toggled)
+        self.sky.followChanged.connect(self._on_follow_changed)
+        self.sky.statusParts.connect(self._on_status_parts)
+        self.sky.noticeShown.connect(
+            lambda text: self.statusBar().showMessage(text, 8000))
+
+        # barra de estado com campos clicáveis (revisão 2026-10)
+        status = self.statusBar()
+        self.lbl_location = _ClickLabel(self.tr("Clique para mudar a localização"))
+        self.lbl_time = _ClickLabel(self.tr("Clique para ir a uma data/hora"))
+        self.lbl_fov = _ClickLabel(self.tr("Clique para voltar ao campo de 90°"))
+        self.lbl_cursor = QLabel()
+        for widget in (self.lbl_location, self.lbl_time, self.lbl_fov, self.lbl_cursor):
+            status.addPermanentWidget(widget)
+        self.lbl_location.clicked.connect(self._edit_location)
+        self.lbl_time.clicked.connect(self._time_goto)
+        self.lbl_fov.clicked.connect(self._reset_fov)
 
         self.info_dock = QDockWidget(self.tr("Informações"), self)
         self.info_dock.setObjectName("info_dock")
@@ -123,6 +159,8 @@ class MainWindow(QMainWindow):
         self._build_menus()
         self._restore_layers()
         self._restore_view_state()
+        self.act_sidebar_labels.setChecked(
+            self.settings.value("ui/sidebar_labels", False, bool))
 
         report = self.dso_catalog.migration_report
         if report:
@@ -132,172 +170,82 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------
     def _build_menus(self) -> None:
-        """Constrói a barra de menus inteira.
-
-        Ordem: Arquivo, Tempo, Exibir (camadas/magnitude/constelações/
-        Bortle), Céu profundo, Ferramentas, Planejar (maratonas + tempo
-        por objeto), Informações, Observador e Ajuda. As ações de camada
-        ficam em ``self._layer_acts`` para sincronizarem com a barra
-        lateral e com o QSettings.
+        """Barra de menus (revisão 2026-10, §4): oito menus agrupados por
+        tarefa — Arquivo · Exibir (submenus Objetos / Linhas e grades /
+        Rótulos / Céu) · Tempo · Local · Objetos · Sistema Solar · Planejar
+        · Ajuda. As ações de camada ficam em ``self._layer_acts`` para
+        sincronizarem com a barra lateral e com o QSettings; os dicionários
+        ``_mag_acts``, ``_const_acts``, ``_bortle_acts`` e ``_step_acts``
+        servem à restauração do estado salvo.
         """
         bar = self.menuBar()
+        layer = self._make_layer_actions()
 
+        # --- Arquivo ---------------------------------------------------
         m_file = bar.addMenu(self.tr("&Arquivo"))
-        act_export = QAction(self.tr("Exportar vista…"), self)
-        act_export.setShortcut("Ctrl+S")
-        act_export.triggered.connect(self._export_view)
-        m_file.addAction(act_export)
+        self._add(m_file, self.tr("Exportar vista…"), self._export_view, "Ctrl+S")
+        self._add(m_file, self.tr("Gerar mapa para impressão…"),
+                  self._open_print_map, "Ctrl+Shift+P")
         m_file.addSeparator()
-        act_quit = QAction(self.tr("Sair"), self)
-        act_quit.setShortcut(QKeySequence.Quit)
-        act_quit.triggered.connect(self.close)
-        m_file.addAction(act_quit)
+        self._add(m_file, self.tr("Sair"), self.close, QKeySequence.Quit)
 
-        # --- Tempo -----------------------------------------------------
-        m_time = bar.addMenu(self.tr("&Tempo"))
-        time_actions = [
-            (self.tr("Agora"), "8", self._time_now),
-            (self.tr("Pausar / continuar"), "K", self._time_pause),
-            (self.tr("Mais devagar"), "J", self._time_slower),
-            (self.tr("Mais rápido"), "L", self._time_faster),
-            (self.tr("Velocidade normal (1x)"), "7", self._time_normal),
-            (self.tr("Ir para data/hora…"), "Ctrl+T", self._time_goto),
-        ]
-        for title, shortcut, slot in time_actions:
-            act = QAction(title, self)
-            act.setShortcut(shortcut)
-            act.triggered.connect(slot)
-            m_time.addAction(act)
-
-        m_time.addSeparator()
-        m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
-        step_group = QActionGroup(self)
-        self._step_acts: dict[float, QAction] = {}
-        for label, secs in [
-            ("1 minuto", 60), ("5 minutos", 300), ("15 minutos", 900),
-            ("30 minutos", 1800), ("1 hora", 3600), ("3 horas", 10800),
-            ("6 horas", 21600), ("12 horas", 43200), ("1 dia", 86400),
-            ("1 semana", 604800), ("1 mês (30 d)", 2592000),
-            ("1 ano (365 d)", 31536000),
-        ]:
-            act = QAction(label, self)
-            act.setCheckable(True)
-            act.setActionGroup(step_group)
-            act.triggered.connect(
-                lambda _c=False, s=float(secs): setattr(
-                    self, "_time_step_seconds", s
-                )
-            )
-            if secs == 3600:
-                act.setChecked(True)
-            m_step.addAction(act)
-            self._step_acts[float(secs)] = act
-        m_time.addSeparator()
-        for title, shortcut, secs in (
-            (self.tr("Retroceder um passo"), "Ctrl+Left", -1.0),
-            (self.tr("Avançar um passo"), "Ctrl+Right", 1.0),
-        ):
-            act = QAction(title, self)
-            act.setShortcut(shortcut)
-            act.triggered.connect(
-                lambda _c=False, s=secs: self._on_time_step(
-                    s * self._time_step_seconds
-                )
-            )
-            m_time.addAction(act)
-
+        # --- Exibir ----------------------------------------------------
         m_view = bar.addMenu(self.tr("&Exibir"))
-        self._layer_acts: dict[str, QAction] = {}
-        for key, title, shortcut, default in _LAYER_ACTIONS:
-            act = QAction(self.tr(title), self)
-            act.setCheckable(True)
-            act.setChecked(default)
-            if shortcut:
-                if key == "ground":
-                    # o "V" era o atalho do antigo item "ver abaixo do
-                    # horizonte"; agora aciona o mesmo controle único
-                    act.setShortcuts([shortcut, "V"])
-                else:
-                    act.setShortcut(shortcut)
-            act.toggled.connect(
-                lambda on, k=key: self._on_layer_toggled(k, on)
-            )
-            m_view.addAction(act)
-            self._layer_acts[key] = act
+        m_obj = m_view.addMenu(self.tr("Objetos"))
+        for key in ("stars", "planets", "dso", "dso_images", "milkyway"):
+            m_obj.addAction(layer[key])
+        m_lines = m_view.addMenu(self.tr("Linhas e grades"))
+        for key in ("const_lines", "const_bounds", "grid_altaz", "grid_eq",
+                    "meridian", "ecliptic", "equator", "horizon", "cardinals"):
+            m_lines.addAction(layer[key])
 
-        m_view.addSeparator()
+        m_labels = m_view.addMenu(self.tr("Rótulos"))
+        for key in ("star_names", "planet_names", "dso_names"):
+            m_labels.addAction(layer[key])
+        m_labels.addSeparator()
         name_group = QActionGroup(self)
-        self.act_proper = QAction(self.tr("Rotular estrelas por nome próprio"), self)
-        self.act_bayer = QAction(self.tr("Rotular estrelas por Bayer (genitivo)"), self)
+        self.act_proper = QAction(self.tr("Estrelas pelo nome próprio"), self)
+        self.act_bayer = QAction(self.tr("Estrelas por Bayer (genitivo)"), self)
         for act, mode in ((self.act_proper, "proper"), (self.act_bayer, "bayer")):
             act.setCheckable(True)
             act.setActionGroup(name_group)
             act.triggered.connect(lambda _=False, m=mode: self.sky.set_name_mode(m))
-            m_view.addAction(act)
+            m_labels.addAction(act)
         self.act_proper.setChecked(True)
-
-        m_view.addSeparator()
+        m_labels.addSeparator()
         dso_group = QActionGroup(self)
-        self.act_dso_number = QAction(
-            self.tr("Rotular céu profundo por número de catálogo"), self
-        )
-        self.act_dso_name = QAction(
-            self.tr("Rotular céu profundo por nome"), self
-        )
-        for act, mode in (
-            (self.act_dso_number, "number"), (self.act_dso_name, "name")
-        ):
+        self.act_dso_number = QAction(self.tr("Céu profundo pelo número de catálogo"), self)
+        self.act_dso_name = QAction(self.tr("Céu profundo pelo nome"), self)
+        for act, mode in ((self.act_dso_number, "number"), (self.act_dso_name, "name")):
             act.setCheckable(True)
             act.setActionGroup(dso_group)
             act.triggered.connect(
-                lambda _=False, m=mode: self.sky.set_dso_name_mode(m)
-            )
-            m_view.addAction(act)
+                lambda _=False, m=mode: self.sky.set_dso_name_mode(m))
+            m_labels.addAction(act)
         self.act_dso_number.setChecked(True)
-
-        m_view.addSeparator()
-        m_mag = m_view.addMenu(self.tr("Magnitude máxima das estrelas"))
-        mag_group = QActionGroup(self)
-        self._mag_acts: dict = {}
-        for label, value in [
-            (self.tr("Automática (pelo zoom)"), None), ("3,0", 3.0),
-            ("4,0", 4.0), ("4,5", 4.5), ("5,0", 5.0), ("5,5", 5.5),
-            ("6,0", 6.0), ("6,5", 6.5), ("7,0", 7.0), ("8,0", 8.0),
-            ("9,0", 9.0), ("10,0", 10.0), ("11,0", 11.0), ("12,0", 12.0),
-        ]:
-            act = QAction(label, self)
-            act.setCheckable(True)
-            act.setActionGroup(mag_group)
-            act.triggered.connect(
-                lambda _c=False, v=value: self.sky.set_mag_cap(v)
-            )
-            if value is None:
-                act.setChecked(True)
-            m_mag.addAction(act)
-            self._mag_acts[value] = act
-
-        m_view.addSeparator()
-        m_const = m_view.addMenu(self.tr("Nomes das constelações"))
+        self.act_caldwell = QAction(self.tr("Rotular Caldwell pela designação C"), self)
+        self.act_caldwell.setCheckable(True)
+        self.act_caldwell.setChecked(True)
+        self.act_caldwell.setToolTip(
+            self.tr("Desmarque para exibir a designação NGC/IC correspondente"))
+        self.act_caldwell.toggled.connect(self.sky.set_prefer_caldwell)
+        m_labels.addAction(self.act_caldwell)
+        m_labels.addSeparator()
+        m_const = m_labels.addMenu(self.tr("Nomes das constelações"))
         const_group = QActionGroup(self)
         self._const_acts: dict[str, QAction] = {}
-        for label, mode in (
-            (self.tr("Não exibir"), "none"),
-            (self.tr("Português"), "pt"),
-            (self.tr("Latim (oficial)"), "latin"),
-            (self.tr("Abreviado (IAU)"), "abbr"),
-        ):
+        for label, mode in ((self.tr("Não exibir"), "none"), (self.tr("Português"), "pt"),
+                            (self.tr("Latim (oficial)"), "latin"),
+                            (self.tr("Abreviado (IAU)"), "abbr")):
             act = QAction(label, self)
             act.setCheckable(True)
             act.setActionGroup(const_group)
             act.triggered.connect(
-                lambda _c=False, mm=mode: self.sky.set_const_label_mode(mm)
-            )
-            if mode == "none":
-                act.setChecked(True)
+                lambda _c=False, mm=mode: self.sky.set_const_label_mode(mm))
+            act.setChecked(mode == "none")
             m_const.addAction(act)
             self._const_acts[mode] = act
-
-        m_lang = m_view.addMenu(self.tr("Idioma dos nomes dos objetos"))
+        m_lang = m_labels.addMenu(self.tr("Idioma dos nomes dos objetos"))
         lang_group = QActionGroup(self)
         for code, label in names.LANGUAGES.items():
             act = QAction(self.tr(label), self)
@@ -305,183 +253,309 @@ class MainWindow(QMainWindow):
             act.setActionGroup(lang_group)
             act.setChecked(code == names.language())
             act.triggered.connect(
-                lambda _c=False, c=code: self._set_names_language(c)
-            )
+                lambda _c=False, c=code: self._set_names_language(c))
             m_lang.addAction(act)
 
-        m_bortle = m_view.addMenu(self.tr("Poluição luminosa (Bortle)"))
+        m_sky = m_view.addMenu(self.tr("Céu"))
+        for key in ("atmosphere", "refraction", "ground"):
+            m_sky.addAction(layer[key])
+        m_sky.addSeparator()
+        m_bortle = m_sky.addMenu(self.tr("Poluição luminosa (Bortle)"))
         bortle_group = QActionGroup(self)
         self._bortle_acts: dict[int, QAction] = {}
-        bortle_desc = {
-            1: "1 — céu perfeito", 2: "2 — céu muito escuro",
-            3: "3 — céu rural", 4: "4 — transição rural/suburbano",
-            5: "5 — céu suburbano", 6: "6 — subúrbio claro",
-            7: "7 — transição subúrbio/cidade", 8: "8 — céu urbano",
-            9: "9 — centro de cidade",
-        }
-        for level, label in bortle_desc.items():
+        for level, label in {
+            1: "1 — céu perfeito", 2: "2 — céu muito escuro", 3: "3 — céu rural",
+            4: "4 — transição rural/suburbano", 5: "5 — céu suburbano",
+            6: "6 — subúrbio claro", 7: "7 — transição subúrbio/cidade",
+            8: "8 — céu urbano", 9: "9 — centro de cidade",
+        }.items():
             act = QAction(label, self)
             act.setCheckable(True)
             act.setActionGroup(bortle_group)
-            act.triggered.connect(
-                lambda _c=False, lv=level: self._set_bortle(lv)
-            )
-            if level == 1:
-                act.setChecked(True)
+            act.triggered.connect(lambda _c=False, lv=level: self._set_bortle(lv))
+            act.setChecked(level == 1)
             m_bortle.addAction(act)
             self._bortle_acts[level] = act
+        m_mag = m_sky.addMenu(self.tr("Magnitude máxima das estrelas"))
+        mag_group = QActionGroup(self)
+        self._mag_acts: dict = {}
+        for label, value in [(self.tr("Automática (pelo zoom)"), None), ("3,0", 3.0),
+                             ("4,0", 4.0), ("4,5", 4.5), ("5,0", 5.0), ("5,5", 5.5),
+                             ("6,0", 6.0), ("6,5", 6.5), ("7,0", 7.0), ("8,0", 8.0),
+                             ("9,0", 9.0), ("10,0", 10.0), ("11,0", 11.0), ("12,0", 12.0)]:
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(mag_group)
+            act.triggered.connect(lambda _c=False, v=value: self.sky.set_mag_cap(v))
+            act.setChecked(value is None)
+            m_mag.addAction(act)
+            self._mag_acts[value] = act
 
         m_view.addSeparator()
-        self.act_chart = QAction(self.tr("Modo mapa para impressão"), self)
-        self.act_chart.setCheckable(True)
-        self.act_chart.setShortcut("Ctrl+M")
+        self._add(m_view, self.tr("Filtros do céu profundo…"),
+                  self._open_dso_filter, "Ctrl+Shift+C")
+        m_view.addSeparator()
+        self.act_chart = self._add(m_view, self.tr("Modo mapa para impressão"),
+                                   None, "Ctrl+M", checkable=True)
         self.act_chart.toggled.connect(self._on_chart_from_menu)
-        m_view.addAction(self.act_chart)
+        self.act_follow = self._add(m_view, self.tr("Seguir objeto selecionado"),
+                                    None, "F", checkable=True)
+        self.act_follow.toggled.connect(self._toggle_follow)
+        self._add(m_view, self.tr("Voltar à vista anterior"), self._go_back, "Backspace")
+        m_view.addSeparator()
+        self.act_sidebar_labels = self._add(
+            m_view, self.tr("Rótulos na barra lateral"), None, None, checkable=True)
+        self.act_sidebar_labels.toggled.connect(self._toggle_sidebar_labels)
         m_view.addAction(self.info_dock.toggleViewAction())
         m_view.addAction(self.side_dock.toggleViewAction())
 
-        m_dso = bar.addMenu(self.tr("&Céu profundo"))
-        act_manage = QAction(self.tr("Gerenciar objetos e catálogos…"), self)
-        act_manage.setShortcut("Ctrl+D")
-        act_manage.triggered.connect(self._manage_dso)
-        m_dso.addAction(act_manage)
+        # --- Tempo -----------------------------------------------------
+        m_time = bar.addMenu(self.tr("&Tempo"))
+        for title, shortcut, slot in (
+            (self.tr("Agora"), "8", self._time_now),
+            (self.tr("Pausar / continuar"), "K", self._time_pause),
+            (self.tr("Mais devagar"), "J", self._time_slower),
+            (self.tr("Mais rápido"), "L", self._time_faster),
+            (self.tr("Velocidade normal (1x)"), "7", self._time_normal),
+            (self.tr("Ir para data/hora…"), "Ctrl+T", self._time_goto),
+        ):
+            self._add(m_time, title, slot, shortcut)
+        m_time.addSeparator()
+        m_jump = m_time.addMenu(self.tr("Ir para"))
+        for title, kind in (
+            (self.tr("Pôr do sol"), "sunset"),
+            (self.tr("Início da noite astronômica"), "dusk"),
+            (self.tr("Meia-noite local"), "midnight"),
+            (self.tr("Fim da noite astronômica"), "dawn"),
+            (self.tr("Nascer do sol"), "sunrise"),
+        ):
+            self._add(m_jump, title, lambda _c=False, k=kind: self._goto_time(k))
+        m_time.addSeparator()
+        m_step = m_time.addMenu(self.tr("Passo dos botões ◀◀ / ▶▶"))
+        step_group = QActionGroup(self)
+        self._step_acts: dict[float, QAction] = {}
+        for label, secs in [("1 minuto", 60), ("5 minutos", 300), ("15 minutos", 900),
+                            ("30 minutos", 1800), ("1 hora", 3600), ("3 horas", 10800),
+                            ("6 horas", 21600), ("12 horas", 43200), ("1 dia", 86400),
+                            ("1 semana", 604800), ("1 mês (30 d)", 2592000),
+                            ("1 ano (365 d)", 31536000)]:
+            act = QAction(label, self)
+            act.setCheckable(True)
+            act.setActionGroup(step_group)
+            act.triggered.connect(
+                lambda _c=False, s=float(secs): setattr(self, "_time_step_seconds", s))
+            act.setChecked(secs == 3600)
+            m_step.addAction(act)
+            self._step_acts[float(secs)] = act
+        self._add(m_time, self.tr("Retroceder um passo"),
+                  lambda: self._on_time_step(-self._time_step_seconds), "Ctrl+Left")
+        self._add(m_time, self.tr("Avançar um passo"),
+                  lambda: self._on_time_step(self._time_step_seconds), "Ctrl+Right")
 
-        m_dso.addSeparator()
-        act_cats = QAction(
-            self.tr("Filtros de exibição (catálogos, tipos, magnitude…)…"), self
-        )
-        act_cats.setShortcut("Ctrl+Shift+C")
-        act_cats.triggered.connect(self._open_dso_filter)
-        m_dso.addAction(act_cats)
-        act_details = QAction(self.tr("Detalhes do objeto selecionado…"), self)
-        act_details.setShortcut("Ctrl+Shift+D")
-        act_details.triggered.connect(self._open_object_window)
-        m_dso.addAction(act_details)
+        # --- Local -----------------------------------------------------
+        m_local = bar.addMenu(self.tr("&Local"))
+        self._add(m_local, self.tr("Localização…"), self._edit_location, "Ctrl+L")
+        self._add(m_local, self.tr("Crepúsculos e noite…"), self._open_night_info, "Ctrl+I")
 
-        m_dso.addSeparator()
-        self.act_caldwell = QAction(
-            self.tr("Rotular Caldwell pela designação C"), self
-        )
-        self.act_caldwell.setCheckable(True)
-        self.act_caldwell.setChecked(True)
-        self.act_caldwell.setToolTip(
-            self.tr("Desmarque para exibir a designação NGC/IC correspondente")
-        )
-        self.act_caldwell.toggled.connect(self.sky.set_prefer_caldwell)
-        m_dso.addAction(self.act_caldwell)
+        # --- Objetos ---------------------------------------------------
+        m_objs = bar.addMenu(self.tr("&Objetos"))
+        self._add(m_objs, self.tr("Buscar…"), self._open_search, "Ctrl+F")
+        self._add(m_objs, self.tr("Informações do objeto selecionado"),
+                  self._show_selection_info, "Ctrl+J")
+        self._add(m_objs, self.tr("Detalhes e gráfico anual…"),
+                  self._open_object_window, "Ctrl+Shift+D")
+        self._add(m_objs, self.tr("Rastrear na noite…"), self._open_track, "Ctrl+R")
+        m_objs.addSeparator()
+        self._add(m_objs, self.tr("Ir para a melhor hora desta noite"), self._goto_best_time)
+        self._add(m_objs, self.tr("Ir para quando nasce"), self._goto_rise)
+        m_objs.addSeparator()
+        self._add(m_objs, self.tr("Gerenciar catálogo de céu profundo…"),
+                  self._manage_dso, "Ctrl+D")
 
-        m_tools = bar.addMenu(self.tr("&Ferramentas"))
-        act_search = QAction(self.tr("Buscar objeto…"), self)
-        act_search.setShortcut("Ctrl+F")
-        act_search.triggered.connect(self._open_search)
-        m_tools.addAction(act_search)
-        act_ecl = QAction(self.tr("Eclipses…"), self)
-        act_ecl.setShortcut("Ctrl+E")
-        act_ecl.triggered.connect(self._open_eclipses)
-        m_tools.addAction(act_ecl)
-        act_fov = QAction(self.tr("Campo de visão (equipamentos)…"), self)
-        act_fov.setShortcut("Ctrl+K")
-        act_fov.triggered.connect(self._open_fov)
-        m_tools.addAction(act_fov)
-        act_track = QAction(self.tr("Rastrear objeto na noite…"), self)
-        act_track.setShortcut("Ctrl+R")
-        act_track.triggered.connect(self._open_track)
-        m_tools.addAction(act_track)
-        m_tools.addSeparator()
-        act_paths = QAction(self.tr("Caminho dos planetas (365 dias)…"), self)
-        act_paths.triggered.connect(self._open_planet_paths)
-        m_tools.addAction(act_paths)
-        self.act_paths_layer = QAction(
-            self.tr("Exibir caminhos dos planetas"), self
-        )
-        self.act_paths_layer.setCheckable(True)
-        self.act_paths_layer.setChecked(True)
-        self.act_paths_layer.setShortcut("Shift+P")
+        # --- Sistema Solar ---------------------------------------------
+        m_sol = bar.addMenu(self.tr("&Sistema Solar"))
+        self._add(m_sol, self.tr("Eclipses…"), self._open_eclipses, "Ctrl+E")
+        m_sol.addSeparator()
+        self._add(m_sol, self.tr("Caminho dos planetas (365 dias)…"), self._open_planet_paths)
+        self.act_paths_layer = self._add(m_sol, self.tr("Exibir caminhos dos planetas"),
+                                         None, "Shift+P", checkable=True, checked=True)
         self.act_paths_layer.toggled.connect(self._toggle_planet_paths)
-        m_tools.addAction(self.act_paths_layer)
-        act_clear_paths = QAction(self.tr("Limpar caminhos dos planetas"), self)
-        act_clear_paths.triggered.connect(
-            lambda: self.sky.set_planet_paths([])
-        )
-        m_tools.addAction(act_clear_paths)
-        act_moon = QAction(self.tr("Previsão da Lua (28 dias)…"), self)
-        act_moon.triggered.connect(self._open_moon_forecast)
-        m_tools.addAction(act_moon)
-        self.act_moon_layer = QAction(
-            self.tr("Exibir previsão da Lua no céu"), self
-        )
-        self.act_moon_layer.setCheckable(True)
-        self.act_moon_layer.setShortcut("Shift+M")
+        self._add(m_sol, self.tr("Limpar caminhos dos planetas"),
+                  lambda: self.sky.set_planet_paths([]))
+        m_sol.addSeparator()
+        self._add(m_sol, self.tr("Previsão da Lua (28 dias)…"), self._open_moon_forecast)
+        self.act_moon_layer = self._add(m_sol, self.tr("Exibir previsão da Lua no céu"),
+                                        None, "Shift+M", checkable=True)
         self.act_moon_layer.toggled.connect(self._toggle_moon_forecast)
-        m_tools.addAction(self.act_moon_layer)
+        m_sol.addAction(layer["moon_zone"])
 
-        m_tools.addSeparator()
-        act_print = QAction(self.tr("Gerar mapa para impressão…"), self)
-        act_print.setShortcut("Ctrl+Shift+P")
-        act_print.triggered.connect(self._open_print_map)
-        m_tools.addAction(act_print)
+        # --- Planejar --------------------------------------------------
+        m_plan = bar.addMenu(self.tr("&Planejar"))
+        m_rot = m_plan.addMenu(self.tr("Roteiros"))
+        for kind, label in (("M", self.tr("Maratona Messier…")),
+                            ("C", self.tr("Maratona Caldwell…")),
+                            ("OC", self.tr("Maratona de Aglomerados Abertos…")),
+                            ("GC", self.tr("Maratona de Aglomerados Globulares…")),
+                            ("NEB", self.tr("Maratona de Nebulosas…")),
+                            ("DARK", self.tr("Maratona de Nebulosas Escuras…"))):
+            self._add(m_rot, label, lambda _c=False, k=kind: self._open_marathon(k))
+        m_rot.addSeparator()
+        self._add(m_rot, self.tr("Melhores Objetos da Noite…"),
+                  lambda: self._open_marathon("BEST"))
+        m_rot.addSeparator()
+        for kind, label in (("MONTH", self.tr("Destaques do mês…")),
+                            ("SEASON", self.tr("Destaques da estação…")),
+                            ("STARS", self.tr("Estrelas brilhantes…"))):
+            self._add(m_rot, label, lambda _c=False, k=kind: self._open_marathon(k))
+        self._add(m_plan, self.tr("Campo de visão (equipamentos)…"), self._open_fov, "Ctrl+K")
+        m_plan.addSeparator()
+        self._add(m_plan, self.tr("Configurar planejamento…"),
+                  self._open_plan_settings, "Ctrl+Shift+O")
 
-        # --- menu Planejar: maratonas de observação visual --------------
-        m_planejar = bar.addMenu(self.tr("&Planejar"))
-        m_visual = m_planejar.addMenu(self.tr("Visual"))
-        for kind, label in (
-            ("M", self.tr("Maratona Messier…")),
-            ("C", self.tr("Maratona Caldwell…")),
-            ("OC", self.tr("Maratona de Aglomerados Abertos…")),
-            ("GC", self.tr("Maratona de Aglomerados Globulares…")),
-            ("NEB", self.tr("Maratona de Nebulosas…")),
-            ("DARK", self.tr("Maratona de Nebulosas Escuras…")),
-        ):
-            act_k = QAction(label, self)
-            act_k.triggered.connect(
-                lambda _=False, k=kind: self._open_marathon(k)
-            )
-            m_visual.addAction(act_k)
-        m_visual.addSeparator()
-        act_best = QAction(self.tr("Melhores Objetos da Noite…"), self)
-        act_best.triggered.connect(lambda: self._open_marathon("BEST"))
-        m_visual.addAction(act_best)
-
-        m_visual.addSeparator()
-        for kind, label in (
-            ("MONTH", self.tr("Destaques do mês…")),
-            ("SEASON", self.tr("Destaques da estação…")),
-            ("STARS", self.tr("Estrelas brilhantes…")),
-        ):
-            act_g = QAction(label, self)
-            act_g.triggered.connect(
-                lambda _=False, k=kind: self._open_marathon(k)
-            )
-            m_visual.addAction(act_g)
-
-        m_planejar.addSeparator()
-        act_plan_cfg = QAction(self.tr("Configurar planejamento…"), self)
-        act_plan_cfg.setShortcut("Ctrl+Shift+O")
-        act_plan_cfg.triggered.connect(self._open_plan_settings)
-        m_planejar.addAction(act_plan_cfg)
-
-        m_info = bar.addMenu(self.tr("&Informações"))
-        act_night = QAction(self.tr("Crepúsculos e noite…"), self)
-        act_night.setShortcut("Ctrl+I")
-        act_night.triggered.connect(self._open_night_info)
-        m_info.addAction(act_night)
-        act_sel = QAction(self.tr("Objeto selecionado"), self)
-        act_sel.setShortcut("Ctrl+J")
-        act_sel.triggered.connect(self._show_selection_info)
-        m_info.addAction(act_sel)
-
-        m_obs = bar.addMenu(self.tr("&Observador"))
-        act_loc = QAction(self.tr("Localização…"), self)
-        act_loc.setShortcut("Ctrl+L")
-        act_loc.triggered.connect(self._edit_location)
-        m_obs.addAction(act_loc)
-
+        # --- Ajuda -----------------------------------------------------
         m_help = bar.addMenu(self.tr("A&juda"))
-        act_about = QAction(self.tr("Sobre o Carina"), self)
-        act_about.triggered.connect(self._about)
-        m_help.addAction(act_about)
+        self._add(m_help, self.tr("Documentação"), self._open_docs, "F1")
+        self._add(m_help, self.tr("Atalhos do teclado e do mouse…"),
+                  self._open_shortcuts, "Ctrl+Shift+K")
+        m_help.addSeparator()
+        self._add(m_help, self.tr("Sobre o Carina"), self._about)
 
     # ------------------------------------------------------------------
+    # Apoio à construção dos menus
+    # ------------------------------------------------------------------
+    def _add(self, menu, text: str, slot=None, shortcut=None,
+             checkable: bool = False, checked: bool = False) -> QAction:
+        """Cria, configura e insere uma ação num menu."""
+        act = QAction(text, self)
+        if shortcut:
+            act.setShortcut(shortcut)
+        if checkable:
+            act.setCheckable(True)
+            act.setChecked(checked)
+        if slot is not None:
+            act.triggered.connect(slot)
+        menu.addAction(act)
+        return act
+
+    def _make_layer_actions(self) -> dict[str, QAction]:
+        """Uma ação marcável por camada (``_LAYER_ACTIONS``), ainda fora de
+        qualquer menu — os submenus de Exibir e o menu Sistema Solar as
+        distribuem. ``self._layer_acts`` sincroniza barra lateral e settings."""
+        self._layer_acts: dict[str, QAction] = {}
+        for key, title, shortcut, default in _LAYER_ACTIONS:
+            act = QAction(self.tr(title), self)
+            act.setCheckable(True)
+            act.setChecked(default)
+            if shortcut:
+                if key == "ground":
+                    # "V" era o atalho do antigo "ver abaixo do horizonte"
+                    act.setShortcuts([shortcut, "V"])
+                else:
+                    act.setShortcut(shortcut)
+            act.toggled.connect(lambda on, k=key: self._on_layer_toggled(k, on))
+            self._layer_acts[key] = act
+        return self._layer_acts
+
+    # ------------------------------------------------------------------
+    # Ações novas da revisão 2026-10
+    # ------------------------------------------------------------------
+    def _goto_time(self, kind: str) -> None:
+        """Tempo ▸ Ir para: pôr do sol, noite astronômica, meia-noite,
+        amanhecer ou nascer do sol da noite atual (pausa a simulação)."""
+        import datetime as dt
+
+        from ..core.localtime import to_local
+        from ..core.twilight import night_info
+
+        now = self.engine.time.current_datetime()
+        if kind == "midnight":
+            local = to_local(now)
+            base = local.replace(hour=0, minute=0, second=0, microsecond=0)
+            if local.hour >= 12:
+                base += dt.timedelta(days=1)
+            target = base.astimezone(dt.timezone.utc)
+        else:
+            info = night_info(self.engine, now)
+            target = {"sunset": info.sunset, "dusk": info.astro_dusk,
+                      "dawn": info.astro_dawn, "sunrise": info.sunrise}.get(kind)
+        if target is None:
+            self.statusBar().showMessage(self.tr(
+                "Esse instante não ocorre nesta data para o local atual."), 6000)
+            return
+        self.engine.time.set_datetime(target)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+
+    def _toggle_follow(self, on: bool) -> None:
+        if on and self.sky.selection is None:
+            self.act_follow.setChecked(False)
+            self.statusBar().showMessage(
+                self.tr("Selecione um objeto para seguir."), 5000)
+            return
+        self.sky.set_follow_selection(on)
+
+    def _on_follow_changed(self, on: bool) -> None:
+        if self.act_follow.isChecked() != on:
+            self.act_follow.setChecked(on)
+
+    def _go_back(self) -> None:
+        if not self.sky.go_back():
+            self.statusBar().showMessage(self.tr("Não há vista anterior."), 4000)
+
+    def _goto_best_time(self) -> None:
+        if self.sky.selection is None:
+            self.statusBar().showMessage(self.tr("Selecione um objeto primeiro."), 5000)
+            return
+        self.sky.goto_best_time(self.sky.selection)
+
+    def _goto_rise(self) -> None:
+        if self.sky.selection is None:
+            self.statusBar().showMessage(self.tr("Selecione um objeto primeiro."), 5000)
+            return
+        self.sky.goto_when_rises(self.sky.selection)
+
+    def _open_fov_for(self, _selection) -> None:
+        """'Enquadrar com equipamento' do menu de contexto."""
+        self._open_fov()
+
+    def _toggle_sidebar_labels(self, on: bool) -> None:
+        self.side_bar.set_labels_visible(on)
+        self.settings.set_value("ui/sidebar_labels", bool(on))
+
+    def _reset_fov(self) -> None:
+        """Clique no campo de visão da barra de estado: volta a 90°."""
+        import math
+
+        self.sky._push_view()
+        self.sky.camera.fov = math.radians(90.0)
+        self.sky.update()
+
+    def _open_docs(self) -> None:
+        """Ajuda ▸ Documentação: a pasta docs/ local ou, num build sem
+        ela, a documentação publicada no repositório."""
+        from pathlib import Path
+
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        local = Path(__file__).resolve().parents[3] / "docs" / "README.md"
+        url = (QUrl.fromLocalFile(str(local)) if local.exists()
+               else QUrl("https://github.com/andrelucasmelo/carina/tree/main/docs"))
+        QDesktopServices.openUrl(url)
+
+    def _open_shortcuts(self) -> None:
+        from .shortcuts_dialog import ShortcutsDialog
+
+        ShortcutsDialog(self.menuBar(), self).exec()
+
+    def _on_status_parts(self, parts: dict) -> None:
+        """Campos clicáveis da barra de estado."""
+        self.lbl_location.setText(parts.get("location", ""))
+        self.lbl_time.setText(
+            " ".join(p for p in (parts.get("time", ""), parts.get("speed", "")) if p))
+        self.lbl_fov.setText(parts.get("fov", ""))
+        self.lbl_cursor.setText(parts.get("cursor", ""))
+
     def _on_layer_toggled(self, key: str, on: bool) -> None:
         """Ação de camada mudou: aplica na cena e sincroniza toda a UI.
 
@@ -1230,7 +1304,10 @@ class MainWindow(QMainWindow):
         )
 
     def _on_status(self, text: str) -> None:
-        self.statusBar().showMessage(text)
+        """A linha completa fica como tooltip da barra; os campos clicáveis
+        vêm por ``_on_status_parts``. ``showMessage`` fica livre para avisos
+        temporários (exportações, notificações do céu)."""
+        self.statusBar().setToolTip(text)
         self._refresh_info()
 
     def _edit_location(self) -> None:

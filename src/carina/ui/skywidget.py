@@ -193,6 +193,9 @@ class SkyWidget(QOpenGLWidget):
     contextDetailsRequested = Signal(object)
     contextTrackRequested = Signal(object)
     followChanged = Signal(bool)       # seguir objeto ligado/desligado
+    contextFovRequested = Signal(object)   # 'Enquadrar com equipamento'
+    layerToggleRequested = Signal(str, bool)  # Camadas no menu de contexto
+    statusParts = Signal(object)       # campos da barra de estado (dict)
     noticeShown = Signal(str)          # aviso exibido no alto do céu
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
@@ -257,6 +260,8 @@ class SkyWidget(QOpenGLWidget):
         self._history: list = []            # vistas anteriores (Backspace)
         self._hover = None                  # objeto sob o cursor (tooltip)
         self._notice: tuple | None = None   # (texto, prazo) do aviso
+        self._highlight_const: tuple | None = None   # (sigla, prazo)
+        self._const_subsets: dict = {}      # cache de polilinhas por sigla
 
         # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
         from ..render.dsoimages import DsoImageLayer
@@ -632,6 +637,8 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["const_lines"]:
             col = CHART_COLORS["const_lines"] if chart else COL_CONST_LINES
             r.draw_lines(self._segments(self.const_lines, m, col))
+        # "Qual constelação é esta?": destaque temporário de uma constelação
+        self._draw_constellation_highlight(m)
 
         # --- imagens do levantamento nos objetos (antes dos símbolos) ---
         # independentes das marcações: com "D" desligado e "I" ligado
@@ -1996,12 +2003,17 @@ class SkyWidget(QOpenGLWidget):
             speed_label(self.engine.time.speed),
             f"FOV {fov:.2f}°" if fov < 10 else f"FOV {fov:.0f}°",
         ]
+        cursor = ""
         if self._cursor_altaz:
             az, alt = self._cursor_altaz
-            parts.append(
-                f"Cursor: Az {math.degrees(az):.1f}°  Alt {math.degrees(alt):.1f}°"
-            )
+            cursor = f"Cursor: Az {math.degrees(az):.1f}°  Alt {math.degrees(alt):.1f}°"
+            parts.append(cursor)
         self.statusUpdated.emit("   ·   ".join(p for p in parts if p))
+        # campos separados para a barra de estado clicável (janela principal)
+        self.statusParts.emit({
+            "location": parts[0], "time": parts[1], "speed": parts[2],
+            "fov": parts[3], "cursor": cursor,
+        })
 
     # ------------------------------------------------------------------
     # Interação
@@ -2373,64 +2385,249 @@ class SkyWidget(QOpenGLWidget):
         return best[1] if best else None
 
     def contextMenuEvent(self, event) -> None:
-        """Menu do botão direito sobre o céu (item 7)."""
+        """Menu do botão direito: sobre um objeto ou sobre o céu vazio
+        (revisão 2026-10, §5)."""
         from PySide6.QtWidgets import QMenu
 
         dpr = self.devicePixelRatioF()
         pos = event.pos()
-        target = self.object_at(pos.x() * dpr, pos.y() * dpr)
+        px, py = pos.x() * dpr, pos.y() * dpr
+        target = self.object_at(px, py)
         menu = QMenu(self)
+        acts: dict[str, object] = {}
 
         if target is not None:
             label = self.describe_selection(target)
-            act_info = menu.addAction(
-                self.tr("Informações de {n}").format(n=label)
-            )
-            act_details = menu.addAction(
-                self.tr("Janela de detalhes de {n}…").format(n=label)
-            )
-            act_select = menu.addAction(self.tr("Selecionar e centralizar"))
-            act_track = menu.addAction(self.tr("Rastrear na noite…"))
+            acts["info"] = menu.addAction(
+                self.tr("Informações de {n}").format(n=label))
+            acts["details"] = menu.addAction(self.tr("Janela de detalhes…"))
+            menu.addSeparator()
+            acts["select"] = menu.addAction(self.tr("Selecionar e centralizar"))
+            follow = menu.addAction(self.tr("Seguir {n}").format(n=label))
+            follow.setCheckable(True)
+            follow.setChecked(self.follow_selection and target == self.selection)
+            acts["follow"] = follow
+            acts["track"] = menu.addAction(self.tr("Rastrear na noite…"))
+            acts["best"] = menu.addAction(
+                self.tr("Ir para a melhor hora desta noite"))
+            if self._altitude_deg(target) < 0.0:
+                acts["rise"] = menu.addAction(self.tr("Ir para quando nasce"))
+            acts["fov"] = menu.addAction(self.tr("Enquadrar com equipamento…"))
+            menu.addSeparator()
+            acts["copy_name"] = menu.addAction(self.tr("Copiar nome"))
+            acts["copy_coords"] = menu.addAction(self.tr("Copiar coordenadas"))
             menu.addSeparator()
         else:
-            act_info = act_details = act_select = act_track = None
-            menu.addAction(self.tr("(nenhum objeto sob o cursor)")).setEnabled(
-                False
-            )
+            acts["which"] = menu.addAction(self.tr("Qual constelação é esta?"))
             menu.addSeparator()
 
-        act_center = menu.addAction(self.tr("Centralizar aqui"))
-        act_measure = menu.addAction(self.tr("Medir a partir daqui"))
+        acts["center"] = menu.addAction(self.tr("Centralizar aqui"))
+        acts["zoom"] = menu.addAction(self.tr("Zoom aqui"))
+        acts["measure"] = menu.addAction(self.tr("Medir a partir daqui"))
+        look = menu.addMenu(self.tr("Olhar para"))
+        for key, text in (("N", "Norte"), ("E", "Leste"), ("S", "Sul"),
+                          ("W", "Oeste"), ("Z", "Zênite")):
+            acts[f"look_{key}"] = look.addAction(self.tr(text))
+        layers = menu.addMenu(self.tr("Camadas"))
+        for key, text in self._CTX_LAYERS:
+            act = layers.addAction(self.tr(text))
+            act.setCheckable(True)
+            act.setChecked(bool(self.layers.get(key)))
+            acts[f"layer_{key}"] = act
         menu.addSeparator()
-        act_clear = menu.addAction(self.tr("Limpar seleção"))
+        acts["now"] = menu.addAction(self.tr("Agora"))
+        if self.selection is not None:
+            acts["clear"] = menu.addAction(self.tr("Limpar seleção"))
 
         chosen = menu.exec(event.globalPos())
         if chosen is None:
             return
-        if chosen is act_info:
+        key = next((k for k, a in acts.items() if a is chosen), None)
+        if key is not None:
+            self._run_context_action(key, target, px, py, chosen.isChecked())
+
+    def _run_context_action(self, key: str, target, px: float, py: float,
+                            checked: bool) -> None:
+        """Executa a entrada escolhida no menu de contexto."""
+        from PySide6.QtWidgets import QApplication
+
+        if key == "info":
             self.contextInfoRequested.emit(target)
-        elif chosen is act_details:
+        elif key == "details":
             self.contextDetailsRequested.emit(target)
-        elif chosen is act_select:
+        elif key == "select":
             self.goto_object(target)
-        elif chosen is act_track:
+        elif key == "follow":
+            if self.follow_selection and target == self.selection:
+                self.set_follow_selection(False)
+            else:
+                self.goto_object(target)
+                self.set_follow_selection(True)
+        elif key == "track":
             self.selection = target
             self.selectionChanged.emit(target)
             self.contextTrackRequested.emit(target)
-        elif chosen is act_center:
-            vec = self.camera.unproject(pos.x() * dpr, pos.y() * dpr)
-            alt = math.asin(max(-1.0, min(1.0, float(vec[2]))))
-            az = math.atan2(float(vec[1]), float(vec[0]))
-            self.camera.set_direction(az, alt)
+        elif key == "best":
+            self.goto_best_time(target)
+        elif key == "rise":
+            self.goto_when_rises(target)
+        elif key == "fov":
+            self.selection = target
+            self.selectionChanged.emit(target)
+            self.contextFovRequested.emit(target)
+        elif key == "copy_name":
+            QApplication.clipboard().setText(self.describe_selection(target))
+        elif key == "copy_coords":
+            QApplication.clipboard().setText(self.coordinates_text(target))
+        elif key == "which":
+            self.identify_constellation(px, py)
+        elif key in ("center", "zoom"):
+            self._push_view()
+            self._stop_following()
+            self.camera.center_on_pixel(px, py)
+            if key == "zoom":
+                self.camera.zoom(0.5)
             self.update()
-        elif chosen is act_measure:
+        elif key == "measure":
             self.set_mouse_mode("measure")
-            p = {"x": pos.x() * dpr, "y": pos.y() * dpr,
-                 "vec": self.camera.unproject(pos.x() * dpr, pos.y() * dpr)}
+            p = {"x": px, "y": py, "vec": self.camera.unproject(px, py)}
             self._measure = {"a": p, "b": None}
             self.update()
-        elif chosen is act_clear:
+        elif key.startswith("look_"):
+            self.look_at(key[5:])
+        elif key.startswith("layer_"):
+            self.layerToggleRequested.emit(key[6:], bool(checked))
+        elif key == "now":
+            self.engine.time.to_now()
+            self.sync_clock()
+        elif key == "clear":
             self.clear_selection()
+
+    # ------------------------------------------------------------------
+    # Menu de contexto (revisão 2026-10, §5) e ações associadas
+    # ------------------------------------------------------------------
+    _LOOK_AZ = {"N": 0.0, "E": 90.0, "S": 180.0, "W": 270.0}
+    _CTX_LAYERS = (
+        ("stars", "Estrelas"), ("planets", "Planetas, Sol e Lua"),
+        ("dso", "Céu profundo"), ("dso_images", "Imagens DSS"),
+        ("milkyway", "Via Láctea"), ("const_lines", "Linhas das constelações"),
+        ("const_bounds", "Fronteiras das constelações"),
+        ("grid_altaz", "Grade horizontal"), ("grid_eq", "Grade equatorial"),
+        ("ground", "Solo opaco"),
+    )
+
+    def _altitude_deg(self, selection) -> float:
+        t = self.engine.time.current()
+        m = self.engine.horizontal_matrix(t).astype(np.float32)
+        vec = self._selection_vec(selection, m, t)
+        if vec is None:
+            return 0.0
+        return math.degrees(math.asin(max(-1.0, min(1.0, float(vec[2])))))
+
+    def coordinates_text(self, selection) -> str:
+        """Nome, AR/Dec (J2000) e Az/Alt atuais, prontos para colar."""
+        from ..core.formats import angle_deg, dec_dms, ra_hms
+
+        name = self.describe_selection(selection)
+        t = self.engine.time.current()
+        m = self.engine.horizontal_matrix(t).astype(np.float64)
+        vec = self._selection_vec(selection, m.astype(np.float32), t)
+        if vec is None:
+            return name
+        vec = np.asarray(vec, dtype=np.float64)
+        icrs = m.T @ vec
+        ra = math.atan2(icrs[1], icrs[0]) % (2.0 * math.pi)
+        dec = math.asin(max(-1.0, min(1.0, float(icrs[2]))))
+        az, alt = vec_to_altaz(vec)
+        return (f"{name}: AR {ra_hms(ra)} · Dec {dec_dms(dec)} · "
+                f"Az {angle_deg(az)} · Alt {angle_deg(alt)}")
+
+    def goto_best_time(self, selection) -> None:
+        """Avança o relógio para a melhor hora das próximas 24 h: a maior
+        altitude com o Sol abaixo de −12° (ou a maior altitude, se nunca
+        escurece)."""
+        import datetime as dt
+
+        start = self.engine.time.current_datetime()
+        best = None
+        for i in range(24 * 6 + 1):
+            when = start + dt.timedelta(minutes=10 * i)
+            t = self.engine.ts.from_datetime(when)
+            m = self.engine.horizontal_matrix(t).astype(np.float32)
+            vec = self._selection_vec(selection, m, t)
+            if vec is None:
+                return
+            dark = self.engine.sun_altitude(t) < math.radians(-12.0)
+            score = (1 if dark else 0, float(vec[2]))
+            if best is None or score > best[0]:
+                best = (score, when)
+        name = self.describe_selection(selection)
+        if best is None or best[0][1] <= 0.0:
+            self.show_notice(self.tr(
+                "{n} não sobe acima do horizonte nas próximas 24 h").format(n=name))
+            return
+        self.engine.time.set_datetime(best[1])
+        self.engine.time.set_speed(0.0)
+        self.sync_clock()
+        self.goto_object(selection, animate=False)
+        self.show_notice(self.tr("{n}: melhor hora {h}, altitude {a:.0f}°").format(
+            n=name, h=to_local(best[1]).strftime("%H:%M"),
+            a=math.degrees(math.asin(best[0][1]))))
+
+    def look_at(self, key: str) -> None:
+        """Olhar para N/L/S/O (a 25° de altitude) ou para o zênite."""
+        self._push_view()
+        self._stop_following()
+        if key == "Z":
+            self.camera.set_direction(self.camera.az, math.radians(89.9))
+        else:
+            self.camera.set_direction(math.radians(self._LOOK_AZ[key]),
+                                      math.radians(25.0))
+        self.update()
+
+    def identify_constellation(self, px: float, py: float) -> None:
+        """'Qual constelação é esta?': destaca a constelação sob o cursor."""
+        vec_h = self.camera.unproject(px, py)
+        icrs = self._frame_m.astype(np.float64).T @ vec_h
+        cid = skygeometry.constellation_at(self.const_bounds, icrs)
+        if cid is None:
+            self.show_notice(self.tr("Não foi possível identificar a constelação aqui."))
+            return
+        from ..catalogs.constnames import label_for
+
+        info = next((c for c in self.const_info if c.get("id") == cid), None)
+        latin = info.get("name", cid) if info else cid
+        pt = label_for(cid, "pt", latin)
+        self.highlight_constellation(cid)
+        self.show_notice(self.tr("Esta região é {pt} ({la})").format(pt=pt, la=latin), 8.0)
+
+    def highlight_constellation(self, cid: str, seconds: float = 8.0) -> None:
+        import time as _time
+
+        self._highlight_const = (cid, _time.monotonic() + seconds)
+        QTimer.singleShot(int(seconds * 1000) + 50, self.update)
+        self.update()
+
+    def _const_subset(self, pset, cid: str):
+        key = (id(pset), cid)
+        if key not in self._const_subsets:
+            self._const_subsets[key] = pset.subset({cid})
+        return self._const_subsets[key]
+
+    def _draw_constellation_highlight(self, m: np.ndarray) -> None:
+        import time as _time
+
+        if self._highlight_const is None:
+            return
+        cid, deadline = self._highlight_const
+        if _time.monotonic() > deadline:
+            self._highlight_const = None
+            return
+        r = self.renderer
+        r.draw_lines(self._segments(self._const_subset(self.const_bounds, cid), m,
+                                    (1.0, 0.80, 0.35, 0.95)))
+        r.draw_lines(self._segments(self._const_subset(self.const_lines, cid), m,
+                                    (1.0, 0.95, 0.75, 1.0)))
 
     def describe_selection(self, selection) -> str:
         """Nome curto do objeto, para menus e títulos."""

@@ -302,7 +302,9 @@ def build_constellations(force: bool) -> None:
     lines_geo = json.loads(paths["constellations.lines.json"].read_text(encoding="utf-8"))
     polys, ids = _geojson_polylines(lines_geo, max_step_deg=2.0)
     verts, counts = _polylines_to_arrays(polys)
-    np.savez_compressed(OUT / "const_lines.npz", verts=verts, counts=counts)
+    # ids (sigla IAU de cada polilinha): permitem destacar uma constelação
+    np.savez_compressed(OUT / "const_lines.npz", verts=verts, counts=counts,
+                        ids=np.array(ids))
     print(f"  linhas: {len(counts)} polilinhas, {len(verts):,} vértices")
 
     # --- fronteiras IAU ---
@@ -310,7 +312,8 @@ def build_constellations(force: bool) -> None:
     # trechos de AR/Dec constantes em B1875 (não cordas de círculo máximo)
     polys, ids = _boundary_polylines(bounds_geo, max_step_deg=0.5)
     verts, counts = _polylines_to_arrays(polys)
-    np.savez_compressed(OUT / "const_bounds.npz", verts=verts, counts=counts)
+    np.savez_compressed(OUT / "const_bounds.npz", verts=verts, counts=counts,
+                        ids=np.array(ids))
     print(f"  fronteiras: {len(counts)} polilinhas, {len(verts):,} vértices")
 
     # --- nomes e centros das constelações ---

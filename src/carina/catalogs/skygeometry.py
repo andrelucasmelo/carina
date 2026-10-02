@@ -23,9 +23,11 @@ class PolylineSet:
     verts: np.ndarray      # (K,3) float32, vetores unitários
     counts: np.ndarray     # (P,) comprimento de cada polilinha
     segments: np.ndarray   # (S,2) int32: índices dos extremos de cada segmento
+    ids: np.ndarray | None = None   # (P,) sigla IAU de cada polilinha
 
     @classmethod
-    def from_arrays(cls, verts: np.ndarray, counts: np.ndarray) -> "PolylineSet":
+    def from_arrays(cls, verts: np.ndarray, counts: np.ndarray,
+                    ids: np.ndarray | None = None) -> "PolylineSet":
         """Monta o conjunto a partir de vértices concatenados + tamanho de
         cada polilinha, gerando os pares de índices GL_LINES de uma vez."""
         segs = []
@@ -38,7 +40,73 @@ class PolylineSet:
         segments = (
             np.concatenate(segs) if segs else np.zeros((0, 2), dtype=np.int32)
         )
-        return cls(verts=verts.astype(np.float32), counts=counts, segments=segments)
+        return cls(verts=verts.astype(np.float32), counts=counts,
+                   segments=segments,
+                   ids=None if ids is None else np.asarray(ids).astype(str))
+
+    def subset(self, wanted: set[str]) -> "PolylineSet":
+        """Só as polilinhas cujas siglas estão em ``wanted`` (destaque de
+        uma constelação). Sem ids, devolve um conjunto vazio."""
+        if self.ids is None:
+            return PolylineSet.from_arrays(np.zeros((0, 3), np.float32),
+                                           np.zeros(0, np.int32))
+        verts, counts, ids = [], [], []
+        start = 0
+        for k, c in enumerate(self.counts):
+            c = int(c)
+            if str(self.ids[k]) in wanted:
+                verts.append(self.verts[start:start + c])
+                counts.append(c)
+                ids.append(self.ids[k])
+            start += c
+        if not counts:
+            return PolylineSet.from_arrays(np.zeros((0, 3), np.float32),
+                                           np.zeros(0, np.int32))
+        return PolylineSet.from_arrays(np.concatenate(verts),
+                                       np.array(counts, np.int32), np.array(ids))
+
+
+def constellation_at(bounds: PolylineSet, vec) -> str | None:
+    """Sigla IAU da constelação que contém a direção ICRS ``vec``.
+
+    Projeção estereográfica centrada no ponto (definida em toda a esfera
+    menos o antípoda): cada fronteira vira uma curva fechada no plano e
+    o **número de voltas** em torno da origem diz se o ponto está dentro.
+
+    Há uma armadilha: a constelação que contém o ANTÍPODA do ponto também
+    "envolve" a origem no plano (sua imagem é um laço enorme cujo interior
+    é o complemento dela na esfera). Como nenhuma constelação se estende
+    por mais de ~100°, basta descartar polígonos com algum vértice a mais
+    de ~110° do ponto — o laço antipodal tem vértices perto de 180°.
+    """
+    if bounds.ids is None or len(bounds.counts) == 0:
+        return None
+    v = np.asarray(vec, dtype=np.float64)
+    v = v / np.linalg.norm(v)
+    up = np.array([0.0, 0.0, 1.0]) if abs(v[2]) < 0.9 else np.array([1.0, 0.0, 0.0])
+    e1 = np.cross(up, v)
+    e1 /= np.linalg.norm(e1)
+    e2 = np.cross(v, e1)
+    verts = bounds.verts.astype(np.float64)
+    d = verts @ v
+    denom = 1.0 + d
+    ok = denom > 1e-9
+    x = np.where(ok, (verts @ e1) / np.where(ok, denom, 1.0), 1e9)
+    y = np.where(ok, (verts @ e2) / np.where(ok, denom, 1.0), 0.0)
+    ang = np.arctan2(y, x)
+    start = 0
+    for k, c in enumerate(bounds.counts):
+        c = int(c)
+        a = ang[start:start + c]
+        d_min = float(d[start:start + c].min()) if c else 1.0
+        start += c
+        if c < 3 or d_min < -0.35:      # vértice a mais de ~110°: antipodal
+            continue
+        dang = np.diff(a)
+        dang = (dang + np.pi) % (2.0 * np.pi) - np.pi
+        if round(float(dang.sum()) / (2.0 * np.pi)) != 0:
+            return str(bounds.ids[k])
+    return None
 
 
 @dataclass
@@ -63,13 +131,15 @@ class PolygonSet:
 def load_constellation_lines(data_dir: Path) -> PolylineSet:
     """Traçados das figuras de constelação (d3-celestial, pré-processados)."""
     npz = np.load(data_dir / "const_lines.npz")
-    return PolylineSet.from_arrays(npz["verts"], npz["counts"])
+    ids = npz["ids"] if "ids" in npz.files else None
+    return PolylineSet.from_arrays(npz["verts"], npz["counts"], ids)
 
 
 def load_constellation_bounds(data_dir: Path) -> PolylineSet:
     """Limites oficiais IAU das 88 constelações."""
     npz = np.load(data_dir / "const_bounds.npz")
-    return PolylineSet.from_arrays(npz["verts"], npz["counts"])
+    ids = npz["ids"] if "ids" in npz.files else None
+    return PolylineSet.from_arrays(npz["verts"], npz["counts"], ids)
 
 
 def load_constellation_info(data_dir: Path) -> list[dict]:

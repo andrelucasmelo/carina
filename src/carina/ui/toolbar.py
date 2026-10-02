@@ -175,6 +175,18 @@ class SideToolBar(QWidget):
          "ground"),
     ]
 
+    # rótulos curtos exibidos sob os ícones quando o usuário pede
+    # "rótulos na barra lateral" (revisão 2026-10: 19 ícones sem texto)
+    SHORT_LABELS = {
+        "stars": "Estrelas", "planets": "Planetas", "dso": "Céu prof.",
+        "milkyway": "Via Láctea", "constellations": "Constel.",
+        "grid": "Grade", "ground": "Solo", "back": "Voltar", "forward": "Avançar",
+        "now": "Agora", "measure": "Medir", "zoom": "Zoom área",
+        "chart": "Mapa", "moonpath": "Lua 28 d", "search": "Buscar",
+        "track": "Rastrear", "fov": "Campo", "marathon": "Planejar",
+        "print": "Imprimir", "info": "Noite",
+    }
+
     STYLE = """
     QToolButton {
         border: 1px solid transparent;
@@ -191,12 +203,15 @@ class SideToolBar(QWidget):
     QToolButton:pressed {
         background: rgba(255, 255, 255, 0.22);
     }
+    QToolButton { font-size: 8pt; }
     """
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setFixedWidth(BUTTON_PX + 14)
         self.setStyleSheet(self.STYLE)
+        self._all_buttons: list[QToolButton] = []
+        self.labels_visible = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(4)
@@ -274,9 +289,27 @@ class SideToolBar(QWidget):
         btn.setIconSize(QSize(ICON_PX, ICON_PX))
         btn.setFixedSize(BUTTON_PX, BUTTON_PX)
         btn.setToolTip(tip)
+        btn.setText(self.SHORT_LABELS.get(kind, tip))
         btn.setCheckable(checkable)
         btn.setAutoRaise(True)
+        self._all_buttons.append(btn)
         return btn
+
+    def set_labels_visible(self, on: bool) -> None:
+        """Mostra (ou esconde) o texto curto sob cada ícone.
+
+        Com rótulos os botões ficam mais largos e altos; a coluna inteira
+        se ajusta. Sem rótulos, volta aos quadrados compactos.
+        """
+        self.labels_visible = bool(on)
+        width = 72 if on else BUTTON_PX
+        height = BUTTON_PX + (16 if on else 0)
+        for btn in self._all_buttons:
+            btn.setToolButtonStyle(
+                Qt.ToolButtonTextUnderIcon if on else Qt.ToolButtonIconOnly
+            )
+            btn.setFixedSize(width, height)
+        self.setFixedWidth(width + 14)
 
     @staticmethod
     def _separator() -> QFrame:
