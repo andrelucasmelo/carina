@@ -456,7 +456,7 @@ def main(argv=None) -> int:
                       f"{e.catalog_id[:22]:22s} alt {e.altitude:.0f} "
                       f"{e.constellation}")
             if args.marathon_pdf:
-                ok = dialog._write_pdf(args.marathon_pdf)
+                ok = dialog.write_pdf(args.marathon_pdf)
                 import os as _os
 
                 print(f"pdf: {args.marathon_pdf} "

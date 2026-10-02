@@ -1233,7 +1233,7 @@ class MainWindow(QMainWindow):
         """Abre uma janela de planejamento (menu Planejar → Visual)."""
         from ..catalogs import skygeometry
         from ..config import package_data_dir
-        from .marathon_window import MarathonWindow
+        from .plan_window import PlanWindow
         from .plan_settings_dialog import save_settings
 
         settings = self._plan_settings()
@@ -1262,14 +1262,39 @@ class MainWindow(QMainWindow):
             save_settings(self.settings, new_settings)
             return self._build_plan(kind, new_settings)
 
-        win = MarathonWindow(
+        win = PlanWindow(
             plan, self.star_catalog, self._const_lines_cache, self,
             settings=settings, recompute_cb=recompute,
+            observed=self.userdata.observed_idents,
         )
         win.setAttribute(Qt.WA_DeleteOnClose, True)
-        win.gotoRequested.connect(self._goto_by_name)
+        win.gotoRequested.connect(self._goto_ident)
+        win.gotoAtTimeRequested.connect(self._goto_ident_at)
+        win.trackRequested.connect(self._track_ident)
+        win.observedRequested.connect(
+            lambda k, i, w, pw=win: self._observed_from_plan(pw, k, i, w))
         self._track_windows.append(win)
         win.show()
+
+    def _goto_ident_at(self, kind: str, ident: str, when) -> None:
+        """Roteiro ▸ Ir para na hora: relógio no horário da parada."""
+        self.engine.time.set_datetime(when)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self._goto_ident(kind, ident)
+
+    def _track_ident(self, kind: str, ident: str) -> None:
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        if ref is not None:
+            self._track_selection(ref.selection)
+
+    def _observed_from_plan(self, plan_window, kind: str, ident: str, when) -> None:
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        if ref is not None and self._mark_observed(ref.selection, when):
+            try:
+                plan_window.mark_observed_refresh()
+            except RuntimeError:
+                pass
 
     def _goto_by_name(self, name: str) -> None:
         """Centraliza o objeto do roteiro no mapa (duplo clique na lista)."""

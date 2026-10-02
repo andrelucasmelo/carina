@@ -393,11 +393,21 @@ class PlanEntry:
     late: bool = False            # o slot caiu depois da janela útil
 
     @property
+    def designation(self) -> str:
+        """Designação de catálogo (M 8, IC 4604…), mesmo quando o roteiro
+        rotulou a parada pelo nome comum (Melhores Objetos)."""
+        if (self.common and self.catalog_id.lower() == self.common.lower()
+                and self.name and self.name.lower() != self.common.lower()):
+            return self.name
+        return self.catalog_id
+
+    @property
     def label(self) -> str:
         """Designação + nome próprio, para listas e tabelas."""
-        if self.common and self.common.lower() not in self.catalog_id.lower():
-            return f"{self.catalog_id} — {self.common}"
-        return self.catalog_id
+        desig = self.designation
+        if self.common and self.common.lower() not in desig.lower():
+            return f"{desig} — {self.common}"
+        return desig
 
 
 @dataclass
