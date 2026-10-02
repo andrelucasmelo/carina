@@ -15,7 +15,7 @@ import numpy as np
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QMainWindow, QScrollArea, QSizePolicy, QVBoxLayout,
+    QHBoxLayout, QLabel, QMainWindow, QSizePolicy, QVBoxLayout,
     QWidget,
 )
 
@@ -112,6 +112,26 @@ class AltitudeChart(QWidget):
         self.alt_max = alt_max
         self.setMinimumHeight(240)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setMouseTracking(True)
+        self._plot_rect = None
+
+    def mouseMoveEvent(self, event) -> None:
+        """Leitura ao pairar: data e as duas altitudes daquele ponto."""
+        from PySide6.QtWidgets import QToolTip
+
+        r = self._plot_rect
+        if r is None or not self.dates:
+            return
+        x = event.position().x()
+        if not r.left() <= x <= r.right():
+            return
+        i = int(round((x - r.left()) / r.width() * (len(self.dates) - 1)))
+        i = max(0, min(len(self.dates) - 1, i))
+        QToolTip.showText(
+            event.globalPosition().toPoint(),
+            self.tr("{d}: {m:.0f}° no meio da noite · máx. {x:.0f}°").format(
+                d=self.dates[i].strftime("%d/%m"), m=self.alt_mid[i],
+                x=self.alt_max[i]), self)
 
     def paintEvent(self, event) -> None:
         p = QPainter(self)
@@ -128,6 +148,7 @@ class AltitudeChart(QWidget):
             max(40.0, rect.height() - top - bottom),
         )
         n = len(self.dates)
+        self._plot_rect = plot
 
         def to_xy(i: int, alt: float) -> QPointF:
             fx = i / max(1, n - 1)
@@ -190,11 +211,11 @@ class ObjectWindow(QMainWindow):
     """Janela de detalhes do objeto: imagem grande, ficha completa e o
     gráfico anual de altitude (amostrado a cada 10 dias)."""
 
-    def __init__(self, title: str, html: str, image_path, dates, alt_mid,
+    def __init__(self, title: str, card, image_path, dates, alt_mid,
                  alt_max, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Detalhes — {t}").format(t=title))
-        self.resize(1000, 720)
+        self.resize(1100, 820)
 
         central = QWidget()
         layout = QVBoxLayout(central)
@@ -214,15 +235,9 @@ class ObjectWindow(QMainWindow):
             img_label.setAlignment(Qt.AlignCenter)
         top.addWidget(img_label)
 
-        info = QLabel(html)
-        info.setTextFormat(Qt.RichText)
-        info.setWordWrap(True)
-        info.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        info.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(info)
-        top.addWidget(scroll, 1)
+        # a ficha unificada (com o gráfico desta noite) ao lado da imagem
+        self.card = card
+        top.addWidget(card, 1)
         layout.addLayout(top, 3)
 
         layout.addWidget(QLabel(self.tr(

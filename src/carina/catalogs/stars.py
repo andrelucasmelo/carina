@@ -105,6 +105,9 @@ class StarCatalog:
         self.hip: np.ndarray = npz["hip"]
         self.ra: np.ndarray = npz["ra"]                          # radianos J2000
         self.dec: np.ndarray = npz["dec"]
+        # distância (pc, 0 = desconhecida) e tipo espectral — v0.15
+        self.dist = npz["dist"] if "dist" in npz.files else np.zeros(len(self.mag), np.float32)
+        self.spect = npz["spect"] if "spect" in npz.files else np.full(len(self.mag), "", "U12")
         self.colors = _bv_to_rgb(self.ci)                        # (N,3)
 
         self.deep_xyz = None

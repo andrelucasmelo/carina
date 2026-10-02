@@ -2336,23 +2336,22 @@ class SkyWidget(QOpenGLWidget):
 
     # --- aviso de horizonte ----------------------------------------------
     def next_rise_utc(self, selection, hours: float = 26.0):
-        """Próximo instante em que o objeto passa do horizonte (ou None)."""
+        """Próximo nascer do objeto (ou None), pelo mesmo cálculo refinado
+        da ficha (``core.visibility``: horizonte padrão com refração)."""
         import datetime as dt
 
-        start = self.engine.time.current_datetime()
-        step = dt.timedelta(minutes=10)
-        prev_alt = None
-        for i in range(int(hours * 6) + 1):
-            when = start + step * i
-            t = self.engine.ts.from_datetime(when)
-            m = self.engine.horizontal_matrix(t).astype(np.float32)
-            vec = self._selection_vec(selection, m, t)
-            if vec is None:
-                return None
-            alt = float(vec[2])
-            if prev_alt is not None and prev_alt < 0.0 <= alt:
-                return when
-            prev_alt = alt
+        from ..core.objects import ObjectRef
+        from ..core.visibility import visibility_of
+
+        ref = ObjectRef.resolve(selection, self.stars, self.dso)
+        if ref is None:
+            return None
+        now = self.engine.time.current_datetime()
+        for days in (0, 1):
+            vis = visibility_of(self.engine, ref, now + dt.timedelta(days=days),
+                                min_alt=0.0)
+            if vis.rise_utc is not None and now < vis.rise_utc <= now + dt.timedelta(hours=hours):
+                return vis.rise_utc
         return None
 
     def goto_when_rises(self, selection) -> None:

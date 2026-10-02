@@ -18,7 +18,8 @@ from ..core.dsofilter import DsoFilter
 from ..core.engine import SkyEngine
 from ..core.objects import ObjectRef
 from .dso_manager import DsoManagerDialog
-from .infopanel import InfoPanel, build_info_html
+from .infopanel import build_info_html
+from .object_card import CardContext, ObjectCard
 from .location_dialog import LocationDialog
 from .skywidget import SkyWidget
 from .time_dialog import TimeDialog
@@ -144,10 +145,12 @@ class MainWindow(QMainWindow):
         self.lbl_time.clicked.connect(self._time_goto)
         self.lbl_fov.clicked.connect(self._reset_fov)
 
-        self.info_dock = QDockWidget(self.tr("Informações"), self)
+        self.info_dock = QDockWidget(self.tr("Ficha do objeto"), self)
         self.info_dock.setObjectName("info_dock")
-        self.info_panel = InfoPanel(self.info_dock)
-        self.info_dock.setWidget(self.info_panel)
+        # ficha unificada (v0.15 T5): a mesma do popup e da janela de detalhes
+        self.card = ObjectCard(self._card_context(), parent=self.info_dock)
+        self.card.actionRequested.connect(self._on_card_action)
+        self.info_dock.setWidget(self.card)
         self.addDockWidget(Qt.RightDockWidgetArea, self.info_dock)
         self.info_dock.hide()
 
@@ -646,16 +649,120 @@ class MainWindow(QMainWindow):
             self.info_dock.hide()
             return
         self.info_dock.show()
-        self._refresh_info()
+        self.card.set_selection(selection)
 
     def _refresh_info(self) -> None:
         if self.info_dock.isVisible() and self.sky.selection is not None:
-            self.info_panel.show_html(
-                build_info_html(
-                    self.sky.selection, self.engine, self.star_catalog,
-                    self.const_names, self.dso_catalog,
-                )
-            )
+            if self.card.selection != self.sky.selection:
+                self.card.set_selection(self.sky.selection)
+            else:
+                self.card.refresh()
+
+    # --- ficha do objeto (v0.15 T5) ------------------------------------
+    def _card_context(self) -> CardContext:
+        return CardContext(
+            engine=self.engine, stars=self.star_catalog, dso=self.dso_catalog,
+            const_names=self.const_names, userdata=self.userdata,
+            bortle=lambda: self.sky.bortle,
+            horizon=lambda: self.horizon_profile,
+            min_alt=lambda: self._plan_settings().min_altitude,
+            instrument=lambda: self.settings.value("card/instrument", "pequeno", str),
+        )
+
+    def _refresh_cards(self, reselect: bool = False) -> None:
+        """Recalcula as fichas abertas (Bortle, horizonte, nomes mudaram)."""
+        cards = [self.card] + [getattr(w, "card", None) for w in self._track_windows]
+        for card in cards:
+            try:
+                if card is None or card.selection is None:
+                    continue
+                if reselect:
+                    card.set_selection(card.selection)
+                else:
+                    card.invalidate()
+            except RuntimeError:
+                continue            # janela já fechada (objeto Qt destruído)
+
+    def _on_card_action(self, key: str, selection) -> None:
+        """Botões da ficha: ações sobre o objeto."""
+        if selection is None:
+            return
+        if key == "center":
+            self.sky.selection = selection
+            self.sky.goto_object(selection)
+        elif key == "follow":
+            self.sky.selection = selection
+            self.sky.goto_object(selection)
+            self.act_follow.setChecked(True)
+        elif key == "track":
+            self._track_selection(selection)
+        elif key == "details":
+            self._open_object_window(selection)
+        elif key == "frame":
+            self.sky.selection = selection
+            self._open_fov_for(selection)
+        elif key == "goto_best":
+            self._goto_best_tonight(selection)
+        elif key == "list":
+            self._add_to_list(selection)
+        elif key == "observed":
+            self._mark_observed(selection)
+        elif key == "copy":
+            self.statusBar().showMessage(self.tr("Copiado: {t}").format(
+                t=self.card.copy_text() if self.card.selection == selection
+                else self.sky.describe_selection(selection)), 5000)
+
+    def _goto_best_tonight(self, selection) -> None:
+        """Relógio na melhor hora desta noite (janela útil e horizonte)."""
+        from ..core.localtime import to_local
+        from ..core.visibility import visibility_of
+
+        ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            return
+        vis = visibility_of(self.engine, ref, self.engine.time.current_datetime(),
+                            min_alt=self._plan_settings().min_altitude,
+                            horizon=self.horizon_profile)
+        if not vis.observable:
+            self.sky.show_notice(self.tr("{n} não tem janela útil nesta noite").format(
+                n=ref.name))
+            return
+        self.engine.time.set_datetime(vis.best_utc)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self.sky.selection = selection
+        self.sky.goto_object(selection, animate=False)
+        self.sky.show_notice(self.tr("{n}: melhor hora {h}, altitude {a:.0f}°").format(
+            n=ref.name, h=to_local(vis.best_utc).strftime("%H:%M"), a=vis.best_alt))
+
+    def _add_to_list(self, selection, list_name: str | None = None) -> None:
+        """Acrescenta à "Minha lista" (ou à lista indicada)."""
+        from ..core.userdata import DEFAULT_LIST
+
+        ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            return
+        name = list_name or self.settings.value("lists/current", DEFAULT_LIST, str)
+        lid = self.userdata.ensure_list(name)
+        radec = ref.ra_dec or (None, None)
+        added = self.userdata.add_item(lid, ref.kind, ref.ident, ref.name, *radec)
+        msg = (self.tr("{o} acrescentado a \"{l}\"") if added
+               else self.tr("{o} já está em \"{l}\""))
+        self.statusBar().showMessage(msg.format(o=ref.name, l=name), 5000)
+        self._refresh_cards(reselect=True)
+
+    def _mark_observed(self, selection) -> None:
+        """Registra no diário com as condições atuais (o diálogo completo
+        chega com o diário, T8)."""
+        ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
+        if ref is None:
+            return
+        self.userdata.add_observation(
+            ref.kind, ref.ident, ref.name, self.engine.time.current_datetime(),
+            location=self.settings.location().name, bortle=self.sky.bortle)
+        self.statusBar().showMessage(
+            self.tr("{o} registrado no diário").format(o=ref.name), 5000)
+        self._refresh_cards(reselect=True)
 
     # --- barra lateral -------------------------------------------------
     def _wire_side_bar(self) -> None:
@@ -754,6 +861,7 @@ class MainWindow(QMainWindow):
     def _apply_horizon(self, profile) -> None:
         self.horizon_profile = profile
         self.sky.set_horizon_profile(profile)
+        self._refresh_cards()
         name = profile.name if profile is not None else self.tr("plano")
         self.statusBar().showMessage(
             self.tr("Horizonte do quintal: {n}").format(n=name), 6000)
@@ -861,10 +969,11 @@ class MainWindow(QMainWindow):
         names.set_language(code)
         self.settings.set_value("names/language", code)
         self.sky.update()
-        self._refresh_info()
+        self._refresh_cards(reselect=True)
 
     def _set_bortle(self, level: int) -> None:
         self.sky.set_bortle(level)
+        self._refresh_cards()
         self.statusBar().showMessage(
             self.tr("Poluição luminosa: Bortle {n} — mag. limite a olho nu "
                     "{m:.1f}").format(n=level, m=self.sky.BORTLE_NELM[level]),
@@ -1079,30 +1188,18 @@ class MainWindow(QMainWindow):
 
     def _popup_info(self, selection) -> None:
         """Ficha do objeto em popup (item 7, botão direito)."""
-        from ..catalogs import images as image_store
         from .info_popup import InfoPopup
 
         if selection is None:
             return
-
-        def render(sel):
-            # o popup tem a imagem própria no topo: a ficha vem sem ela
-            return build_info_html(
-                sel, self.engine, self.star_catalog, self.const_names,
-                self.dso_catalog, include_image=False,
-            )
-
-        image_path = None
-        if selection[0] == "dso":
-            data = self.dso_catalog.get(int(selection[1]))
-            if data is not None:
-                image_path = image_store.image_path_for(data["name"])
-        popup = InfoPopup(
-            selection, self.sky.describe_selection(selection),
-            render(selection), image_path, refresh_cb=render, parent=self,
-        )
-        popup.detailsRequested.connect(self._open_object_window)
-        popup.trackRequested.connect(self._track_selection)
+        card = ObjectCard(self._card_context())
+        card.set_selection(selection)
+        card.actionRequested.connect(self._on_card_action)
+        popup = InfoPopup(card, self.sky.describe_selection(selection), self)
+        popup.destroyed.connect(
+            lambda *_: self._track_windows.remove(popup)
+            if popup in self._track_windows else None)
+        self._track_windows.append(popup)
         popup.show()
 
     def _track_selection(self, selection) -> None:
@@ -1128,11 +1225,6 @@ class MainWindow(QMainWindow):
         ref = ObjectRef.resolve(selection, self.star_catalog, self.dso_catalog)
         if ref is None:
             return
-        # sem a miniatura embutida: esta janela já mostra a imagem grande
-        html = build_info_html(
-            selection, self.engine, self.star_catalog, self.const_names,
-            self.dso_catalog, include_image=False,
-        )
         if not ref.is_fixed:
             QMessageBox.information(
                 self, "Carina",
@@ -1152,7 +1244,12 @@ class MainWindow(QMainWindow):
             )
         finally:
             QApplication.restoreOverrideCursor()
-        win = ObjectWindow(title, html, image_path, dates, alt_mid, alt_max,
+        # a ficha vai sem imagem: esta janela já mostra a imagem grande
+        card = ObjectCard(self._card_context(), show_image=False)
+        card.set_selection(selection)
+        card.actionRequested.connect(self._on_card_action)
+        card.buttons["details"].hide()
+        win = ObjectWindow(title, card, image_path, dates, alt_mid, alt_max,
                            self)
         win.setAttribute(Qt.WA_DeleteOnClose, True)
         self._track_windows.append(win)

@@ -75,6 +75,8 @@ def build_stars(force: bool) -> None:
     mag = []         # magnitude visual
     ci = []          # índice de cor B-V
     hip = []         # número Hipparcos (0 se ausente)
+    dist = []        # parsecs (0 se desconhecida; HYG usa 100000)
+    spect = []       # tipo espectral (ex.: "A1V")
     names = {"proper": [], "bayer": [], "flam": [], "con": []}
 
     with _open_maybe_gzip(csv_path) as fh:
@@ -101,6 +103,12 @@ def build_stars(force: bool) -> None:
                 hip.append(int(row["hip"]))
             except (TypeError, ValueError):
                 hip.append(0)
+            try:
+                d = float(row["dist"])
+                dist.append(d if 0.0 < d < 100000.0 else 0.0)
+            except (TypeError, ValueError):
+                dist.append(0.0)
+            spect.append((row.get("spect") or "").strip()[:12])
             if row.get("proper"):
                 names["proper"].append([idx, row["proper"]])
             if row.get("bayer"):
@@ -115,6 +123,8 @@ def build_stars(force: bool) -> None:
     mag = np.asarray(mag, dtype=np.float32)
     ci = np.asarray(ci, dtype=np.float32)
     hip = np.asarray(hip, dtype=np.int32)
+    dist = np.asarray(dist, dtype=np.float32)
+    spect = np.asarray(spect, dtype="U12")
 
     # Ordena por magnitude: em tempo de execução o corte por magnitude vira um
     # simples slice (np.searchsorted), sem máscaras por quadro.
@@ -123,6 +133,7 @@ def build_stars(force: bool) -> None:
     inv[order] = np.arange(len(order))
 
     ra, dec, mag, ci, hip = ra[order], dec[order], mag[order], ci[order], hip[order]
+    dist, spect = dist[order], spect[order]
     for key in names:
         names[key] = sorted([[int(inv[i]), v] for i, v in names[key]])
 
@@ -137,6 +148,7 @@ def build_stars(force: bool) -> None:
         OUT / "stars_hyg.npz",
         xyz=xyz, mag=mag, ci=ci, hip=hip,
         ra=ra.astype(np.float32), dec=dec.astype(np.float32),
+        dist=dist, spect=spect,
     )
     (OUT / "star_names.json").write_text(
         json.dumps(names, ensure_ascii=False, separators=(",", ":")),
