@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.17.0 — produto em desenvolvimento.
+> Carina 0.17.1 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 

@@ -1,6 +1,6 @@
 # Primeiros passos
 
-> Carina 0.17.0 — produto em desenvolvimento.
+> Carina 0.17.1 — produto em desenvolvimento.
 
 Um passeio guiado, do primeiro clique até um plano de observação impresso
 na mão. Reserve uns quinze minutos e faça junto com o programa aberto.

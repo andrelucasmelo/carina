@@ -1,6 +1,16 @@
 # O que há de novo
 
-> Carina 0.17.0 — produto em desenvolvimento.
+> Carina 0.17.1 — produto em desenvolvimento.
+
+## 0.17.1 — Lua mais leve
+
+- A Lua não trava mais a tela: o globo só é carregado quando ela fica
+  grande, a leitura das texturas acontece em segundo plano e a resolução
+  máxima só entra no zoom extremo. Enquanto carrega, aparece o disco
+  simples.
+- **A Lua em detalhe** responde na hora ao arrastar e ao dar zoom; a imagem
+  em resolução cheia chega um instante depois, sem bloquear a janela.
+- Menos memória: as texturas são liberadas depois de usadas.
 
 ## 0.17 — Lua e calendário do céu
 

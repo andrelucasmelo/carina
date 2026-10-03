@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.17.0 — produto em desenvolvimento.
+> Carina 0.17.1 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
