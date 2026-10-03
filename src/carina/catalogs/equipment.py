@@ -87,6 +87,8 @@ class FovShape:
     height: float              # radianos
     label: str
     details: list[tuple[str, str]] = field(default_factory=list)
+    offset: tuple[float, float] = (0.0, 0.0)   # painel de mosaico (rad, no plano do campo)
+    orientation: str = ""      # ocular: direta | invertida | espelhada (v0.19)
 
 
 DEFAULT_DATA = {
@@ -372,3 +374,142 @@ def compute_eyepiece_fov(scope: Telescope, eyepiece: Eyepiece,
     if accessory and accessory.factor != 1.0:
         label += f" + {accessory.name}"
     return FovShape("circle", fov, fov, label, details)
+
+
+# ---------------------------------------------------------------------------
+# v0.19: setups salvos, mosaico, "cabe no campo?" e trem óptico
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Setup:
+    """Conjunto com nome ("Seestar no quintal", "80ED + 533"): guardado no
+    ``carina.sqlite`` como perfil ``kind='setup'``."""
+
+    name: str
+    telescope: str = ""
+    camera: str = ""
+    eyepiece: str = ""
+    accessory: str = ""
+    mount: str = ""
+    rotation_deg: float = 0.0
+    mosaic_cols: int = 1
+    mosaic_rows: int = 1
+    overlap: float = 0.15
+    train: str = "direta"      # ocular: direta | invertida | espelhada
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Setup":
+        fields_ = {f for f in cls.__dataclass_fields__}
+        return cls(**{k: v for k, v in (d or {}).items() if k in fields_})
+
+    def is_altaz(self, store: "EquipmentStore") -> bool:
+        m = store.find("mounts", self.mount) if self.mount else None
+        if m is not None:
+            return m.kind != "equatorial"
+        return "seestar" in self.telescope.lower()      # Seestar é alt-az
+
+    def camera_shape(self, store: "EquipmentStore") -> FovShape | None:
+        scope = store.find("telescopes", self.telescope)
+        cam = store.find("cameras", self.camera)
+        if scope is None or cam is None:
+            return None
+        return compute_camera_fov(scope, cam, store.find("accessories", self.accessory))
+
+    def shapes(self, store: "EquipmentStore") -> list[FovShape]:
+        out = []
+        cam = self.camera_shape(store)
+        if cam is not None:
+            out += mosaic_shapes(cam, self.mosaic_cols, self.mosaic_rows, self.overlap)
+        scope = store.find("telescopes", self.telescope)
+        eye = store.find("eyepieces", self.eyepiece) if self.eyepiece else None
+        if scope is not None and eye is not None:
+            shape = compute_eyepiece_fov(scope, eye, store.find("accessories", self.accessory))
+            shape.orientation = self.train
+            shape.details.append(("Imagem na ocular", TRAIN_LABEL.get(self.train, self.train)))
+            out.append(shape)
+        return out
+
+
+TRAIN_LABEL = {
+    "direta": "como no céu (binóculo, prisma ereto)",
+    "invertida": "girada 180° (refletor ou SCT sem diagonal)",
+    "espelhada": "espelhada (refrator ou SCT com diagonal)",
+}
+
+SETUP_KIND = "setup"
+
+
+def save_setup(setup: Setup, data=None) -> None:
+    from ..core import userdata
+
+    db = data if data is not None else userdata.get()
+    db.save_profile(SETUP_KIND, setup.name, setup.to_dict())
+
+
+def load_setup(name: str, data=None) -> Setup | None:
+    from ..core import userdata
+
+    db = data if data is not None else userdata.get()
+    d = db.profile(SETUP_KIND, name)
+    return Setup.from_dict(d) if d else None
+
+
+def setup_names(data=None) -> list[str]:
+    from ..core import userdata
+
+    db = data if data is not None else userdata.get()
+    return db.profiles(SETUP_KIND)
+
+
+def delete_setup(name: str, data=None) -> None:
+    from ..core import userdata
+
+    db = data if data is not None else userdata.get()
+    db.delete_profile(SETUP_KIND, name)
+
+
+def mosaic_shapes(base: FovShape, cols: int, rows: int,
+                  overlap: float = 0.15) -> list[FovShape]:
+    """Painéis de um mosaico cols × rows com sobreposição (fração do quadro)."""
+    cols, rows = max(1, int(cols)), max(1, int(rows))
+    if cols == 1 and rows == 1:
+        return [base]
+    sw = base.width * (1.0 - overlap)
+    sh = base.height * (1.0 - overlap)
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            dx = (c - (cols - 1) / 2.0) * sw
+            dy = ((rows - 1) / 2.0 - r) * sh
+            label = f"{base.label} — painel {r * cols + c + 1}/{cols * rows}"
+            out.append(FovShape(base.kind, base.width, base.height, label,
+                                list(base.details) if r == c == 0 else [], (dx, dy)))
+    return out
+
+
+def mosaic_extent(base: FovShape, cols: int, rows: int, overlap: float = 0.15) -> tuple[float, float]:
+    """Largura e altura totais (rad) cobertas pelo mosaico."""
+    return (base.width + (max(1, cols) - 1) * base.width * (1 - overlap),
+            base.height + (max(1, rows) - 1) * base.height * (1 - overlap))
+
+
+def fit_in_field(maj_arcmin: float, min_arcmin: float | None, shape: FovShape,
+                 overlap: float = 0.15) -> dict:
+    """O objeto cabe no campo? Considera girar o quadro (eixo maior no lado
+    maior). Devolve {"fits", "fill" (fração da área), "mosaic": (c, r)}."""
+    maj = math.radians(maj_arcmin / 60.0)
+    mnr = math.radians((min_arcmin or maj_arcmin) / 60.0)
+    w, h = max(shape.width, shape.height), min(shape.width, shape.height)
+    if shape.kind == "circle":
+        w = h = shape.width
+    margin = 1.1                                      # 10% de folga
+    fits = maj * margin <= w and mnr * margin <= h
+    fill = (math.pi / 4 * maj * mnr) / (w * h if shape.kind != "circle"
+                                          else math.pi / 4 * w * w)
+    cols = 1 if maj * margin <= w else math.ceil((maj * margin - w) / (w * (1 - overlap))) + 1
+    rows = 1 if mnr * margin <= h else math.ceil((mnr * margin - h) / (h * (1 - overlap))) + 1
+    return {"fits": fits, "fill": min(fill, 9.99), "mosaic": (cols, rows)}
+
