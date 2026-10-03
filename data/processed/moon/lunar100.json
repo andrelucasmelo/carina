@@ -1,0 +1,805 @@
+{
+ "source": "Lunar 100 — Charles A. Wood (Sky & Telescope, 2004)",
+ "items": [
+  {
+   "n": 1,
+   "name": "Lua",
+   "lat": null,
+   "lon": null,
+   "type": "global",
+   "desc": "A própria Lua: o maior satélite em relação ao seu planeta. Observe-a a olho nu e note a face sempre voltada para a Terra."
+  },
+  {
+   "n": 2,
+   "name": "Luz cinérea",
+   "lat": null,
+   "lon": null,
+   "type": "global",
+   "desc": "A parte escura iluminada pela luz do Sol refletida na Terra. Melhor na Lua crescente fina, logo após o pôr do Sol."
+  },
+  {
+   "n": 3,
+   "name": "Mares e terras altas",
+   "lat": null,
+   "lon": null,
+   "type": "global",
+   "desc": "O contraste entre os mares escuros (lava basáltica) e as terras altas claras (crosta antiga, cheia de crateras)."
+  },
+  {
+   "n": 4,
+   "name": "Montes Apenninus",
+   "lat": 18.9,
+   "lon": -3.7,
+   "type": "mountain",
+   "desc": "Cordilheira de 600 km que forma a borda sudeste da bacia de Imbrium. Picos de até 5 km lançam sombras longas perto do quarto crescente."
+  },
+  {
+   "n": 5,
+   "name": "Copernicus",
+   "lat": 9.7,
+   "lon": -20.1,
+   "type": "crater",
+   "desc": "A cratera complexa por excelência: 96 km, paredes em terraços e picos centrais. Raios claros na Lua cheia."
+  },
+  {
+   "n": 6,
+   "name": "Tycho",
+   "lat": -43.4,
+   "lon": -11.1,
+   "type": "crater",
+   "desc": "Cratera jovem (cerca de 100 milhões de anos) com o sistema de raios mais extenso da face visível. Domina a Lua cheia."
+  },
+  {
+   "n": 7,
+   "name": "Rupes Altai",
+   "lat": -24.3,
+   "lon": 22.6,
+   "type": "mountain",
+   "desc": "Escarpa de 500 km, parte da borda da bacia de Nectaris. Fica nítida como uma linha clara poucos dias após a Lua nova."
+  },
+  {
+   "n": 8,
+   "name": "Theophilus, Cyrillus e Catharina",
+   "lat": -13.2,
+   "lon": 24.0,
+   "type": "crater",
+   "desc": "Trio de crateras de idades diferentes: Theophilus é a mais jovem e nítida, Catharina a mais gasta."
+  },
+  {
+   "n": 9,
+   "name": "Clavius",
+   "lat": -58.8,
+   "lon": -14.1,
+   "type": "crater",
+   "desc": "Uma das maiores crateras (225 km), com um arco de crateras menores sobre o fundo que diminuem de tamanho."
+  },
+  {
+   "n": 10,
+   "name": "Mare Crisium",
+   "lat": 18.0,
+   "lon": 59.0,
+   "type": "mare",
+   "desc": "Mar isolado numa bacia circular, fácil de achar na borda leste. Parece alongado no sentido N–S por efeito de perspectiva."
+  },
+  {
+   "n": 11,
+   "name": "Aristarchus",
+   "lat": 23.7,
+   "lon": -47.4,
+   "type": "crater",
+   "desc": "A formação mais brilhante da Lua. Visível até sob a luz cinérea; tem faixas escuras nas paredes internas."
+  },
+  {
+   "n": 12,
+   "name": "Proclus",
+   "lat": 16.1,
+   "lon": 46.8,
+   "type": "crater",
+   "desc": "Cratera pequena com raios em leque, sinal de impacto oblíquo: falta raio de um dos lados."
+  },
+  {
+   "n": 13,
+   "name": "Gassendi",
+   "lat": -17.6,
+   "lon": -40.1,
+   "type": "crater",
+   "desc": "Cratera de fundo fraturado na borda norte do Mare Humorum, cheia de rimas finas."
+  },
+  {
+   "n": 14,
+   "name": "Sinus Iridum",
+   "lat": 45.0,
+   "lon": -32.0,
+   "type": "mare",
+   "desc": "Baía em forma de meia-lua cercada pelos Montes Jura. Quando o Sol nasce, os picos acendem antes do fundo: a \"Alça Dourada\"."
+  },
+  {
+   "n": 15,
+   "name": "Rupes Recta (Muro Reto)",
+   "lat": -21.8,
+   "lon": -7.8,
+   "type": "mountain",
+   "desc": "Falha de 110 km. Aparece como linha escura logo após o quarto crescente e como linha clara antes do minguante."
+  },
+  {
+   "n": 16,
+   "name": "Petavius",
+   "lat": -25.1,
+   "lon": 60.4,
+   "type": "crater",
+   "desc": "Cratera grande com fundo abaulado e uma rima que vai do pico central à parede."
+  },
+  {
+   "n": 17,
+   "name": "Vallis Schröteri",
+   "lat": 26.2,
+   "lon": -50.8,
+   "type": "valley",
+   "desc": "O maior vale sinuoso da Lua: um canal de lava que nasce na \"Cabeça de Cobra\", perto de Aristarchus."
+  },
+  {
+   "n": 18,
+   "name": "Bordas escuras do Mare Serenitatis",
+   "lat": 17.8,
+   "lon": 23.0,
+   "type": "mare",
+   "desc": "Faixas mais escuras na margem do Serenitatis: lavas de composição diferente das do centro."
+  },
+  {
+   "n": 19,
+   "name": "Vallis Alpes",
+   "lat": 49.0,
+   "lon": 3.0,
+   "type": "valley",
+   "desc": "Vale reto de 160 km que corta os Alpes lunares. Uma rima finíssima no fundo é um desafio para bons telescópios."
+  },
+  {
+   "n": 20,
+   "name": "Posidonius",
+   "lat": 31.8,
+   "lon": 29.9,
+   "type": "crater",
+   "desc": "Cratera de fundo fraturado na borda do Serenitatis, com rimas e uma borda interna dupla."
+  },
+  {
+   "n": 21,
+   "name": "Fracastorius",
+   "lat": -21.5,
+   "lon": 33.2,
+   "type": "crater",
+   "desc": "Cratera inundada cuja parede norte desapareceu no Mare Nectaris."
+  },
+  {
+   "n": 22,
+   "name": "Planalto de Aristarchus",
+   "lat": 26.0,
+   "lon": -51.0,
+   "type": "other",
+   "desc": "Planalto elevado coberto de cinzas vulcânicas, de cor ligeiramente amarelada."
+  },
+  {
+   "n": 23,
+   "name": "Mons Pico",
+   "lat": 45.7,
+   "lon": -8.9,
+   "type": "mountain",
+   "desc": "Montanha isolada de 2,4 km no Mare Imbrium, resto de um anel interno da bacia. Sombra longa perto do quarto crescente."
+  },
+  {
+   "n": 24,
+   "name": "Rima Hyginus",
+   "lat": 7.4,
+   "lon": 7.8,
+   "type": "rille",
+   "desc": "Rima com uma cadeia de crateras sem borda — buracos de colapso — e a cratera Hyginus no cotovelo."
+  },
+  {
+   "n": 25,
+   "name": "Messier e Messier A",
+   "lat": -1.9,
+   "lon": 47.6,
+   "type": "crater",
+   "desc": "Par de crateras criado por um impacto rasante; dois raios longos saem para o oeste como uma cauda de cometa."
+  },
+  {
+   "n": 26,
+   "name": "Mare Frigoris",
+   "lat": 56.0,
+   "lon": 1.4,
+   "type": "mare",
+   "desc": "Mar estreito e arqueado ao norte, de origem ainda discutida."
+  },
+  {
+   "n": 27,
+   "name": "Archimedes",
+   "lat": 29.7,
+   "lon": -4.0,
+   "type": "crater",
+   "desc": "Cratera grande de fundo liso, sem pico central, inundada por lava."
+  },
+  {
+   "n": 28,
+   "name": "Hipparchus",
+   "lat": -5.5,
+   "lon": 4.8,
+   "type": "crater",
+   "desc": "Planície murada muito gasta, perto do centro do disco. Foi a primeira cratera desenhada isoladamente (Galileu, 1610)."
+  },
+  {
+   "n": 29,
+   "name": "Rima Ariadaeus",
+   "lat": 6.4,
+   "lon": 14.0,
+   "type": "rille",
+   "desc": "Fossa retilínea de 220 km: um bloco da crosta que afundou entre duas falhas."
+  },
+  {
+   "n": 30,
+   "name": "Schiller",
+   "lat": -51.9,
+   "lon": -39.0,
+   "type": "crater",
+   "desc": "Cratera muito alongada (180 × 70 km), talvez fruto de um impacto rasante."
+  },
+  {
+   "n": 31,
+   "name": "Taruntius",
+   "lat": 5.6,
+   "lon": 46.5,
+   "type": "crater",
+   "desc": "Cratera jovem de fundo fraturado com um anel interno."
+  },
+  {
+   "n": 32,
+   "name": "Arago Alpha e Beta",
+   "lat": 6.2,
+   "lon": 21.4,
+   "type": "dome",
+   "desc": "Dois domos vulcânicos no Mare Tranquillitatis. Só aparecem com o Sol baixo."
+  },
+  {
+   "n": 33,
+   "name": "Dorsa Smirnov (Crista Serpentina)",
+   "lat": 27.3,
+   "lon": 25.3,
+   "type": "mountain",
+   "desc": "Crista de lava que serpenteia pelo Serenitatis, parte de um anel interno da bacia."
+  },
+  {
+   "n": 34,
+   "name": "Lacus Mortis",
+   "lat": 45.0,
+   "lon": 27.2,
+   "type": "mare",
+   "desc": "Antiga cratera inundada com uma rima e uma crista cortando o fundo."
+  },
+  {
+   "n": 35,
+   "name": "Rimae Triesnecker",
+   "lat": 4.3,
+   "lon": 4.6,
+   "type": "rille",
+   "desc": "Rede de rimas cruzadas a leste da cratera Triesnecker. Bonita perto do quarto crescente."
+  },
+  {
+   "n": 36,
+   "name": "Bacia de Grimaldi",
+   "lat": -5.5,
+   "lon": -68.3,
+   "type": "basin",
+   "desc": "Pequena bacia de dois anéis com um dos fundos mais escuros da Lua, perto do limbo oeste."
+  },
+  {
+   "n": 37,
+   "name": "Bailly",
+   "lat": -66.5,
+   "lon": -69.1,
+   "type": "basin",
+   "desc": "A maior cratera da face visível (300 km), muito gasta e difícil de ver por estar perto do limbo."
+  },
+  {
+   "n": 38,
+   "name": "Sabine e Ritter",
+   "lat": 1.7,
+   "lon": 19.7,
+   "type": "crater",
+   "desc": "Par de crateras quase gêmeas na borda do Tranquillitatis, perto do local da Apollo 11."
+  },
+  {
+   "n": 39,
+   "name": "Schickard",
+   "lat": -44.3,
+   "lon": -55.3,
+   "type": "crater",
+   "desc": "Cratera de 230 km com o fundo riscado por uma faixa clara de material da bacia Orientale."
+  },
+  {
+   "n": 40,
+   "name": "Rima Janssen",
+   "lat": -45.4,
+   "lon": 39.3,
+   "type": "rille",
+   "desc": "Raro exemplo de rima nas terras altas, cruzando o fundo da cratera Janssen."
+  },
+  {
+   "n": 41,
+   "name": "Raio de Bessel",
+   "lat": 21.8,
+   "lon": 17.9,
+   "type": "ray",
+   "desc": "Raio claro que cruza o Serenitatis passando ao lado da cratera Bessel. A origem é incerta."
+  },
+  {
+   "n": 42,
+   "name": "Colinas de Marius",
+   "lat": 12.5,
+   "lon": -54.0,
+   "type": "dome",
+   "desc": "O maior campo de domos e colinas vulcânicas da Lua, no Oceanus Procellarum."
+  },
+  {
+   "n": 43,
+   "name": "Wargentin",
+   "lat": -49.6,
+   "lon": -60.2,
+   "type": "crater",
+   "desc": "Cratera cheia até a borda, como um planalto: um \"queijo\" no lado sudoeste."
+  },
+  {
+   "n": 44,
+   "name": "Mersenius",
+   "lat": -21.5,
+   "lon": -49.2,
+   "type": "crater",
+   "desc": "Cratera de fundo abaulado cortado por crateras secundárias."
+  },
+  {
+   "n": 45,
+   "name": "Maurolycus",
+   "lat": -42.0,
+   "lon": 14.0,
+   "type": "crater",
+   "desc": "Região de saturação: crateras sobre crateras, sem espaço livre."
+  },
+  {
+   "n": 46,
+   "name": "Pico central de Regiomontanus",
+   "lat": -28.0,
+   "lon": -0.6,
+   "type": "mountain",
+   "desc": "Pico com uma craterinha no topo, possível vulcão."
+  },
+  {
+   "n": 47,
+   "name": "Manchas escuras de Alphonsus",
+   "lat": -13.7,
+   "lon": -3.2,
+   "type": "other",
+   "desc": "Manchas escuras no fundo de Alphonsus: depósitos de erupções explosivas."
+  },
+  {
+   "n": 48,
+   "name": "Região de Cauchy",
+   "lat": 10.5,
+   "lon": 38.0,
+   "type": "other",
+   "desc": "Uma falha, uma rima e dois domos lado a lado no Mare Tranquillitatis."
+  },
+  {
+   "n": 49,
+   "name": "Gruithuisen Delta e Gamma",
+   "lat": 36.3,
+   "lon": -40.0,
+   "type": "dome",
+   "desc": "Domos altos de lava viscosa, raros na Lua."
+  },
+  {
+   "n": 50,
+   "name": "Planícies de Cayley",
+   "lat": 4.0,
+   "lon": 15.1,
+   "type": "other",
+   "desc": "Planícies claras e lisas nas terras altas, de origem discutida."
+  },
+  {
+   "n": 51,
+   "name": "Catena Davy",
+   "lat": -11.1,
+   "lon": -6.6,
+   "type": "rille",
+   "desc": "Fila de crateras pequenas, talvez fragmentos de um cometa que caíram juntos."
+  },
+  {
+   "n": 52,
+   "name": "Crüger",
+   "lat": -16.7,
+   "lon": -66.8,
+   "type": "crater",
+   "desc": "Cratera pequena de fundo escuro perto do limbo oeste, possível caldeira."
+  },
+  {
+   "n": 53,
+   "name": "Lamont",
+   "lat": 4.4,
+   "lon": 23.7,
+   "type": "basin",
+   "desc": "Anel de cristas no Tranquillitatis, possível bacia soterrada pela lava."
+  },
+  {
+   "n": 54,
+   "name": "Rimae Hippalus",
+   "lat": -24.5,
+   "lon": -29.0,
+   "type": "rille",
+   "desc": "Rimas concêntricas à bacia de Humorum, nascidas do afundamento do mar."
+  },
+  {
+   "n": 55,
+   "name": "Baco",
+   "lat": -51.0,
+   "lon": 19.1,
+   "type": "crater",
+   "desc": "Cratera de fundo excepcionalmente liso, no meio das terras altas do sul."
+  },
+  {
+   "n": 56,
+   "name": "Bacia Australe",
+   "lat": -49.8,
+   "lon": 84.5,
+   "type": "basin",
+   "desc": "Bacia antiga parcialmente inundada, na borda sudeste. Exige libração favorável."
+  },
+  {
+   "n": 57,
+   "name": "Reiner Gamma",
+   "lat": 7.7,
+   "lon": -59.2,
+   "type": "other",
+   "desc": "Redemoinho claro sobre o Procellarum, ligado a uma anomalia magnética."
+  },
+  {
+   "n": 58,
+   "name": "Vallis Rheita",
+   "lat": -42.5,
+   "lon": 51.5,
+   "type": "valley",
+   "desc": "Vale de 500 km formado por crateras secundárias de uma bacia."
+  },
+  {
+   "n": 59,
+   "name": "Bacia Schiller-Zucchius",
+   "lat": -56.0,
+   "lon": -45.0,
+   "type": "basin",
+   "desc": "Bacia muito degradada, pouco notada, no sudoeste."
+  },
+  {
+   "n": 60,
+   "name": "Kies Pi",
+   "lat": -26.9,
+   "lon": -24.2,
+   "type": "dome",
+   "desc": "Domo vulcânico com uma craterinha no topo, a oeste de Kies."
+  },
+  {
+   "n": 61,
+   "name": "Mösting A",
+   "lat": -3.2,
+   "lon": -5.2,
+   "type": "crater",
+   "desc": "Cratera simples perto do centro do disco: foi o ponto de referência das medidas de posição lunares."
+  },
+  {
+   "n": 62,
+   "name": "Rümker",
+   "lat": 40.8,
+   "lon": -58.1,
+   "type": "dome",
+   "desc": "Grande domo vulcânico no Procellarum, com relevo enrugado."
+  },
+  {
+   "n": 63,
+   "name": "Escultura de Imbrium",
+   "lat": 11.0,
+   "lon": 12.0,
+   "type": "other",
+   "desc": "Sulcos radiais cavados pelo material lançado pelo impacto de Imbrium, perto de Boscovich e Julius Caesar."
+  },
+  {
+   "n": 64,
+   "name": "Descartes",
+   "lat": -11.7,
+   "lon": 15.7,
+   "type": "other",
+   "desc": "Local de pouso da Apollo 16 nas terras altas."
+  },
+  {
+   "n": 65,
+   "name": "Domos de Hortensius",
+   "lat": 7.6,
+   "lon": -27.9,
+   "type": "dome",
+   "desc": "Campo de seis domos ao norte de Hortensius, com craterinhas no topo."
+  },
+  {
+   "n": 66,
+   "name": "Rima Hadley",
+   "lat": 25.0,
+   "lon": 3.0,
+   "type": "rille",
+   "desc": "Canal de lava ao pé dos Apeninos, visitado pela Apollo 15."
+  },
+  {
+   "n": 67,
+   "name": "Formação Fra Mauro",
+   "lat": -3.6,
+   "lon": -17.5,
+   "type": "other",
+   "desc": "Material lançado pelo impacto de Imbrium; local de pouso da Apollo 14."
+  },
+  {
+   "n": 68,
+   "name": "Flamsteed P",
+   "lat": -3.0,
+   "lon": -44.0,
+   "type": "crater",
+   "desc": "Anel fantasma no Procellarum; ali pousou a Surveyor 1."
+  },
+  {
+   "n": 69,
+   "name": "Secundárias de Copernicus",
+   "lat": 19.6,
+   "lon": -19.1,
+   "type": "crater",
+   "desc": "Crateras secundárias e raios perto de Pytheas, abertos por blocos lançados por Copernicus."
+  },
+  {
+   "n": 70,
+   "name": "Bacia Humboldtianum",
+   "lat": 57.0,
+   "lon": 80.0,
+   "type": "basin",
+   "desc": "Bacia de vários anéis no limbo nordeste; precisa de libração favorável."
+  },
+  {
+   "n": 71,
+   "name": "Manto escuro de Sulpicius Gallus",
+   "lat": 19.6,
+   "lon": 11.6,
+   "type": "other",
+   "desc": "Cinzas vulcânicas escuras a noroeste da cratera."
+  },
+  {
+   "n": 72,
+   "name": "Crateras de halo escuro de Atlas",
+   "lat": 46.7,
+   "lon": 44.4,
+   "type": "crater",
+   "desc": "Poços vulcânicos explosivos com auréola escura no fundo de Atlas."
+  },
+  {
+   "n": 73,
+   "name": "Bacia Smythii",
+   "lat": -2.0,
+   "lon": 87.0,
+   "type": "basin",
+   "desc": "Bacia e mar no limbo leste, difíceis de ver: dependem da libração."
+  },
+  {
+   "n": 74,
+   "name": "Copernicus H",
+   "lat": 6.9,
+   "lon": -18.3,
+   "type": "crater",
+   "desc": "Cratera de impacto com halo escuro, que escavou lava sob os raios claros."
+  },
+  {
+   "n": 75,
+   "name": "Ptolemaeus B",
+   "lat": -8.0,
+   "lon": -0.8,
+   "type": "other",
+   "desc": "Depressão rasa em forma de pires no fundo de Ptolemaeus, visível só com o Sol muito baixo."
+  },
+  {
+   "n": 76,
+   "name": "W. Bond",
+   "lat": 65.3,
+   "lon": 3.7,
+   "type": "crater",
+   "desc": "Cratera grande degradada pelo material lançado por Imbrium."
+  },
+  {
+   "n": 77,
+   "name": "Rimae Sirsalis",
+   "lat": -15.7,
+   "lon": -61.7,
+   "type": "rille",
+   "desc": "Rimas longas e radiais à bacia do Procellarum."
+  },
+  {
+   "n": 78,
+   "name": "Lambert R",
+   "lat": 23.8,
+   "lon": -20.6,
+   "type": "crater",
+   "desc": "Cratera \"fantasma\", soterrada pela lava, ao sul de Lambert."
+  },
+  {
+   "n": 79,
+   "name": "Sinus Aestuum",
+   "lat": 12.0,
+   "lon": -3.5,
+   "type": "mare",
+   "desc": "Depósito vulcânico escuro na margem leste do Aestuum."
+  },
+  {
+   "n": 80,
+   "name": "Bacia Orientale",
+   "lat": -19.0,
+   "lon": -95.0,
+   "type": "basin",
+   "desc": "A bacia grande mais jovem. Fica quase toda no lado oculto; só a libração mostra os anéis externos."
+  },
+  {
+   "n": 81,
+   "name": "Hesiodus A",
+   "lat": -30.1,
+   "lon": -17.0,
+   "type": "crater",
+   "desc": "Cratera concêntrica: um anel interno dentro da parede."
+  },
+  {
+   "n": 82,
+   "name": "Linné",
+   "lat": 27.7,
+   "lon": 11.8,
+   "type": "crater",
+   "desc": "Craterinha brilhante que no século XIX se acreditou ter desaparecido."
+  },
+  {
+   "n": 83,
+   "name": "Craterinhas de Plato",
+   "lat": 51.6,
+   "lon": -9.4,
+   "type": "crater",
+   "desc": "Pequenas crateras no fundo liso de Plato, no limite da detecção. Bom teste de seeing."
+  },
+  {
+   "n": 84,
+   "name": "Pitatus",
+   "lat": -29.8,
+   "lon": -13.5,
+   "type": "crater",
+   "desc": "Cratera com rimas concêntricas no fundo."
+  },
+  {
+   "n": 85,
+   "name": "Raios de Langrenus",
+   "lat": -8.9,
+   "lon": 60.9,
+   "type": "ray",
+   "desc": "Sistema de raios envelhecido em torno de Langrenus."
+  },
+  {
+   "n": 86,
+   "name": "Rimae Prinz",
+   "lat": 27.0,
+   "lon": -43.0,
+   "type": "rille",
+   "desc": "Rimas sinuosas perto da cratera Prinz."
+  },
+  {
+   "n": 87,
+   "name": "Humboldt",
+   "lat": -27.0,
+   "lon": 80.9,
+   "type": "crater",
+   "desc": "Cratera de picos centrais e manchas escuras, no limbo leste."
+  },
+  {
+   "n": 88,
+   "name": "Peary",
+   "lat": 88.6,
+   "lon": 33.0,
+   "type": "crater",
+   "desc": "Cratera do polo norte, sempre com o Sol rasante. Pede libração favorável."
+  },
+  {
+   "n": 89,
+   "name": "Domo Valentine",
+   "lat": 30.5,
+   "lon": 10.1,
+   "type": "dome",
+   "desc": "Domo vulcânico largo na borda oeste do Serenitatis."
+  },
+  {
+   "n": 90,
+   "name": "Armstrong, Aldrin e Collins",
+   "lat": 1.3,
+   "lon": 23.7,
+   "type": "crater",
+   "desc": "Três craterinhas perto do local de pouso da Apollo 11."
+  },
+  {
+   "n": 91,
+   "name": "Rimae de Gasparis",
+   "lat": -25.9,
+   "lon": -50.7,
+   "type": "rille",
+   "desc": "Área cheia de rimas que se cruzam."
+  },
+  {
+   "n": 92,
+   "name": "Vale de Gyldén",
+   "lat": -5.1,
+   "lon": 0.7,
+   "type": "valley",
+   "desc": "Sulco que faz parte da escultura radial de Imbrium."
+  },
+  {
+   "n": 93,
+   "name": "Raios de Dionysius",
+   "lat": 2.8,
+   "lon": 17.3,
+   "type": "ray",
+   "desc": "Raios escuros, raros e incomuns."
+  },
+  {
+   "n": 94,
+   "name": "Drygalski",
+   "lat": -79.3,
+   "lon": -84.9,
+   "type": "crater",
+   "desc": "Grande cratera da região do polo sul."
+  },
+  {
+   "n": 95,
+   "name": "Bacia Procellarum",
+   "lat": 23.0,
+   "lon": -15.0,
+   "type": "basin",
+   "desc": "Talvez a maior bacia da Lua, de existência ainda discutida."
+  },
+  {
+   "n": 96,
+   "name": "Montes Leibnitz",
+   "lat": -85.0,
+   "lon": 30.0,
+   "type": "mountain",
+   "desc": "Borda da bacia Polo Sul–Aitken, vista de perfil no limbo sul."
+  },
+  {
+   "n": 97,
+   "name": "Vallis Inghirami",
+   "lat": -44.0,
+   "lon": -73.0,
+   "type": "valley",
+   "desc": "Sulcos lançados pela bacia Orientale."
+  },
+  {
+   "n": 98,
+   "name": "Fluxos de lava de Imbrium",
+   "lat": 32.8,
+   "lon": -22.0,
+   "type": "mare",
+   "desc": "Frentes de fluxos de lava no Imbrium. Aparecem com o Sol muito baixo."
+  },
+  {
+   "n": 99,
+   "name": "Ina",
+   "lat": 18.6,
+   "lon": 5.3,
+   "type": "other",
+   "desc": "Caldeira jovem em forma de D, possível vulcanismo recente."
+  },
+  {
+   "n": 100,
+   "name": "Redemoinhos do Mare Marginis",
+   "lat": 18.5,
+   "lon": 88.0,
+   "type": "other",
+   "desc": "Redemoinhos claros ligados a campos magnéticos, no limbo leste."
+  }
+ ]
+}

@@ -1,0 +1,104 @@
+# Lunar 100 (Charles A. Wood, Sky & Telescope, abril de 2004).
+# Nomes e coordenadas da lista original; descrições escritas para o Carina.
+# Colunas: número, nome, latitude (+N), longitude (+L, leste), tipo, descrição
+# tipo: global | crater | basin | mare | mountain | rille | dome | ray | valley | other
+1	Lua	-	-	global	A própria Lua: o maior satélite em relação ao seu planeta. Observe-a a olho nu e note a face sempre voltada para a Terra.
+2	Luz cinérea	-	-	global	A parte escura iluminada pela luz do Sol refletida na Terra. Melhor na Lua crescente fina, logo após o pôr do Sol.
+3	Mares e terras altas	-	-	global	O contraste entre os mares escuros (lava basáltica) e as terras altas claras (crosta antiga, cheia de crateras).
+4	Montes Apenninus	18.9	-3.7	mountain	Cordilheira de 600 km que forma a borda sudeste da bacia de Imbrium. Picos de até 5 km lançam sombras longas perto do quarto crescente.
+5	Copernicus	9.7	-20.1	crater	A cratera complexa por excelência: 96 km, paredes em terraços e picos centrais. Raios claros na Lua cheia.
+6	Tycho	-43.4	-11.1	crater	Cratera jovem (cerca de 100 milhões de anos) com o sistema de raios mais extenso da face visível. Domina a Lua cheia.
+7	Rupes Altai	-24.3	22.6	mountain	Escarpa de 500 km, parte da borda da bacia de Nectaris. Fica nítida como uma linha clara poucos dias após a Lua nova.
+8	Theophilus, Cyrillus e Catharina	-13.2	24.0	crater	Trio de crateras de idades diferentes: Theophilus é a mais jovem e nítida, Catharina a mais gasta.
+9	Clavius	-58.8	-14.1	crater	Uma das maiores crateras (225 km), com um arco de crateras menores sobre o fundo que diminuem de tamanho.
+10	Mare Crisium	18.0	59.0	mare	Mar isolado numa bacia circular, fácil de achar na borda leste. Parece alongado no sentido N–S por efeito de perspectiva.
+11	Aristarchus	23.7	-47.4	crater	A formação mais brilhante da Lua. Visível até sob a luz cinérea; tem faixas escuras nas paredes internas.
+12	Proclus	16.1	46.8	crater	Cratera pequena com raios em leque, sinal de impacto oblíquo: falta raio de um dos lados.
+13	Gassendi	-17.6	-40.1	crater	Cratera de fundo fraturado na borda norte do Mare Humorum, cheia de rimas finas.
+14	Sinus Iridum	45.0	-32.0	mare	Baía em forma de meia-lua cercada pelos Montes Jura. Quando o Sol nasce, os picos acendem antes do fundo: a "Alça Dourada".
+15	Rupes Recta (Muro Reto)	-21.8	-7.8	mountain	Falha de 110 km. Aparece como linha escura logo após o quarto crescente e como linha clara antes do minguante.
+16	Petavius	-25.1	60.4	crater	Cratera grande com fundo abaulado e uma rima que vai do pico central à parede.
+17	Vallis Schröteri	26.2	-50.8	valley	O maior vale sinuoso da Lua: um canal de lava que nasce na "Cabeça de Cobra", perto de Aristarchus.
+18	Bordas escuras do Mare Serenitatis	17.8	23.0	mare	Faixas mais escuras na margem do Serenitatis: lavas de composição diferente das do centro.
+19	Vallis Alpes	49.0	3.0	valley	Vale reto de 160 km que corta os Alpes lunares. Uma rima finíssima no fundo é um desafio para bons telescópios.
+20	Posidonius	31.8	29.9	crater	Cratera de fundo fraturado na borda do Serenitatis, com rimas e uma borda interna dupla.
+21	Fracastorius	-21.5	33.2	crater	Cratera inundada cuja parede norte desapareceu no Mare Nectaris.
+22	Planalto de Aristarchus	26.0	-51.0	other	Planalto elevado coberto de cinzas vulcânicas, de cor ligeiramente amarelada.
+23	Mons Pico	45.7	-8.9	mountain	Montanha isolada de 2,4 km no Mare Imbrium, resto de um anel interno da bacia. Sombra longa perto do quarto crescente.
+24	Rima Hyginus	7.4	7.8	rille	Rima com uma cadeia de crateras sem borda — buracos de colapso — e a cratera Hyginus no cotovelo.
+25	Messier e Messier A	-1.9	47.6	crater	Par de crateras criado por um impacto rasante; dois raios longos saem para o oeste como uma cauda de cometa.
+26	Mare Frigoris	56.0	1.4	mare	Mar estreito e arqueado ao norte, de origem ainda discutida.
+27	Archimedes	29.7	-4.0	crater	Cratera grande de fundo liso, sem pico central, inundada por lava.
+28	Hipparchus	-5.5	4.8	crater	Planície murada muito gasta, perto do centro do disco. Foi a primeira cratera desenhada isoladamente (Galileu, 1610).
+29	Rima Ariadaeus	6.4	14.0	rille	Fossa retilínea de 220 km: um bloco da crosta que afundou entre duas falhas.
+30	Schiller	-51.9	-39.0	crater	Cratera muito alongada (180 × 70 km), talvez fruto de um impacto rasante.
+31	Taruntius	5.6	46.5	crater	Cratera jovem de fundo fraturado com um anel interno.
+32	Arago Alpha e Beta	6.2	21.4	dome	Dois domos vulcânicos no Mare Tranquillitatis. Só aparecem com o Sol baixo.
+33	Dorsa Smirnov (Crista Serpentina)	27.3	25.3	mountain	Crista de lava que serpenteia pelo Serenitatis, parte de um anel interno da bacia.
+34	Lacus Mortis	45.0	27.2	mare	Antiga cratera inundada com uma rima e uma crista cortando o fundo.
+35	Rimae Triesnecker	4.3	4.6	rille	Rede de rimas cruzadas a leste da cratera Triesnecker. Bonita perto do quarto crescente.
+36	Bacia de Grimaldi	-5.5	-68.3	basin	Pequena bacia de dois anéis com um dos fundos mais escuros da Lua, perto do limbo oeste.
+37	Bailly	-66.5	-69.1	basin	A maior cratera da face visível (300 km), muito gasta e difícil de ver por estar perto do limbo.
+38	Sabine e Ritter	1.7	19.7	crater	Par de crateras quase gêmeas na borda do Tranquillitatis, perto do local da Apollo 11.
+39	Schickard	-44.3	-55.3	crater	Cratera de 230 km com o fundo riscado por uma faixa clara de material da bacia Orientale.
+40	Rima Janssen	-45.4	39.3	rille	Raro exemplo de rima nas terras altas, cruzando o fundo da cratera Janssen.
+41	Raio de Bessel	21.8	17.9	ray	Raio claro que cruza o Serenitatis passando ao lado da cratera Bessel. A origem é incerta.
+42	Colinas de Marius	12.5	-54.0	dome	O maior campo de domos e colinas vulcânicas da Lua, no Oceanus Procellarum.
+43	Wargentin	-49.6	-60.2	crater	Cratera cheia até a borda, como um planalto: um "queijo" no lado sudoeste.
+44	Mersenius	-21.5	-49.2	crater	Cratera de fundo abaulado cortado por crateras secundárias.
+45	Maurolycus	-42.0	14.0	crater	Região de saturação: crateras sobre crateras, sem espaço livre.
+46	Pico central de Regiomontanus	-28.0	-0.6	mountain	Pico com uma craterinha no topo, possível vulcão.
+47	Manchas escuras de Alphonsus	-13.7	-3.2	other	Manchas escuras no fundo de Alphonsus: depósitos de erupções explosivas.
+48	Região de Cauchy	10.5	38.0	other	Uma falha, uma rima e dois domos lado a lado no Mare Tranquillitatis.
+49	Gruithuisen Delta e Gamma	36.3	-40.0	dome	Domos altos de lava viscosa, raros na Lua.
+50	Planícies de Cayley	4.0	15.1	other	Planícies claras e lisas nas terras altas, de origem discutida.
+51	Catena Davy	-11.1	-6.6	rille	Fila de crateras pequenas, talvez fragmentos de um cometa que caíram juntos.
+52	Crüger	-16.7	-66.8	crater	Cratera pequena de fundo escuro perto do limbo oeste, possível caldeira.
+53	Lamont	4.4	23.7	basin	Anel de cristas no Tranquillitatis, possível bacia soterrada pela lava.
+54	Rimae Hippalus	-24.5	-29.0	rille	Rimas concêntricas à bacia de Humorum, nascidas do afundamento do mar.
+55	Baco	-51.0	19.1	crater	Cratera de fundo excepcionalmente liso, no meio das terras altas do sul.
+56	Bacia Australe	-49.8	84.5	basin	Bacia antiga parcialmente inundada, na borda sudeste. Exige libração favorável.
+57	Reiner Gamma	7.7	-59.2	other	Redemoinho claro sobre o Procellarum, ligado a uma anomalia magnética.
+58	Vallis Rheita	-42.5	51.5	valley	Vale de 500 km formado por crateras secundárias de uma bacia.
+59	Bacia Schiller-Zucchius	-56.0	-45.0	basin	Bacia muito degradada, pouco notada, no sudoeste.
+60	Kies Pi	-26.9	-24.2	dome	Domo vulcânico com uma craterinha no topo, a oeste de Kies.
+61	Mösting A	-3.2	-5.2	crater	Cratera simples perto do centro do disco: foi o ponto de referência das medidas de posição lunares.
+62	Rümker	40.8	-58.1	dome	Grande domo vulcânico no Procellarum, com relevo enrugado.
+63	Escultura de Imbrium	11.0	12.0	other	Sulcos radiais cavados pelo material lançado pelo impacto de Imbrium, perto de Boscovich e Julius Caesar.
+64	Descartes	-11.7	15.7	other	Local de pouso da Apollo 16 nas terras altas.
+65	Domos de Hortensius	7.6	-27.9	dome	Campo de seis domos ao norte de Hortensius, com craterinhas no topo.
+66	Rima Hadley	25.0	3.0	rille	Canal de lava ao pé dos Apeninos, visitado pela Apollo 15.
+67	Formação Fra Mauro	-3.6	-17.5	other	Material lançado pelo impacto de Imbrium; local de pouso da Apollo 14.
+68	Flamsteed P	-3.0	-44.0	crater	Anel fantasma no Procellarum; ali pousou a Surveyor 1.
+69	Secundárias de Copernicus	19.6	-19.1	crater	Crateras secundárias e raios perto de Pytheas, abertos por blocos lançados por Copernicus.
+70	Bacia Humboldtianum	57.0	80.0	basin	Bacia de vários anéis no limbo nordeste; precisa de libração favorável.
+71	Manto escuro de Sulpicius Gallus	19.6	11.6	other	Cinzas vulcânicas escuras a noroeste da cratera.
+72	Crateras de halo escuro de Atlas	46.7	44.4	crater	Poços vulcânicos explosivos com auréola escura no fundo de Atlas.
+73	Bacia Smythii	-2.0	87.0	basin	Bacia e mar no limbo leste, difíceis de ver: dependem da libração.
+74	Copernicus H	6.9	-18.3	crater	Cratera de impacto com halo escuro, que escavou lava sob os raios claros.
+75	Ptolemaeus B	-8.0	-0.8	other	Depressão rasa em forma de pires no fundo de Ptolemaeus, visível só com o Sol muito baixo.
+76	W. Bond	65.3	3.7	crater	Cratera grande degradada pelo material lançado por Imbrium.
+77	Rimae Sirsalis	-15.7	-61.7	rille	Rimas longas e radiais à bacia do Procellarum.
+78	Lambert R	23.8	-20.6	crater	Cratera "fantasma", soterrada pela lava, ao sul de Lambert.
+79	Sinus Aestuum	12.0	-3.5	mare	Depósito vulcânico escuro na margem leste do Aestuum.
+80	Bacia Orientale	-19.0	-95.0	basin	A bacia grande mais jovem. Fica quase toda no lado oculto; só a libração mostra os anéis externos.
+81	Hesiodus A	-30.1	-17.0	crater	Cratera concêntrica: um anel interno dentro da parede.
+82	Linné	27.7	11.8	crater	Craterinha brilhante que no século XIX se acreditou ter desaparecido.
+83	Craterinhas de Plato	51.6	-9.4	crater	Pequenas crateras no fundo liso de Plato, no limite da detecção. Bom teste de seeing.
+84	Pitatus	-29.8	-13.5	crater	Cratera com rimas concêntricas no fundo.
+85	Raios de Langrenus	-8.9	60.9	ray	Sistema de raios envelhecido em torno de Langrenus.
+86	Rimae Prinz	27.0	-43.0	rille	Rimas sinuosas perto da cratera Prinz.
+87	Humboldt	-27.0	80.9	crater	Cratera de picos centrais e manchas escuras, no limbo leste.
+88	Peary	88.6	33.0	crater	Cratera do polo norte, sempre com o Sol rasante. Pede libração favorável.
+89	Domo Valentine	30.5	10.1	dome	Domo vulcânico largo na borda oeste do Serenitatis.
+90	Armstrong, Aldrin e Collins	1.3	23.7	crater	Três craterinhas perto do local de pouso da Apollo 11.
+91	Rimae de Gasparis	-25.9	-50.7	rille	Área cheia de rimas que se cruzam.
+92	Vale de Gyldén	-5.1	0.7	valley	Sulco que faz parte da escultura radial de Imbrium.
+93	Raios de Dionysius	2.8	17.3	ray	Raios escuros, raros e incomuns.
+94	Drygalski	-79.3	-84.9	crater	Grande cratera da região do polo sul.
+95	Bacia Procellarum	23.0	-15.0	basin	Talvez a maior bacia da Lua, de existência ainda discutida.
+96	Montes Leibnitz	-85.0	30.0	mountain	Borda da bacia Polo Sul–Aitken, vista de perfil no limbo sul.
+97	Vallis Inghirami	-44.0	-73.0	valley	Sulcos lançados pela bacia Orientale.
+98	Fluxos de lava de Imbrium	32.8	-22.0	mare	Frentes de fluxos de lava no Imbrium. Aparecem com o Sol muito baixo.
+99	Ina	18.6	5.3	other	Caldeira jovem em forma de D, possível vulcanismo recente.
+100	Redemoinhos do Mare Marginis	18.5	88.0	other	Redemoinhos claros ligados a campos magnéticos, no limbo leste.

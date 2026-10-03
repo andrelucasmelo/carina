@@ -1,0 +1,30 @@
+# Chuvas de meteoros — Lista de trabalho da IMO (International Meteor
+# Organization, calendário anual). Atividade e pico em longitude solar
+# (J2000), o que permite calcular as datas de qualquer ano.
+# Colunas: código, nome PT, início λ☉, pico λ☉, fim λ☉, THZ (ZHR; 0 = variável),
+#          AR do radiante (°), Dec do radiante (°), velocidade (km/s), índice r, nota
+QUA	Quadrântidas	280.0	283.15	292.0	80	230	49	41	2.1	Pico curto, de poucas horas. Radiante muito ao norte: baixo no Brasil.
+ACE	Alfa-Centaurídeas	311.0	319.2	331.0	6	210	-59	58	2.0	Chuva do hemisfério sul; radiante alto nas madrugadas de fevereiro.
+GNO	Gama-Normídeas	336.0	354.0	7.0	6	239	-50	56	2.4	Chuva fraca, típica do hemisfério sul.
+LYR	Líridas	29.0	32.32	40.0	18	271	34	49	2.1	Associada ao cometa Thatcher. Melhor depois da meia-noite.
+PPU	Pi-Puppídeas	25.0	33.5	38.0	0	110	-45	18	2.0	Atividade variável, ligada ao cometa 26P/Grigg-Skjellerup.
+ETA	Eta-Aquarídeas	29.0	45.5	68.0	50	338	-1	66	2.4	Restos do cometa Halley. Uma das melhores para o hemisfério sul, antes do amanhecer.
+ELY	Eta-Líridas	43.0	50.0	54.0	3	287	44	43	3.0	Chuva fraca, associada ao cometa IRAS-Araki-Alcock.
+JBO	Bootídeas de Junho	90.0	92.0	100.0	0	224	48	18	2.2	Normalmente fraca, com explosões ocasionais.
+PAU	Piscis Austrínidas	112.0	125.0	138.0	5	341	-30	35	3.2	Radiante alto no céu do hemisfério sul.
+SDA	Delta-Aquarídeas do Sul	110.0	127.0	151.0	25	340	-16	41	2.5	Ótima para o hemisfério sul; ativa ao mesmo tempo que as Perseidas.
+CAP	Alfa-Capricornídeas	101.0	127.0	143.0	5	307	-10	23	2.5	Meteoros lentos e brilhantes, com bólidos frequentes.
+PER	Perseidas	115.0	140.0	152.0	100	48	58	59	2.2	A mais famosa do hemisfério norte. No Brasil o radiante fica baixo, ao norte, antes do amanhecer.
+KCG	Kapa-Cygnídeas	130.0	145.0	153.0	3	286	59	23	3.0	Meteoros lentos; fraca.
+AUR	Aurigídeas	156.0	158.6	163.0	6	91	39	66	2.5	Pico curto, perto do amanhecer.
+SPE	Épsilon-Perseidas de Setembro	162.0	166.7	177.0	5	48	40	64	3.0	Chuva fraca do hemisfério norte.
+DRA	Dracônidas	193.0	195.4	197.0	0	262	54	20	2.6	Associada ao cometa Giacobini-Zinner; em geral fraca, com surtos raros. Radiante não sobe no Brasil.
+STA	Táuridas do Sul	168.0	197.0	238.0	5	32	9	27	2.3	Atividade longa e baixa, com bólidos lentos.
+ORI	Orionídeas	189.0	208.0	225.0	20	95	16	66	2.5	Restos do cometa Halley. Boa para o Brasil depois da meia-noite.
+NTA	Táuridas do Norte	207.0	230.0	258.0	5	58	22	29	2.3	Junto com as Táuridas do Sul, rica em bólidos.
+LEO	Leonídeas	223.0	235.27	248.0	15	152	22	71	2.5	Restos do cometa Tempel-Tuttle; tempestades históricas a cada 33 anos.
+AMO	Alfa-Monocerotídeas	233.0	239.32	243.0	5	117	1	65	2.4	Pico de poucos minutos, com surtos raros.
+PUP	Puppídeas-Velídeas	249.0	255.0	264.0	10	123	-45	40	2.9	Complexo de radiantes no céu do sul.
+HYD	Sigma-Hidrídeas	251.0	260.0	268.0	7	125	0	58	3.0	Chuva fraca de dezembro.
+GEM	Geminídeas	252.0	262.2	268.0	150	112	33	35	2.6	A chuva mais forte do ano, boa nos dois hemisférios. Ativa já no início da noite.
+URS	Úrsidas	265.0	270.7	274.0	10	217	76	33	3.0	Radiante perto do polo norte: não sobe no Brasil.

@@ -30,6 +30,10 @@ data/processed/images/
 
 # Efemérides JPL (baixadas em tempo de execução para o diretório do usuário)
 *.bsp
+# kernels lunares da NAIF (baixados por scripts/build_moon.py --download)
+data/ephemeris/*.bpc
+data/ephemeris/*.tpc
+data/ephemeris/*.tf
 
 # Saídas temporárias
 *.log
