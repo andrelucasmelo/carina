@@ -20,7 +20,9 @@ Saída em ``data/processed/moon/``:
 - ``moon_normal.jpg`` — 4096×2048, normais no referencial local
   (leste, norte, para cima) codificadas em RGB, relevo exagerado 4×;
 - ``moon_features.json`` — formações da face visível e das bordas;
-- ``lunar100.json`` e ``meteors.json`` (este em ``data/processed``).
+- ``lunar100.json`` e ``meteors.json`` (este em ``data/processed``);
+- ``occult_stars.npz`` — estrelas até magnitude 6,5 com movimento próprio
+  (HYG v4.1), para as ocultações pela Lua.
 
 Uso:
     python scripts/build_moon.py [--download] [--skip-textures]
@@ -301,6 +303,39 @@ def build_meteors() -> int:
     return len(showers)
 
 
+OCCULT_MAG = 6.5
+
+
+def build_occult_stars() -> int:
+    """Estrelas até 6,5 com movimento próprio — as ocultações exigem
+    posições ao segundo de arco (a Lua anda 0,5″ por segundo)."""
+    import csv
+
+    src = ROOT / "data" / "raw" / "hygdata_v41.csv"
+    rows = []
+    with open(src, encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            if not r["hip"] or float(r["mag"]) > OCCULT_MAG:
+                continue
+            name = r["proper"] or (f"{r['bayer']} {r['con']}" if r["bayer"] else
+                                   (f"{r['flam']} {r['con']}" if r["flam"] else ""))
+            rows.append((int(r["hip"]), float(r["rarad"]), float(r["decrad"]),
+                         float(r["pmra"] or 0.0), float(r["pmdec"] or 0.0),
+                         float(r["mag"]), name))
+    rows.sort(key=lambda x: x[5])
+    np.savez_compressed(
+        OUT / "occult_stars.npz",
+        hip=np.array([r[0] for r in rows], np.int32),
+        ra=np.array([r[1] for r in rows], np.float64),
+        dec=np.array([r[2] for r in rows], np.float64),
+        pmra=np.array([r[3] for r in rows], np.float32),   # mas/ano (× cos δ)
+        pmdec=np.array([r[4] for r in rows], np.float32),
+        mag=np.array([r[5] for r in rows], np.float32),
+        name=np.array([r[6] for r in rows]),
+    )
+    return len(rows)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--download", action="store_true", help="baixa as fontes que faltarem")
@@ -316,7 +351,9 @@ def main() -> int:
     n = build_features(lunar100)
     build_lunar100(lunar100)
     m = build_meteors()
-    print(f"formações: {n} · Lunar 100: 100 · chuvas de meteoros: {m}")
+    k = build_occult_stars()
+    print(f"formações: {n} · Lunar 100: 100 · chuvas de meteoros: {m} · "
+          f"estrelas para ocultações: {k}")
     for p in sorted(OUT.iterdir()):
         print(f"  {p.name}: {p.stat().st_size / 1e6:.1f} MB")
     return 0
