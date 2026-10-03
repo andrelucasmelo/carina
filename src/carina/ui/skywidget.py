@@ -2827,6 +2827,8 @@ class SkyWidget(QOpenGLWidget):
             acts["info"] = menu.addAction(
                 self.tr("Informações de {n}").format(n=label))
             acts["details"] = menu.addAction(self.tr("Janela de detalhes…"))
+            if target == ("body", "Lua"):
+                acts["moon"] = menu.addAction(self.tr("A Lua em detalhe…"))
             menu.addSeparator()
             acts["select"] = menu.addAction(self.tr("Selecionar e centralizar"))
             follow = menu.addAction(self.tr("Seguir {n}").format(n=label))
@@ -2899,7 +2901,7 @@ class SkyWidget(QOpenGLWidget):
         elif key == "best":
             # a janela principal resolve com a janela útil e o horizonte
             self.contextAction.emit("goto_best", target)
-        elif key in ("list", "observed"):
+        elif key in ("list", "observed", "moon"):
             self.contextAction.emit(key, target)
         elif key == "rise":
             self.goto_when_rises(target)

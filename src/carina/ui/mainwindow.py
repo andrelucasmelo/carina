@@ -427,6 +427,7 @@ class MainWindow(QMainWindow):
         self._add(m_sol, self.tr("Limpar caminhos dos planetas"),
                   lambda: self.sky.set_planet_paths([]))
         m_sol.addSeparator()
+        self._add(m_sol, self.tr("A Lua em detalhe…"), self._open_moon_window)
         self._add(m_sol, self.tr("Previsão da Lua (28 dias)…"), self._open_moon_forecast)
         self.act_moon_layer = self._add(m_sol, self.tr("Exibir previsão da Lua no céu"),
                                         None, "Shift+M", checkable=True)
@@ -436,8 +437,14 @@ class MainWindow(QMainWindow):
         # --- Planejar --------------------------------------------------
         m_plan = bar.addMenu(self.tr("&Planejar"))
         self._add(m_plan, self.tr("Hoje à noite…"), self._open_tonight, "T")
+        self._add(m_plan, self.tr("Calendário do céu…"), self._open_sky_calendar,
+                  "Ctrl+Shift+A")
         self._add(m_plan, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
                   "Ctrl+Shift+N")
+        m_moon = m_plan.addMenu(self.tr("Lua"))
+        self._add(m_moon, self.tr("A Lua em detalhe…"), self._open_moon_window, "Ctrl+Shift+M")
+        self._add(m_moon, self.tr("Planejador de foto lunar…"), self._open_moon_planner)
+        self._add(m_moon, self.tr("Lunar 100…"), self._open_lunar100)
         m_rot = m_plan.addMenu(self.tr("Roteiros"))
         for kind, label in (("M", self.tr("Maratona Messier…")),
                             ("C", self.tr("Maratona Caldwell…")),
@@ -683,6 +690,143 @@ class MainWindow(QMainWindow):
         self._dark_calendar = dlg
         dlg.show()
 
+    # --- Lua e calendário do céu (v0.17) --------------------------------
+    def _open_sky_calendar(self) -> None:
+        """Planejar ▸ Calendário do céu."""
+        from ..core.localtime import to_local
+        from .calendar_window import CalendarWindow
+
+        today = to_local(self.engine.time.current_datetime()).date()
+        win = CalendarWindow(self.engine, today, self.settings.location().name, self,
+                             settings=self.settings)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.gotoEvent.connect(self._goto_sky_event)
+        self._sky_calendar = win
+        win.show()
+
+    def _goto_sky_event(self, event) -> None:
+        """Leva o céu ao instante de um evento do calendário."""
+        self.engine.time.set_datetime(event.start_utc)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        target = event.target
+        if target in ("Lua", "Sol", "Mercúrio", "Vênus", "Marte", "Júpiter", "Saturno",
+                      "Urano", "Netuno"):
+            self.sky.goto_object(("body", target))
+        elif target.startswith("HIP "):
+            self._goto_ident("star", target)
+        self.statusBar().showMessage(
+            f"{event.title} — {event.local_start():%d/%m/%Y %H:%M}", 8000)
+
+    def _open_moon_window(self, feature: str | None = None) -> None:
+        """Planejar ▸ Lua ▸ A Lua em detalhe."""
+        from ..core import moon as moonlib
+        from ..render import moontex
+        from .moon_window import MoonWindow
+
+        if not moontex.available():
+            QMessageBox.information(self, self.tr("A Lua"), self.tr(
+                "Os dados lunares não foram encontrados nesta instalação."))
+            return
+        win = getattr(self, "_moon_window", None)
+        try:
+            alive = win is not None and win.isVisible()
+        except RuntimeError:
+            alive = False
+        if not alive:
+            win = MoonWindow(self.engine, self.engine.time.current_datetime(), self,
+                             observed=self.userdata.observed_idents())
+            win.setAttribute(Qt.WA_DeleteOnClose, True)
+            win.markObserved.connect(self._mark_observed_ident)
+            self._moon_window = win
+        else:
+            win.set_time(self.engine.time.current_datetime())
+        win.show()
+        win.raise_()
+        if feature:
+            f = moonlib.find_feature(feature)
+            if f is not None and f.lat == f.lat:
+                win.select_feature(f)
+                win.canvas.center_on(f, 3.0)
+
+    def _open_moon_planner(self) -> None:
+        from ..catalogs.equipment import EquipmentStore
+        from .moon_planner import MoonPlannerDialog
+
+        if not hasattr(self, "_equipment"):
+            self._equipment = EquipmentStore(user_data_path() / "equipamentos.json")
+        dlg = MoonPlannerDialog(self.engine, self.engine.time.current_datetime(),
+                                self._equipment, self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        dlg.nightChosen.connect(self._goto_moon_time)
+        self._moon_planner = dlg
+        dlg.show()
+
+    def _goto_moon_time(self, when) -> None:
+        self.engine.time.set_datetime(when)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self.sky.goto_object(("body", "Lua"))
+
+    def _open_lunar100(self) -> None:
+        from .moon_planner import Lunar100Dialog
+
+        dlg = Lunar100Dialog(self.userdata.observed_idents(), self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        dlg.showFeature.connect(self._open_moon_window)
+        dlg.markObserved.connect(self._mark_observed_ident)
+        self._lunar100 = dlg
+        dlg.show()
+
+    def _mark_observed_ident(self, kind: str, ident: str, name: str) -> bool:
+        """Diário para alvos fora do mapa (formações lunares)."""
+        from PySide6.QtWidgets import QDialog
+
+        from .journal_dialog import ObservationDialog
+
+        dlg = ObservationDialog(name, self.engine.time.current_datetime(),
+                                self.settings.location().name, self._instruments(),
+                                self.sky.bortle, parent=self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return False
+        values = dlg.values()
+        when = values.pop("when_utc")
+        self.userdata.add_observation(kind, ident, name, when, **values)
+        self.statusBar().showMessage(self.tr("{o} registrado no diário").format(o=name), 5000)
+        observed = self.userdata.observed_idents()
+        for attr, method in (("_moon_window", "set_observed"), ("_lunar100", "reload")):
+            w = getattr(self, attr, None)
+            try:
+                if w is not None and w.isVisible():
+                    getattr(w, method)(observed)
+            except RuntimeError:
+                pass
+        return True
+
+    def show_today_if_needed(self) -> None:
+        """Cartão "Hoje no céu" ao abrir, quando há eventos ou lembretes."""
+        import datetime as dt
+
+        from ..core import events as skyevents
+        from .calendar_window import TodayDialog, today_events
+
+        if not self.settings.value("calendar/show_today", True, bool):
+            return
+        now = dt.datetime.now(dt.timezone.utc)
+        try:
+            skyevents.purge_old_reminders(now)
+            due = skyevents.due_reminders(now)
+            todays = [e for e in today_events(self.engine, now) if e.importance >= 2]
+        except Exception:
+            return
+        if not due and not todays:
+            return
+        dlg = TodayDialog(todays, due, self, settings=self.settings)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        dlg.openCalendar.connect(self._open_sky_calendar)
+        self._today_dialog = dlg
+        dlg.show()
+
     def _goto_night_of(self, date) -> None:
         """Leva a simulação ao fim do crepúsculo astronômico da data."""
         import datetime as dt
@@ -908,6 +1052,8 @@ class MainWindow(QMainWindow):
             self._add_to_list(selection)
         elif key == "observed":
             self._mark_observed(selection)
+        elif key == "moon":
+            self._open_moon_window()
         elif key == "copy":
             self.statusBar().showMessage(self.tr("Copiado: {t}").format(
                 t=self.card.copy_text() if self.card.selection == selection

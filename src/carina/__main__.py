@@ -40,7 +40,8 @@ def _parse_args(argv):
         "--dialog",
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
-                 "lists", "tonight", "calendar", "chart", "help", "firstrun"],
+                 "lists", "tonight", "calendar", "chart", "help", "firstrun",
+                 "moon", "moonplan", "lunar100", "skycal", "today"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -393,6 +394,7 @@ def main(argv=None) -> int:
             QTimer.singleShot(500, win.run_first_run)
         else:
             QTimer.singleShot(900, win.show_whats_new_if_needed)
+            QTimer.singleShot(1600, win.show_today_if_needed)
 
     if args.screenshot or args.bench:
         # capturas são reprodutíveis: modo noturno só quando pedido
@@ -464,6 +466,28 @@ def main(argv=None) -> int:
     elif args.dialog == "chart":
         win._open_chart_dialog()
         dialog = win._chart_dialog
+    elif args.dialog == "moon":
+        win._open_moon_window(args.dialog_text)
+        dialog = win._moon_window
+    elif args.dialog == "moonplan":
+        win._open_moon_planner()
+        dialog = win._moon_planner
+    elif args.dialog == "lunar100":
+        win._open_lunar100()
+        dialog = win._lunar100
+    elif args.dialog == "skycal":
+        win._open_sky_calendar()
+        dialog = win._sky_calendar
+    elif args.dialog == "today":
+        import datetime as _dt
+
+        from .core import events as _ev
+        from .ui.calendar_window import TodayDialog, today_events
+
+        _now = win.engine.time.current_datetime()
+        dialog = TodayDialog(today_events(win.engine, _now),
+                             _ev.due_reminders(_now), win)
+        dialog.show()
     elif args.dialog == "calendar":
         win._open_dark_calendar()
         dialog = win._dark_calendar

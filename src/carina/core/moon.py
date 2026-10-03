@@ -358,6 +358,33 @@ def geometry(engine, when: dt.datetime | None = None,
     )
 
 
+def view_basis(geom: MoonGeometry):
+    """Base da vista: (e_t, n_t, w, v2b).
+
+    ``e_t``/``n_t`` = leste e norte celestes no ponto da Lua (ICRS),
+    ``w`` = da Lua para o observador e ``v2b`` = matriz que leva o ponto
+    local (a = leste, b = norte, c = observador) do disco ao MOON_ME.
+    """
+    u = geom.moon_icrs / np.linalg.norm(geom.moon_icrs)
+    pole = np.array([0.0, 0.0, 1.0])
+    n_t = pole - (pole @ u) * u
+    n_t /= max(np.linalg.norm(n_t), 1e-12)
+    e_t = np.cross(pole, u)
+    e_t /= max(np.linalg.norm(e_t), 1e-12)
+    w = -u
+    return e_t, n_t, w, geom.rotation @ np.column_stack([e_t, n_t, w])
+
+
+def feature_local(geom: MoonGeometry, lat: float, lon: float):
+    """Coordenadas locais (a, b, c) de um ponto da superfície."""
+    e_t, n_t, w, _ = view_basis(geom)
+    la, lo = math.radians(lat), math.radians(lon)
+    vb = np.array([math.cos(la) * math.cos(lo), math.cos(la) * math.sin(lo),
+                   math.sin(la)])
+    vi = geom.rotation.T @ vb
+    return float(vi @ e_t), float(vi @ n_t), float(vi @ w)
+
+
 # --------------------------------------------------------------------------
 # formações e terminador
 @dataclass
@@ -701,3 +728,83 @@ def photo_advice(illumination: float, waxing: bool) -> str:
         return "Gibosa: muito disco iluminado, relevo só na borda do terminador."
     return ("Lua cheia: disco inteiro, raios de Tycho e Copernicus; quase sem "
             "relevo. Boa para o nascer da Lua sobre a paisagem.")
+
+
+@dataclass
+class PhotoNight:
+    """Uma noite no planejador de foto lunar."""
+
+    date: dt.date                      # data local do início da noite
+    illumination: float
+    phase_name: str
+    waxing: bool
+    rise_utc: dt.datetime | None
+    set_utc: dt.datetime | None
+    rise_az: float | None              # graus
+    set_az: float | None
+    max_alt: float                     # graus, na noite (Sol abaixo de −6°)
+    max_alt_utc: dt.datetime | None
+    advice: str
+    features: list = field(default_factory=list)   # nomes no terminador
+    times: list = field(default_factory=list, repr=False)
+    alts: object = field(default=None, repr=False)  # altitude na grade (graus)
+    sun_alts: object = field(default=None, repr=False)
+
+    @property
+    def kind(self) -> str:
+        """'relevo', 'disco', 'cinerea' ou 'nenhuma'."""
+        if self.max_alt < 10:
+            return "nenhuma"
+        if self.illumination < 0.25:
+            return "cinerea"
+        if self.illumination < 0.85:
+            return "relevo"
+        return "disco"
+
+
+def photo_nights(engine, start_utc: dt.datetime, nights: int = 30) -> list[PhotoNight]:
+    """Noite a noite: fase, nascer/ocaso (com azimute), altura máxima no
+    escuro, que tipo de foto favorece e as formações do terminador."""
+    from .visibility import Target, _exact_altaz, compute_visibility
+
+    if start_utc.tzinfo is None:
+        start_utc = start_utc.replace(tzinfo=dt.timezone.utc)
+    target = Target(body="Lua", label="Lua")
+    out = []
+    for k in range(nights):
+        ref = start_utc + dt.timedelta(days=k)
+        vis = compute_visibility(engine, target, ref, min_alt=0.0)
+        grid = vis.grid
+        alts = np.asarray(vis.alts)
+        sun = np.asarray(grid.sun_alt)
+        dark = sun < -6.0
+        if dark.any() and (alts[dark] > -1).any():
+            idx = np.nonzero(dark)[0][int(np.argmax(alts[dark]))]
+            max_alt, max_t = float(alts[idx]), grid.times[idx]
+        else:
+            max_alt, max_t = float(alts[dark].max()) if dark.any() else -90.0, None
+        ref_t = max_t or grid.start + dt.timedelta(hours=9)
+        g = geometry(engine, ref_t)
+        feats = [e.feature.name for e in terminator_features(g, max_sun_alt=8.0, min_diam=40,
+                                                               limit=8)]
+        rise_az = set_az = None
+        if vis.rise_utc is not None:
+            rise_az = float(_exact_altaz(engine, target, vis.rise_utc)[1])
+        if vis.set_utc is not None:
+            set_az = float(_exact_altaz(engine, target, vis.set_utc)[1])
+        from .localtime import to_local
+
+        out.append(PhotoNight(
+            date=to_local(grid.start).date(), illumination=g.illumination,
+            phase_name=g.phase_name, waxing=g.waxing,
+            rise_utc=vis.rise_utc, set_utc=vis.set_utc, rise_az=rise_az, set_az=set_az,
+            max_alt=max_alt, max_alt_utc=max_t,
+            advice=photo_advice(g.illumination, g.waxing), features=feats,
+            times=list(grid.times), alts=alts, sun_alts=sun))
+    return out
+
+
+def azimuth_label(az: float) -> str:
+    names = ["N", "NNE", "NE", "ENE", "L", "ESE", "SE", "SSE",
+             "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
+    return names[int((az % 360.0) / 22.5 + 0.5) % 16]
