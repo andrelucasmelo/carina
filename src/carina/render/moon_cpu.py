@@ -114,7 +114,7 @@ def render(view: MoonView, v2b: np.ndarray, sun_body: np.ndarray,
     geo_dot = p @ sun_body
     geo = np.clip((geo_dot + 0.015) / 0.035, 0.0, 1.0)
     geo = geo * geo * (3 - 2 * geo)
-    lit = 2.0 * mu0 / (mu0 + mu) * geo
+    lit = np.minimum(2.0 * mu0 / (mu0 + mu), 1.25) * geo
     earthshine = 0.015 + 0.22 * (1.0 - illumination) ** 3
     col = albedo * (lit * gain + earthshine * (1.0 - geo))[:, None]
     # limbo suave

@@ -46,6 +46,16 @@ def _outlined(painter: QPainter, x: float, y: float, text: str, font: QFont,
     painter.drawPath(path)
 
 
+def label_for(f) -> str:
+    """Nome exibido: mares, lagos e baías em português quando os nomes
+    estão em português (como no céu); as demais formações pelo nome IAU."""
+    from ..catalogs import names
+
+    if f.pt and f.type in ("mare", "lacus", "sinus", "palus") and names.language() == "pt":
+        return f.pt
+    return f.name
+
+
 class MoonCanvas(QWidget):
     """Área de desenho: imagem calculada na CPU + rótulos por cima."""
 
@@ -149,7 +159,7 @@ class MoonCanvas(QWidget):
                     continue
                 if not (0 <= x <= self.width() and 0 <= y <= self.height()):
                     continue
-                text = f.name
+                text = label_for(f)
                 tw = fm.horizontalAdvance(text)
                 rect = QRectF(x - tw / 2, y - fm.ascent() / 2, tw, fm.height())
                 if any(rect.intersects(t) for t in taken):

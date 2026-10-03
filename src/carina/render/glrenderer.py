@@ -171,7 +171,8 @@ void main() {
     float mu0 = max(dot(n, u_sun), 0.0);
     float mu = max(dot(n, u_view), 0.05);
     float geo = smoothstep(-0.015, 0.02, dot(p, u_sun));
-    float lit = 2.0 * mu0 / (mu0 + mu) * geo;
+    // Lommel–Seeliger com teto: sem ele o limbo do lado do Sol satura
+    float lit = min(2.0 * mu0 / (mu0 + mu), 1.25) * geo;
     float edge = 1.0 - smoothstep(0.985, 1.0, r2);      // limbo suave
     vec3 col = albedo * (lit * u_gain + u_earthshine * (1.0 - geo));
     // o lado noturno deixa passar um pouco do brilho do céu: sem isso a
