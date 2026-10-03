@@ -822,6 +822,10 @@ class SkyWidget(QOpenGLWidget):
                 and star_fade > 0.15):
             self._draw_dso_images(m, star_fade)
 
+        # --- minha foto no mapa (v0.19) ---
+        if getattr(self, "photo_overlay", None) is not None and not self.chart_mode:
+            self._draw_photo_overlay(m)
+
         # --- céu profundo (símbolos e contornos) ---
         dso_px = None
         if self.layers["dso"]:
@@ -1240,6 +1244,37 @@ class SkyWidget(QOpenGLWidget):
             # há decodificações a caminho: repinta logo para as imagens
             # surgirem sem esperar o tique de 1 s do relógio
             QTimer.singleShot(90, self.update)
+
+    def set_photo_overlay(self, overlay) -> None:
+        """Foto do usuário alinhada (``ui.photo_overlay.PhotoOverlay``) ou None."""
+        old = getattr(self, "photo_overlay", None)
+        if old is not None and old is not overlay and old.texture:
+            self.makeCurrent()
+            self.renderer.delete_texture(old.texture)
+            self.doneCurrent()
+        self.photo_overlay = overlay
+        self.update()
+
+    def _draw_photo_overlay(self, m: np.ndarray) -> None:
+        ov = self.photo_overlay
+        if not ov.texture:
+            ov.texture = self.renderer.create_texture(ov.rgb)
+        verts, uv = ov.alignment.grid(ov.width, ov.height, 9)
+        # descarta se a foto está atrás da câmera (grade quebrada)
+        x, y, vis = self.camera.project(self._refract(verts @ m.T.astype(np.float64)),
+                                        margin=1e9)
+        if not vis.any():
+            return
+        n = 9
+        idx = []
+        for r in range(n - 1):
+            for c in range(n - 1):
+                a0 = r * n + c
+                idx += [a0, a0 + 1, a0 + n, a0 + 1, a0 + n + 1, a0 + n]
+        idx = np.asarray(idx)
+        screen = np.column_stack([x, y])
+        self.renderer.draw_textured_triangles(screen[idx], uv[idx], ov.alpha,
+                                              texture=ov.texture, additive=True)
 
     def _dso_size_px(self) -> np.ndarray:
         """Eixo maior de cada objeto em pixels na escala atual."""

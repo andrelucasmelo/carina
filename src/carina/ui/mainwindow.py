@@ -202,6 +202,7 @@ class MainWindow(QMainWindow):
         self._add(m_file, self.tr("Gerar carta celeste…"),
                   self._open_chart_dialog, "Ctrl+Shift+P")
         self._add(m_file, self.tr("Anotar a vista atual…"), self._open_print_map)
+        self._add(m_file, self.tr("Minha foto no mapa…"), self._open_photo_overlay)
         m_file.addSeparator()
         self._add(m_file, self.tr("Preferências…"), self._open_preferences, "Ctrl+,")
         m_file.addSeparator()
@@ -750,6 +751,32 @@ class MainWindow(QMainWindow):
             if f is not None and f.lat == f.lat:
                 win.select_feature(f)
                 win.canvas.center_on(f, 3.0)
+
+    def _open_photo_overlay(self) -> None:
+        """Arquivo ▸ Minha foto no mapa (v0.19)."""
+        from .photo_overlay import PHOTO_KIND, PhotoOverlayDialog
+
+        dlg = PhotoOverlayDialog(
+            self.star_catalog, self._selected_star_index, self, userdata=self.userdata,
+            current=self.userdata.profile(PHOTO_KIND, "atual"))
+        dlg.overlayChanged.connect(self.sky.set_photo_overlay)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._photo_dialog = dlg
+        dlg.show()
+
+    def _selected_star_index(self):
+        sel = self.sky.selection
+        return int(sel[1]) if sel and sel[0] == "star" else None
+
+    def restore_photo_overlay(self) -> None:
+        """Volta a foto alinhada da última sessão."""
+        from .photo_overlay import PHOTO_KIND, overlay_from_profile
+
+        d = self.userdata.profile(PHOTO_KIND, "atual")
+        if d:
+            ov = overlay_from_profile(d)
+            if ov is not None:
+                self.sky.set_photo_overlay(ov)
 
     def _open_session(self) -> None:
         """Planejar ▸ Sessão de astrofoto (v0.19)."""
