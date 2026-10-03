@@ -48,6 +48,7 @@ _LAYER_ACTIONS = [
     ("cardinals", "Pontos cardeais", "Q", True),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
+    ("moon_labels", "Nomes das formações da Lua", None, True),
     ("dso_names", "Rótulos do céu profundo", None, True),
     ("dso_images", "Imagens dos objetos (DSS) no céu", "I", False),
     ("atmosphere", "Atmosfera", "A", True),
@@ -220,7 +221,7 @@ class MainWindow(QMainWindow):
             m_lines.addAction(layer[key])
 
         m_labels = m_view.addMenu(self.tr("Rótulos"))
-        for key in ("star_names", "planet_names", "dso_names"):
+        for key in ("star_names", "planet_names", "moon_labels", "dso_names"):
             m_labels.addAction(layer[key])
         m_labels.addSeparator()
         name_group = QActionGroup(self)

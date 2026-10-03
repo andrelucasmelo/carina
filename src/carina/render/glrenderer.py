@@ -121,6 +121,67 @@ void main() {
 """
 
 
+# Esfera lunar (v0.17): um quadrado na tela coberto por coordenadas locais
+# (a, b) do disco; o fragmento reconstrói o ponto da esfera, gira para o
+# referencial selenográfico MOON_ME, amostra cor e normais e sombreia com
+# a direção do Sol (Lommel–Seeliger: a Lua cheia fica "chapada", como é).
+_MOON_VS = """
+#version 330 core
+layout(location=0) in vec2 a_pos;
+layout(location=1) in vec2 a_loc;
+uniform vec2 u_viewport;
+out vec2 v_loc;
+void main() {
+    vec2 ndc = vec2(a_pos.x / u_viewport.x * 2.0 - 1.0,
+                    1.0 - a_pos.y / u_viewport.y * 2.0);
+    gl_Position = vec4(ndc, 0.0, 1.0);
+    v_loc = a_loc;
+}
+"""
+
+_MOON_FS = """
+#version 330 core
+in vec2 v_loc;
+uniform mat3 u_v2b;        // (a, b, c) locais -> MOON_ME
+uniform vec3 u_sun;        // direção do Sol no MOON_ME
+uniform vec3 u_view;       // direção do observador no MOON_ME
+uniform sampler2D u_color;
+uniform sampler2D u_normal;
+uniform float u_gain;
+uniform float u_earthshine;
+uniform float u_alpha;
+uniform float u_relief;    // 0 = sem normais; 1 = relevo completo
+out vec4 frag;
+const float PI = 3.14159265358979;
+void main() {
+    float r2 = dot(v_loc, v_loc);
+    if (r2 > 1.0) discard;
+    float c = sqrt(1.0 - r2);
+    vec3 p = normalize(u_v2b * vec3(v_loc, c));
+    float lon = atan(p.y, p.x);
+    float lat = asin(clamp(p.z, -1.0, 1.0));
+    vec2 uv = vec2(lon / (2.0 * PI) + 0.5, 0.5 - lat / PI);
+    vec3 albedo = texture(u_color, uv).rgb;
+    vec3 nm = texture(u_normal, uv).rgb * 2.0 - 1.0;
+    vec3 east = vec3(-p.y, p.x, 0.0);
+    float le = length(east);
+    east = le > 1e-5 ? east / le : vec3(0.0, 1.0, 0.0);
+    vec3 north = cross(p, east);
+    vec3 n = normalize(mix(p, nm.x * east + nm.y * north + nm.z * p, u_relief));
+    float mu0 = max(dot(n, u_sun), 0.0);
+    float mu = max(dot(n, u_view), 0.05);
+    float geo = smoothstep(-0.015, 0.02, dot(p, u_sun));
+    float lit = 2.0 * mu0 / (mu0 + mu) * geo;
+    float edge = 1.0 - smoothstep(0.985, 1.0, r2);      // limbo suave
+    vec3 col = albedo * (lit * u_gain + u_earthshine * (1.0 - geo));
+    // o lado noturno deixa passar um pouco do brilho do céu: sem isso a
+    // Lua fina vira um "buraco" mais escuro que o fundo
+    float body = mix(0.80, 1.0, clamp(lit * 4.0, 0.0, 1.0));
+    frag = vec4(col, u_alpha * edge * body);
+}
+"""
+
+
 def _compile(vs_src: str, fs_src: str) -> int:
     """Compila e linka um par vertex+fragment; erros viram RuntimeError com
     o log do driver (é onde os typos de GLSL aparecem)."""
@@ -205,6 +266,15 @@ class GLRenderer:
         self.u_vp_lines = GL.glGetUniformLocation(self.prog_lines, "u_viewport")
         self.u_vp_fill = GL.glGetUniformLocation(self.prog_fill, "u_viewport")
         self.u_color_fill = GL.glGetUniformLocation(self.prog_fill, "u_color")
+        self.prog_moon = _compile(_MOON_VS, _MOON_FS)
+        self.batch_moon = _Batch(self.prog_moon, [(0, 2), (1, 2)])
+        self.u_moon = {
+            name: GL.glGetUniformLocation(self.prog_moon, name)
+            for name in ("u_viewport", "u_v2b", "u_sun", "u_view", "u_color",
+                         "u_normal", "u_gain", "u_earthshine", "u_alpha", "u_relief")
+        }
+        self.moon_color_tex = 0
+        self.moon_normal_tex = 0
         GL.glEnable(GL.GL_PROGRAM_POINT_SIZE)
         size_range = GL.glGetFloatv(GL.GL_ALIASED_POINT_SIZE_RANGE)
         self.max_point_size = float(size_range[1])
@@ -282,6 +352,81 @@ class GLRenderer:
         )
         GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
         return int(tex)
+
+    def max_texture_size(self) -> int:
+        return int(GL.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE) or 4096)
+
+    def set_moon_textures(self, color: np.ndarray, normal: np.ndarray) -> None:
+        """Sobe as texturas da Lua (cor e normais), reduzindo se a placa
+        não aceitar a largura (8192 px na cor)."""
+        limit = self.max_texture_size()
+        for arr_name in ("color", "normal"):
+            arr = color if arr_name == "color" else normal
+            step = 1
+            while arr.shape[1] // step > limit:
+                step *= 2
+            if step > 1:
+                arr = arr[::step, ::step]
+            tex = self.create_texture(arr, wrap_s=GL.GL_REPEAT)
+            old = self.moon_color_tex if arr_name == "color" else self.moon_normal_tex
+            self.delete_texture(old)
+            if arr_name == "color":
+                self.moon_color_tex = tex
+            else:
+                self.moon_normal_tex = tex
+
+    @property
+    def moon_ready(self) -> bool:
+        return bool(getattr(self, "moon_color_tex", 0) and self.moon_normal_tex)
+
+    def draw_moon_sphere(self, center, radius: float, e_scr, n_scr,
+                         v2b: np.ndarray, sun_body, view_body,
+                         gain: float = 1.0, earthshine: float = 0.0,
+                         alpha: float = 1.0, relief: float = 1.0) -> None:
+        """Desenha a Lua texturizada e sombreada.
+
+        ``e_scr``/``n_scr``: direções do leste e do norte celestes na tela
+        (pixels por unidade de raio); ``v2b``: matriz 3×3 que leva o ponto
+        local (a, b, c) — a para leste, b para norte, c para o observador —
+        ao referencial MOON_ME.
+        """
+        if not self.moon_ready:
+            return
+        cx, cy = float(center[0]), float(center[1])
+        e = np.asarray(e_scr, np.float64) * radius * 1.03
+        n = np.asarray(n_scr, np.float64) * radius * 1.03
+        corners = [(-1.03, -1.03), (1.03, -1.03), (1.03, 1.03),
+                   (-1.03, -1.03), (1.03, 1.03), (-1.03, 1.03)]
+        data = np.array([[cx + a / 1.03 * e[0] + b / 1.03 * n[0],
+                          cy + a / 1.03 * e[1] + b / 1.03 * n[1], a, b]
+                         for a, b in corners], dtype=np.float32)
+        prev_unit = int(GL.glGetIntegerv(GL.GL_ACTIVE_TEXTURE))
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        prev1 = int(GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.moon_normal_tex)
+        GL.glActiveTexture(GL.GL_TEXTURE0)
+        prev0 = int(GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self.moon_color_tex)
+        u = self.u_moon
+        GL.glUseProgram(self.prog_moon)
+        GL.glUniform2f(u["u_viewport"], self._w, self._h)
+        GL.glUniformMatrix3fv(u["u_v2b"], 1, GL.GL_TRUE,
+                              np.ascontiguousarray(v2b, dtype=np.float32))
+        GL.glUniform3f(u["u_sun"], *[float(x) for x in sun_body])
+        GL.glUniform3f(u["u_view"], *[float(x) for x in view_body])
+        GL.glUniform1i(u["u_color"], 0)
+        GL.glUniform1i(u["u_normal"], 1)
+        GL.glUniform1f(u["u_gain"], float(gain))
+        GL.glUniform1f(u["u_earthshine"], float(earthshine))
+        GL.glUniform1f(u["u_alpha"], float(alpha))
+        GL.glUniform1f(u["u_relief"], float(relief))
+        self.batch_moon.upload(data)
+        GL.glBindVertexArray(self.batch_moon.vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, len(data))
+        GL.glBindTexture(GL.GL_TEXTURE_2D, prev0)
+        GL.glActiveTexture(GL.GL_TEXTURE1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, prev1)
+        GL.glActiveTexture(prev_unit)
 
     def delete_texture(self, tex: int) -> None:
         """Libera uma textura da GPU (usado pela evicção do cache LRU)."""

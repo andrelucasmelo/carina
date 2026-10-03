@@ -54,6 +54,7 @@ DEFAULT_LAYERS = {
     "dso": True,
     "dso_names": True,
     "dso_images": False,
+    "moon_labels": True,      # nomes das formações lunares ao aproximar
 }
 
 COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
@@ -1753,6 +1754,9 @@ class SkyWidget(QOpenGLWidget):
         m64 = m.astype(np.float64)
         u_moon = m64.T @ b.vec
         u_sun = m64.T @ sun.vec
+        self._moon_view = None
+        if self._draw_moon_sphere(b, sun, cx, cy, radius, u_moon, u_sun, m, t):
+            return
         d_m = math.asin(max(-1.0, min(1.0, u_moon[2])))
         a_m = math.atan2(u_moon[1], u_moon[0])
         d_s = math.asin(max(-1.0, min(1.0, u_sun[2])))
@@ -1788,6 +1792,132 @@ class SkyWidget(QOpenGLWidget):
         )
         self.renderer.fill_polygons([disc], (0.16, 0.17, 0.19, 0.75))
         self.renderer.fill_polygons([lit], (0.94, 0.93, 0.87, 1.0))
+
+    def _ensure_moon_textures(self) -> bool:
+        """Sobe as texturas da Lua na primeira vez que ela é desenhada."""
+        if self.renderer.moon_ready:
+            return True
+        if getattr(self, "_moon_tex_failed", False):
+            return False
+        from ..render import moontex
+
+        arrays = moontex.moon_arrays(1) if moontex.available() else None
+        if arrays is None:
+            self._moon_tex_failed = True
+            return False
+        self.renderer.set_moon_textures(*arrays)
+        return self.renderer.moon_ready
+
+    def _draw_moon_sphere(self, b, sun, cx: float, cy: float, radius: float,
+                          u_moon: np.ndarray, u_sun: np.ndarray, m, t) -> bool:
+        """Lua texturizada (v0.17): relevo, libração e terminador reais.
+
+        Devolve False quando os dados lunares não existem ou o tema é o de
+        papel — o disco simples continua valendo nesses casos.
+        """
+        if self.theme == "light" or not self._ensure_moon_textures():
+            return False
+        from ..core import moon as moonlib
+
+        try:
+            rot = np.asarray(moonlib.frame().rotation_at(t), dtype=np.float64)
+        except Exception:
+            return False
+        u_moon = u_moon / np.linalg.norm(u_moon)
+        u_sun = u_sun / np.linalg.norm(u_sun)
+        sun_from_moon = u_sun * sun.distance_au - u_moon * b.distance_au
+        sun_from_moon /= np.linalg.norm(sun_from_moon)
+        pole = np.array([0.0, 0.0, 1.0])
+        n_t = pole - (pole @ u_moon) * u_moon
+        n_t /= max(np.linalg.norm(n_t), 1e-12)
+        e_t = np.cross(pole, u_moon)
+        e_t /= max(np.linalg.norm(e_t), 1e-12)
+        w = -u_moon
+        v2b = rot @ np.column_stack([e_t, n_t, w])
+        n_scr, e_scr = self._screen_north_east(u_moon, m, cx, cy)
+        illum = (1.0 + math.cos(b.phase_angle)) / 2.0
+        earthshine = 0.015 + 0.22 * (1.0 - illum) ** 3
+        # durante o dia a Lua perde contraste contra o céu azul
+        day = min(1.0, max(0.0, math.degrees(sun.alt) / 10.0))
+        alpha = 1.0 - 0.35 * day
+        dim = 0.35 if b.alt < 0 and self.layers.get("below_horizon") else 1.0
+        self.renderer.draw_moon_sphere(
+            (cx, cy), radius, e_scr, n_scr, v2b, rot @ sun_from_moon, rot @ w,
+            gain=1.9 * dim, earthshine=earthshine * dim, alpha=alpha,
+            relief=1.0 if radius > 40 else radius / 40.0)
+        self._moon_view = {
+            "cx": cx, "cy": cy, "r": radius, "e_t": e_t, "n_t": n_t, "w": w,
+            "e_scr": e_scr, "n_scr": n_scr, "rot": rot,
+            "sun_body": rot @ sun_from_moon,
+        }
+        return True
+
+    def moon_label_positions(self, min_px: float = 16.0, limit: int = 80):
+        """Formações visíveis na Lua desenhada: [(feição, x, y, raio_px)]
+        em pixels do dispositivo, das maiores para as menores."""
+        view = getattr(self, "_moon_view", None)
+        if not view:
+            return []
+        from ..core import moon as moonlib
+
+        feats = moonlib.features()
+        if not feats:
+            return []
+        r = view["r"]
+        px_per_km = r / moonlib.MOON_RADIUS_KM
+        lat = np.radians([f.lat for f in feats])
+        lon = np.radians([f.lon for f in feats])
+        vb = np.stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)])
+        vi = view["rot"].T @ vb                         # (3, N) ICRS
+        a = view["e_t"] @ vi
+        bb = view["n_t"] @ vi
+        c = view["w"] @ vi
+        diam_px = np.array([f.diam for f in feats]) * px_per_km
+        # só o que se enxerga: o lado iluminado e uma faixa além do
+        # terminador (picos que pegam o Sol antes do chão)
+        sun_alt = np.degrees(np.arcsin(np.clip(view["sun_body"] @ vb, -1, 1)))
+        ok = (c > 0.12) & (diam_px >= min_px) & (sun_alt > -3.0)
+        out = []
+        for i in np.nonzero(ok)[0][:limit]:
+            x = view["cx"] + r * (a[i] * view["e_scr"][0] + bb[i] * view["n_scr"][0])
+            y = view["cy"] + r * (a[i] * view["e_scr"][1] + bb[i] * view["n_scr"][1])
+            out.append((feats[i], float(x), float(y), float(diam_px[i]) / 2.0))
+        return out
+
+    def _draw_moon_labels(self, painter: QPainter, dpr: float, placer) -> None:
+        """Nomes das formações lunares quando a Lua ocupa boa parte da tela."""
+        view = getattr(self, "_moon_view", None)
+        if not view or view["r"] / dpr < 110 or not self.layers.get("moon_labels", True):
+            return
+        from PySide6.QtCore import QRect
+        from PySide6.QtGui import QFontMetrics
+
+        font = self._lf(8)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        ink, halo = QColor(255, 226, 150), QColor(0, 0, 0, 200)
+        w, h = self.width(), self.height()
+        for f, x, y, rad in self.moon_label_positions(min_px=18.0 * dpr):
+            tx, ty = x / dpr, y / dpr
+            if not (0 <= tx <= w and 0 <= ty <= h):
+                continue
+            text = f.pt or f.name if f.type in ("mare", "lacus", "sinus", "palus") \
+                and self.name_language() == "pt" else f.name
+            tw = fm.horizontalAdvance(text)
+            lx, ly = int(tx - tw / 2), int(ty + fm.ascent() / 2)
+            if placer.place(lx, ly, tw, fm.height()):
+                # contorno escuro: legível sobre o branco do lado iluminado
+                painter.setPen(halo)
+                for ox, oy in ((-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1)):
+                    painter.drawText(lx + ox, ly + oy, text)
+                painter.setPen(ink)
+                painter.drawText(lx, ly, text)
+                self._label_hits.append(
+                    (QRect(lx, ly - fm.height(), tw, fm.height()), ("body", "Lua")))
+
+    @staticmethod
+    def name_language() -> str:
+        return names.language()
 
     # ------------------------------------------------------------------
     def _lf(self, size: int, *args) -> QFont:
@@ -1931,6 +2061,10 @@ class SkyWidget(QOpenGLWidget):
                 ty = int(cy_[i] / dpr)
                 if placer.place(tx, ty, w_text, h_text):
                     painter.drawText(tx, ty, text)
+
+        # formações da Lua (v0.17) antes dos nomes dos corpos
+        if self.layers["planets"] and not self.chart_mode:
+            self._draw_moon_labels(painter, dpr, placer)
 
         # nomes dos corpos do Sistema Solar
         if self.layers["planet_names"] and bodies_px:
