@@ -848,6 +848,10 @@ class SkyWidget(QOpenGLWidget):
             # sem desenho neste quadro, os rótulos também precisam sumir
             self._path_marks = []
 
+        # --- trilha de satélite (v0.19) ---
+        if getattr(self, "sat_track", None):
+            self._draw_sat_track()
+
         # --- previsão da Lua nos próximos dias (item 6) ---
         if self.moon_forecast and self.layers.get("moon_forecast", True):
             self._draw_moon_forecast(m)
@@ -1244,6 +1248,45 @@ class SkyWidget(QOpenGLWidget):
             # há decodificações a caminho: repinta logo para as imagens
             # surgirem sem esperar o tique de 1 s do relógio
             QTimer.singleShot(90, self.update)
+
+    def set_sat_track(self, name: str | None, points=None, tle=None) -> None:
+        """Trilha de uma passagem: [(instante UTC, vetor horizontal)]."""
+        self.sat_track = (name, list(points or []), tle) if name else None
+        self.update()
+
+    def _draw_sat_track(self) -> None:
+        name, pts, tle = self.sat_track
+        if len(pts) < 2:
+            return
+        vecs = np.array([v for _, v in pts], dtype=np.float64)
+        x, y, vis = self._to_screen(vecs, margin=1e9)
+        seg = []
+        for k in range(len(pts) - 1):
+            if vis[k] and vis[k + 1] and vecs[k, 2] > -0.02 and vecs[k + 1, 2] > -0.02:
+                seg += [[x[k], y[k], 1.0, 0.85, 0.3, 0.95], [x[k + 1], y[k + 1], 1.0, 0.85, 0.3, 0.95]]
+        if seg:
+            self.renderer.draw_lines(np.array(seg, np.float32))
+        marks = []
+        self._sat_labels = []
+        for (t, _v), xx, yy, ok in zip(pts, x, y, vis):
+            lt = to_local(t)
+            if ok and lt.second < 10 and lt.minute % 1 == 0:
+                marks.append([xx, yy, 5.0 * self._px, 1.0, 0.85, 0.3, 1.0])
+                self._sat_labels.append((f"{lt:%H:%M}", float(xx), float(yy)))
+        # posição no instante do relógio, se estiver dentro da passagem
+        now = self.engine.time.current_datetime()
+        if tle is not None and pts[0][0] <= now <= pts[-1][0]:
+            from ..core.orbital import position
+
+            alt, az = position(self.engine, tle, now)
+            a, z = math.radians(alt), math.radians(az)
+            v = np.array([[math.cos(a) * math.cos(z), math.cos(a) * math.sin(z), math.sin(a)]])
+            sx, sy, sv = self._to_screen(v)
+            if sv[0]:
+                marks.append([sx[0], sy[0], 11.0 * self._px, 1.0, 1.0, 1.0, 1.0])
+                self._sat_labels.append((name, float(sx[0]) + 10, float(sy[0]) - 10))
+        if marks:
+            self.renderer.draw_points(np.array(marks, np.float32), hard=True)
 
     def set_photo_overlay(self, overlay) -> None:
         """Foto do usuário alinhada (``ui.photo_overlay.PhotoOverlay``) ou None."""
@@ -2430,6 +2473,13 @@ class SkyWidget(QOpenGLWidget):
         # formações da Lua (v0.17) antes dos nomes dos corpos
         if self.layers["planets"] and not self.chart_mode:
             self._draw_moon_labels(painter, dpr, placer)
+
+        # trilha de satélite (v0.19)
+        if getattr(self, "sat_track", None) and getattr(self, "_sat_labels", None):
+            painter.setFont(self._lf(8))
+            painter.setPen(QColor(255, 215, 120))
+            for text, sx, sy in self._sat_labels:
+                painter.drawText(int(sx / dpr) + 6, int(sy / dpr) - 4, text)
 
         # luas de Júpiter e Saturno (v0.18)
         if self.layers["planet_names"] and getattr(self, "_planet_moons_px", None):

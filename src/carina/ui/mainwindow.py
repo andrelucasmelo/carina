@@ -445,6 +445,7 @@ class MainWindow(QMainWindow):
                   "Ctrl+Shift+N")
         self._add(m_plan, self.tr("Sessão de astrofoto…"), self._open_session, "Ctrl+Shift+S")
         self._add(m_plan, self.tr("Companheiro no celular…"), self._open_companion)
+        self._add(m_plan, self.tr("Satélites e ISS…"), self._open_satellites)
         m_moon = m_plan.addMenu(self.tr("Lua"))
         self._add(m_moon, self.tr("A Lua em detalhe…"), self._open_moon_window, "Ctrl+Shift+M")
         self._add(m_moon, self.tr("Planejador de foto lunar…"), self._open_moon_planner)
@@ -778,6 +779,36 @@ class MainWindow(QMainWindow):
             ov = overlay_from_profile(d)
             if ov is not None:
                 self.sky.set_photo_overlay(ov)
+
+    def _open_satellites(self) -> None:
+        """Planejar ▸ Satélites e ISS (v0.19)."""
+        from .satellites_dialog import SatellitesDialog
+
+        dlg = SatellitesDialog(self.engine, self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        dlg.showPass.connect(self._show_sat_pass)
+        self._satellites = dlg
+        dlg.show()
+
+    def _show_sat_pass(self, tle, p) -> None:
+        """Leva o relógio ao nascer da passagem e desenha a trilha."""
+        import datetime as dt
+        import math
+
+        from ..core import orbital as O
+
+        pts = O.track(self.engine, tle, p.rise, p.set, 10.0)
+        self.sky.set_sat_track(tle.name, pts, tle)
+        start = p.visible_from or p.rise
+        self.engine.time.set_datetime(start - dt.timedelta(seconds=30))
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        # aponta para o ponto mais alto, campo amplo
+        top = max(pts, key=lambda tv: tv[1][2])[1]
+        self.sky.camera.set_direction(math.atan2(top[1], top[0]),
+                                      max(0.35, math.asin(max(-1.0, min(1.0, top[2]))) * 0.7))
+        self.sky.camera.fov = math.radians(100.0)
+        self.sky.update()
 
     def _open_companion(self) -> None:
         """Planejar ▸ Companheiro no celular (v0.19)."""

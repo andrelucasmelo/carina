@@ -450,11 +450,29 @@ TODAY_CATEGORIES = ("lua", "eclipse", "planeta", "encontro", "meteoros", "estaca
 
 
 def today_events(engine, now_utc: dt.datetime) -> list:
-    """Eventos do dia local de ``now_utc`` (inclusive os de vários dias)."""
+    """Eventos do dia local de ``now_utc`` (inclusive os de vários dias),
+    mais as passagens visíveis da ISS, se houver TLE importado (v0.19)."""
     from ..core.localtime import from_local_naive
 
     day = to_local(now_utc).date()
     s = from_local_naive(dt.datetime.combine(day, dt.time(0))).astimezone(dt.timezone.utc)
     f = s + dt.timedelta(days=1)
     evs = ev.compute_events(engine, s - dt.timedelta(days=3), f, TODAY_CATEGORIES)
-    return [e for e in ev.events_on(evs, day)]
+    out = [e for e in ev.events_on(evs, day)]
+    try:
+        from ..core import orbital as O
+
+        tle = O.iss(O.load_saved())
+        if tle is not None and abs(tle.age_days(now_utc)) <= 2 * O.MAX_AGE_DAYS:
+            for p in O.passes(engine, tle, max(s, now_utc - dt.timedelta(minutes=30)), days=1):
+                if p.visible and p.visible_from.date() <= f.date():
+                    out.append(ev.SkyEvent(
+                        p.visible_from, "encontro", "Passagem visível da ISS",
+                        f"Aparece no {O.direction_name(p.rise_az)}, chega a {p.max_alt:.0f}° e some "
+                        f"no {O.direction_name(p.set_az)} — visível de "
+                        f"{to_local(p.visible_from):%H:%M} a {to_local(p.visible_to):%H:%M}.",
+                        p.visible_to, 2 if p.max_alt >= 40 else 1, True, "ISS"))
+    except Exception:
+        pass
+    out.sort(key=lambda e: e.start_utc)
+    return out
