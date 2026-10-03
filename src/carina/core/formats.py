@@ -39,3 +39,8 @@ def speed_label(speed: float) -> str:
     if speed == int(speed):
         return f"×{int(speed)}"
     return f"×{speed:g}"
+
+
+def num(value: float, decimals: int = 1) -> str:
+    """Número com vírgula decimal, para textos em português ('1,3')."""
+    return f"{value:.{decimals}f}".replace(".", ",")

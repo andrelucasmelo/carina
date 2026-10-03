@@ -34,6 +34,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .formats import num
+
 MOON_RADIUS_KM = 1737.4
 SYNODIC_DAYS = 29.530588
 FRAME_NAME = "MOON_ME_DE421"
@@ -100,8 +102,8 @@ class MoonFeature:
         bits = [self.type_pt]
         if self.diam:
             bits.append(f"{self.diam:.0f} km")
-        bits.append(f"{abs(self.lat):.1f}°{'N' if self.lat >= 0 else 'S'}, "
-                    f"{abs(self.lon):.1f}°{'L' if self.lon >= 0 else 'O'}")
+        bits.append(f"{num(abs(self.lat))}°{'N' if self.lat >= 0 else 'S'}, "
+                    f"{num(abs(self.lon))}°{'L' if self.lon >= 0 else 'O'}")
         return " · ".join(bits)
 
 
@@ -550,7 +552,7 @@ def libration_extremes(engine, start: dt.datetime, end: dt.datetime,
                     side, region = LIB_LABEL[(axis, sgn)]
                     out.append(MoonEvent(
                         when, "libracao", f"Libração favorável ao {side}",
-                        f"{abs(val):.1f}° — boa ocasião para {region}.", val))
+                        f"{num(abs(val))}° — boa ocasião para {region}.", val))
     out.sort(key=lambda e: e.when_utc)
     return out
 
