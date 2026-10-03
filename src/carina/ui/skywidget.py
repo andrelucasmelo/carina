@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from PySide6.QtCore import QEasingCurve, Qt, QTimer, QVariantAnimation, Signal
+from PySide6.QtCore import QEasingCurve, QPointF, Qt, QTimer, QVariantAnimation, Signal
 from PySide6.QtGui import QFont, QPainter, QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 
@@ -199,6 +199,7 @@ class SkyWidget(QOpenGLWidget):
     statusParts = Signal(object)       # campos da barra de estado (dict)
     noticeShown = Signal(str)          # aviso exibido no alto do céu
     contextAction = Signal(str, object)    # ações da ficha pelo botão direito
+    _moonTexLoaded = Signal()               # texturas da Lua decodificadas (thread)
 
     def __init__(self, engine: SkyEngine, stars: StarCatalog, dso: DsoCatalog,
                  data_dir, parent=None):
@@ -264,6 +265,13 @@ class SkyWidget(QOpenGLWidget):
         self._frame_t = None                 # instante do quadro em desenho
         self._frame_logical = None           # (largura, altura) lógicas do quadro
         self._offscreen_marker = False       # marcador da seleção fora da tela
+        # texturas da Lua: decodificadas em segundo plano quando a Lua fica
+        # grande na tela; ``moon_sync_load`` força a leitura imediata
+        # (capturas de tela e quadros fora da tela precisam do globo pronto)
+        self.moon_sync_load = False
+        self._moon_tex_state = "idle"        # idle | loading | ready | failed
+        self._moon_tex_pending = None
+        self._moonTexLoaded.connect(self.update)
         self._px = 1.0                       # escala de tamanhos do quadro atual
         self.label_scale = 1.0               # rótulos maiores no modo observação
         self._silhouette = None
@@ -703,6 +711,7 @@ class SkyWidget(QOpenGLWidget):
         # tamanhos de pontos e símbolos em pixels físicos: fora da tela (2–4×
         # para impressão) crescem com a escala; na tela ficam como sempre
         self._px = float(dpr) if offscreen else 1.0
+        self._rendering_offscreen = offscreen
 
         m = self.engine.horizontal_matrix(t).astype(np.float32)
         # matriz do quadro à disposição dos rótulos (desenhados depois,
@@ -1794,19 +1803,109 @@ class SkyWidget(QOpenGLWidget):
         self.renderer.fill_polygons([lit], (0.94, 0.93, 0.87, 1.0))
 
     def _ensure_moon_textures(self) -> bool:
-        """Sobe as texturas da Lua na primeira vez que ela é desenhada."""
-        if self.renderer.moon_ready:
-            return True
-        if getattr(self, "_moon_tex_failed", False):
-            return False
+        """Texturas da Lua prontas na GPU? Senão, providencia.
+
+        A decodificação dos JPEG e a cadeia de mipmaps (~0,4 s) rodam numa
+        thread; até lá o céu desenha o disco simples. O envio para a GPU é
+        dividido em etapas, uma por quadro (:func:`moontex.gpu_upload_plan`):
+        prévia de 2k primeiro, resolução cheia depois — nenhum quadro passa
+        de ~25 ms. Os arrays são soltos assim que sobem (≈125 MB a menos).
+        """
         from ..render import moontex
 
-        arrays = moontex.moon_arrays(1) if moontex.available() else None
-        if arrays is None:
-            self._moon_tex_failed = True
-            return False
-        self.renderer.set_moon_textures(*arrays)
-        return self.renderer.moon_ready
+        if self._moon_tex_state == "idle":
+            if not moontex.available():
+                self._moon_tex_state = "failed"
+                return False
+            self._moon_tex_state = "loading"
+            if self.moon_sync_load or getattr(self, "_rendering_offscreen", False):
+                self._moon_tex_pending = moontex.gpu_upload_plan() or False
+            else:
+                import threading
+
+                def work():
+                    try:
+                        self._moon_tex_pending = moontex.gpu_upload_plan() or False
+                    except Exception:
+                        self._moon_tex_pending = False
+                    self._moonTexLoaded.emit()
+
+                threading.Thread(target=work, name="moon-textures", daemon=True).start()
+                return False
+        if self._moon_tex_state == "loading":
+            plan = self._moon_tex_pending
+            if plan is None:
+                return False                     # ainda decodificando
+            if plan is False:
+                self._moon_tex_state = "failed"
+                return False
+            sync = self.moon_sync_load or getattr(self, "_rendering_offscreen", False)
+            # capturas sobem tudo de uma vez; na tela, uma etapa por quadro
+            steps = len(plan) if sync else 1
+            for _ in range(steps):
+                kind, levels = plan.pop(0)
+                self.renderer.set_moon_level_chain(kind, levels)
+            if plan:
+                QTimer.singleShot(0, self.update)  # próxima etapa no próximo quadro
+            else:
+                self._moon_tex_pending = None
+                self._moon_tex_state = "ready"
+        return self._moon_tex_state != "failed" and self.renderer.moon_ready
+
+    HIRES_RADIUS_PX = 1100.0     # acima disso a cor de 4k já mostra texels
+
+    def _maybe_hires_moon(self, radius: float) -> None:
+        """Cor de 8k só quando a Lua passa de ~1100 px de raio.
+
+        Até lá a de 4k tem mais de um texel por pixel. A de 8k é lida numa
+        thread e enviada em faixas de 512 linhas (~5 ms cada), uma por
+        quadro, numa textura nova que só entra no lugar quando completa.
+        """
+        from ..render import moontex
+
+        state = getattr(self, "_moon_hires", "idle")
+        sync = self.moon_sync_load or getattr(self, "_rendering_offscreen", False)
+        if state == "idle":
+            if radius < self.HIRES_RADIUS_PX or self._moon_tex_state != "ready":
+                return
+            self._moon_hires = "loading"
+            self._moon_hires_data = None
+            if sync:
+                self._moon_hires_data = moontex.load_color_full()
+            else:
+                import threading
+
+                def work():
+                    try:
+                        self._moon_hires_data = moontex.load_color_full()
+                    except Exception:
+                        self._moon_hires_data = False
+                    self._moonTexLoaded.emit()
+
+                threading.Thread(target=work, name="moon-hires", daemon=True).start()
+                return
+        if self._moon_hires == "loading":
+            data = self._moon_hires_data
+            if data is None:
+                return
+            if data is False:
+                self._moon_hires = "failed"
+                return
+            self._moon_hires_job = self.renderer.begin_strip_texture(data)
+            self._moon_hires_data = None
+            self._moon_hires = "uploading"
+        if self._moon_hires == "uploading":
+            job = self._moon_hires_job
+            while True:
+                done = self.renderer.continue_strip_texture(job, rows=512)
+                if done or not sync:
+                    break
+            if done:
+                self.renderer.adopt_moon_texture("color", job)
+                self._moon_hires_job = None
+                self._moon_hires = "ready"
+            else:
+                QTimer.singleShot(0, self.update)
 
     def _draw_moon_sphere(self, b, sun, cx: float, cy: float, radius: float,
                           u_moon: np.ndarray, u_sun: np.ndarray, m, t) -> bool:
@@ -1815,6 +1914,10 @@ class SkyWidget(QOpenGLWidget):
         Devolve False quando os dados lunares não existem ou o tema é o de
         papel — o disco simples continua valendo nesses casos.
         """
+        # abaixo de ~10 px de raio o disco simples é indistinguível: nem
+        # carrega as texturas (campo amplo, o caso mais comum)
+        if radius < 10.0 * self._px:
+            return False
         if self.theme == "light" or not self._ensure_moon_textures():
             return False
         from ..core import moon as moonlib
@@ -1841,6 +1944,7 @@ class SkyWidget(QOpenGLWidget):
         day = min(1.0, max(0.0, math.degrees(sun.alt) / 10.0))
         alpha = 1.0 - 0.35 * day
         dim = 0.35 if b.alt < 0 and self.layers.get("below_horizon") else 1.0
+        self._maybe_hires_moon(radius)
         self.renderer.draw_moon_sphere(
             (cx, cy), radius, e_scr, n_scr, v2b, rot @ sun_from_moon, rot @ w,
             gain=1.9 * dim, earthshine=earthshine * dim, alpha=alpha,
@@ -1893,27 +1997,69 @@ class SkyWidget(QOpenGLWidget):
         from PySide6.QtGui import QFontMetrics
 
         font = self._lf(8)
-        painter.setFont(font)
         fm = QFontMetrics(font)
-        ink, halo = QColor(255, 226, 150), QColor(0, 0, 0, 200)
         w, h = self.width(), self.height()
+        # criar a imagem de um rótulo custa ~2 ms: no máximo 8 novos por
+        # quadro, para o primeiro quadro com o globo não travar
+        sync = self.moon_sync_load or getattr(self, "_rendering_offscreen", False)
+        budget = None if sync else [8]
+        pending = False
         for f, x, y, rad in self.moon_label_positions(min_px=18.0 * dpr):
             tx, ty = x / dpr, y / dpr
             if not (0 <= tx <= w and 0 <= ty <= h):
                 continue
-            text = f.pt or f.name if f.type in ("mare", "lacus", "sinus", "palus") \
-                and self.name_language() == "pt" else f.name
-            tw = fm.horizontalAdvance(text)
+            maria = f.type in ("mare", "lacus", "sinus", "palus")
+            text = (f.pt or f.name) if maria and self.name_language() == "pt" else f.name
+            sprite = self._moon_label_sprite(text, font, dpr, budget)
+            if sprite is None:
+                pending = True                 # fica para o próximo quadro
+                continue
+            tw = sprite.width() / dpr
             lx, ly = int(tx - tw / 2), int(ty + fm.ascent() / 2)
-            if placer.place(lx, ly, tw, fm.height()):
-                # contorno escuro: legível sobre o branco do lado iluminado
-                painter.setPen(halo)
-                for ox, oy in ((-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1)):
-                    painter.drawText(lx + ox, ly + oy, text)
-                painter.setPen(ink)
-                painter.drawText(lx, ly, text)
+            if placer.place(lx, ly, int(tw), fm.height()):
+                painter.drawImage(QPointF(lx - 2, ly - fm.ascent() - 2), sprite)
                 self._label_hits.append(
-                    (QRect(lx, ly - fm.height(), tw, fm.height()), ("body", "Lua")))
+                    (QRect(lx, ly - fm.height(), int(tw), fm.height()), ("body", "Lua")))
+        if pending:
+            QTimer.singleShot(0, self.update)
+
+    def _moon_label_sprite(self, text: str, font: QFont, dpr: float, budget=None):
+        """Rótulo já desenhado com contorno escuro, em cache.
+
+        Desenhar o contorno com sete ``drawText`` por nome custava ~7 ms
+        por quadro com a Lua de perto; a imagem pronta sai numa chamada.
+        """
+        from PySide6.QtGui import QFontMetrics, QImage, QPainterPath, QPen
+
+        key = (text, font.pointSize(), round(dpr, 2))
+        cache = self.__dict__.setdefault("_moon_sprites", {})
+        img = cache.get(key)
+        if img is not None:
+            return img
+        if budget is not None:
+            if budget[0] <= 0:
+                return None
+            budget[0] -= 1
+        fm = QFontMetrics(font)
+        wpx = int((fm.horizontalAdvance(text) + 4) * dpr) + 1
+        hpx = int((fm.height() + 4) * dpr) + 1
+        img = QImage(wpx, hpx, QImage.Format_ARGB32_Premultiplied)
+        img.fill(0)
+        img.setDevicePixelRatio(dpr)
+        p = QPainter(img)
+        p.setRenderHint(QPainter.Antialiasing, True)
+        path = QPainterPath()
+        path.addText(QPointF(2, 2 + fm.ascent()), font, text)
+        p.setPen(QPen(QColor(0, 0, 0, 200), 2.6, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+        p.drawPath(path)
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(255, 226, 150))
+        p.drawPath(path)
+        p.end()
+        if len(cache) > 600:
+            cache.clear()
+        cache[key] = img
+        return img
 
     @staticmethod
     def name_language() -> str:

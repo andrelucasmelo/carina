@@ -57,9 +57,16 @@ def label_for(f) -> str:
 
 
 class MoonCanvas(QWidget):
-    """Área de desenho: imagem calculada na CPU + rótulos por cima."""
+    """Área de desenho: imagem calculada na CPU + rótulos por cima.
+
+    Desempenho: durante arraste e zoom desenha uma prévia reduzida na hora;
+    a resolução cheia é calculada numa thread (o numpy solta o GIL) e entra
+    quando fica pronta — a janela nunca espera por ela. Pedidos novos
+    descartam resultados velhos pelo número de geração.
+    """
 
     featureClicked = Signal(object)
+    _fullReady = Signal(int, object)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -77,15 +84,81 @@ class MoonCanvas(QWidget):
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self._rerender)
+        self._full_timer = QTimer(self)
+        self._full_timer.setSingleShot(True)
+        self._full_timer.timeout.connect(self._full_render)
+        self._preview = False
+        self._generation = 0
+        self._fullReady.connect(self._on_full_ready)
 
     # -- estado -----------------------------------------------------------
     def set_geometry(self, geom) -> None:
         self.geom = geom
         self.invalidate()
 
-    def invalidate(self) -> None:
+    def invalidate(self, interactive: bool = False) -> None:
+        """Agenda um novo desenho.
+
+        Desenha já uma prévia reduzida e pede a resolução cheia em segundo
+        plano; com ``interactive`` (arraste e roda do mouse) o pedido só
+        parte quando o movimento para por 180 ms.
+        """
         self._dirty = True
+        self._preview = True
         self._timer.start(0)
+        # arraste/roda: espera o movimento parar; demais mudanças (hora,
+        # orientação): resolução cheia logo em seguida, em segundo plano
+        self._full_timer.start(180 if interactive else 0)
+
+    def _full_render(self) -> None:
+        """Resolução cheia numa thread; a prévia fica na tela até lá."""
+        if self.geom is None:
+            return
+        import threading
+        from dataclasses import replace
+
+        self._generation += 1
+        gen = self._generation
+        dpr = self.devicePixelRatioF()
+        w, h = max(1, int(self.width() * dpr)), max(1, int(self.height() * dpr))
+        view = replace(self.view, width=w, height=h)
+        geom = self.geom
+
+        def work():
+            try:
+                img = self._render_image(view, geom, dpr)
+            except Exception:
+                img = None
+            self._fullReady.emit(gen, img)
+
+        threading.Thread(target=work, name="moon-window-render", daemon=True).start()
+
+    def _on_full_ready(self, gen: int, img) -> None:
+        if gen != self._generation or img is None:
+            return                          # já há um pedido mais novo
+        self._image = img
+        self.update()
+
+    def _render_image(self, view, geom, dpr: float, scale_to=None):
+        from ..render import moontex
+        from ..render.moon_cpu import texture_width_for
+
+        # nível da pirâmide com ~1 texel por pixel: a Lua inteira usa a cor
+        # de 1–2k (rápido, sem serrilhado); a de 8k só no zoom alto
+        arrays = moontex.level(moontex.level_for(texture_width_for(view)))
+        if arrays is None:
+            return None
+        self.arrays = arrays
+        _e, _n, _w, v2b = moonlib.view_basis(geom)
+        rgb = render(view, v2b, geom.sun_body, geom.obs_body, *arrays,
+                     illumination=geom.illumination)
+        img = QImage(rgb.data, view.width, view.height, view.width * 3,
+                     QImage.Format_RGB888).copy()
+        if scale_to is not None:
+            img = img.scaled(scale_to[0], scale_to[1], Qt.IgnoreAspectRatio,
+                             Qt.FastTransformation)
+        img.setDevicePixelRatio(dpr)
+        return img
 
     def _basis(self):
         return moonlib.view_basis(self.geom)
@@ -93,20 +166,19 @@ class MoonCanvas(QWidget):
     def _rerender(self) -> None:
         if self.geom is None:
             return
-        if self.arrays is None:
-            from ..render import moontex
+        from dataclasses import replace
 
-            self.arrays = moontex.moon_arrays(1)
-            if self.arrays is None:
-                return
         dpr = self.devicePixelRatioF()
         w, h = max(1, int(self.width() * dpr)), max(1, int(self.height() * dpr))
         self.view.width, self.view.height = w, h
-        e_t, n_t, wv, v2b = self._basis()
-        rgb = render(self.view, v2b, self.geom.sun_body, self.geom.obs_body,
-                     *self.arrays, illumination=self.geom.illumination)
-        img = QImage(rgb.data, w, h, w * 3, QImage.Format_RGB888).copy()
-        img.setDevicePixelRatio(dpr)
+        self._generation += 1            # invalida desenhos em segundo plano
+        # prévia: 1/3 da resolução com zoom (tela cheia de Lua), 1/2 com o
+        # disco inteiro — ~60 ms por quadro durante o arraste
+        f = (3 if self.view.zoom > 1.6 else 2) if self._preview else 1
+        view = replace(self.view, width=max(1, w // f), height=max(1, h // f))
+        img = self._render_image(view, self.geom, dpr, (w, h) if f > 1 else None)
+        if img is None:
+            return
         self._image = img
         self._dirty = False
         self._compute_labels()
@@ -170,7 +242,7 @@ class MoonCanvas(QWidget):
         p.end()
 
     def resizeEvent(self, _event) -> None:
-        self.invalidate()
+        self.invalidate(interactive=True)
 
     # -- interação ----------------------------------------------------------
     def wheelEvent(self, event) -> None:
@@ -183,7 +255,7 @@ class MoonCanvas(QWidget):
         # mantém o ponto sob o cursor parado
         self.view.pan_a += float(a0 - a1)
         self.view.pan_b += float(b0 - b1)
-        self.invalidate()
+        self.invalidate(interactive=True)
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
@@ -201,7 +273,7 @@ class MoonCanvas(QWidget):
                 self.view.pan_a = pa + float(a0 - a1)
                 self.view.pan_b = pb + float(b0 - b1)
                 self._drag = (start, pa, pb, True)
-                self.invalidate()
+                self.invalidate(interactive=True)
             return
         hit = self.feature_at(event.position().x(), event.position().y())
         self.setToolTip(f"{hit.name} — {hit.summary()}" if hit else "")
@@ -512,6 +584,13 @@ class MoonWindow(QMainWindow):
             return
         kind, ident = self._ident(f)
         self.markObserved.emit(kind, ident, f.name)
+
+    def closeEvent(self, event) -> None:
+        from ..render import moontex
+
+        self.canvas.arrays = None
+        moontex.release_cpu_levels()      # ~170 MB da pirâmide de volta
+        super().closeEvent(event)
 
     def set_observed(self, observed: set) -> None:
         self.observed = observed

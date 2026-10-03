@@ -381,6 +381,7 @@ def main(argv=None) -> int:
 
     if args.screenshot or args.bench:
         win.skip_state_save = True   # cena de teste não vira a vista salva
+        win.sky.moon_sync_load = True    # capturas já com o globo lunar
         # janelas de teste não devem roubar o foco do usuário (teclas
         # digitadas em outra janela acionariam os atalhos de camada)
         from PySide6.QtCore import Qt

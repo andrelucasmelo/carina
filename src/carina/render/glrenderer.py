@@ -376,6 +376,89 @@ class GLRenderer:
             else:
                 self.moon_normal_tex = tex
 
+    def mip_texture(self, levels: list) -> int:
+        """Textura com a cadeia de mipmaps já pronta (gerada na CPU).
+
+        Evita o ``glGenerateMipmap`` — 55 ms para a cor de 8k, um soluço
+        visível — e permite subir os níveis numa ordem qualquer. Níveis
+        mais largos que o limite da placa são descartados.
+        """
+        limit = self.max_texture_size()
+        levels = [lv for lv in levels if lv.shape[1] <= limit]
+        tex = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
+        prev_align = int(GL.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        for i, lv in enumerate(levels):
+            h, w, _ = lv.shape
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, i, GL.GL_RGB8, w, h, 0, GL.GL_RGB,
+                            GL.GL_UNSIGNED_BYTE, np.ascontiguousarray(lv, dtype=np.uint8))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, prev_align)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_BASE_LEVEL, 0)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_LEVEL, len(levels) - 1)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        return int(tex)
+
+    def begin_strip_texture(self, levels: list) -> dict:
+        """Começa uma textura grande em faixas: aloca o nível 0 vazio e
+        sobe já os demais níveis (pequenos). Ver :meth:`continue_strip_texture`."""
+        limit = self.max_texture_size()
+        levels = [lv for lv in levels if lv.shape[1] <= limit]
+        tex = GL.glGenTextures(1)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
+        prev_align = int(GL.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        h0, w0, _ = levels[0].shape
+        GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB8, w0, h0, 0, GL.GL_RGB,
+                        GL.GL_UNSIGNED_BYTE, None)
+        for i, lv in enumerate(levels[1:], start=1):
+            h, w, _ = lv.shape
+            GL.glTexImage2D(GL.GL_TEXTURE_2D, i, GL.GL_RGB8, w, h, 0, GL.GL_RGB,
+                            GL.GL_UNSIGNED_BYTE, np.ascontiguousarray(lv))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, prev_align)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_BASE_LEVEL, 0)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_LEVEL, len(levels) - 1)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        return {"tex": int(tex), "data": levels[0], "row": 0}
+
+    def continue_strip_texture(self, job: dict, rows: int = 512) -> bool:
+        """Sobe a próxima faixa do nível 0; True quando terminou."""
+        data = job["data"]
+        r0 = job["row"]
+        r1 = min(r0 + rows, data.shape[0])
+        GL.glBindTexture(GL.GL_TEXTURE_2D, job["tex"])
+        prev_align = int(GL.glGetIntegerv(GL.GL_UNPACK_ALIGNMENT))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
+        GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, r0, data.shape[1], r1 - r0, GL.GL_RGB,
+                           GL.GL_UNSIGNED_BYTE, np.ascontiguousarray(data[r0:r1]))
+        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, prev_align)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, 0)
+        job["row"] = r1
+        if r1 >= data.shape[0]:
+            job["data"] = None
+            return True
+        return False
+
+    def adopt_moon_texture(self, kind: str, job: dict) -> None:
+        attr = "moon_color_tex" if kind == "color" else "moon_normal_tex"
+        self.delete_texture(getattr(self, attr, 0))
+        setattr(self, attr, job["tex"])
+
+    def set_moon_level_chain(self, kind: str, levels: list) -> None:
+        """Troca a textura ``kind`` ('color' | 'normal') por uma cadeia nova."""
+        tex = self.mip_texture(levels)
+        attr = "moon_color_tex" if kind == "color" else "moon_normal_tex"
+        self.delete_texture(getattr(self, attr, 0))
+        setattr(self, attr, tex)
+
     @property
     def moon_ready(self) -> bool:
         return bool(getattr(self, "moon_color_tex", 0) and self.moon_normal_tex)
