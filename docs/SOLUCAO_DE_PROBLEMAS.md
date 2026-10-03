@@ -1,6 +1,6 @@
 # Solução de problemas
 
-> Carina 0.17.1 — produto em desenvolvimento. Se o seu problema não
+> Carina 0.18.0 — produto em desenvolvimento. Se o seu problema não
 > estiver aqui, ele pode ser um defeito ainda desconhecido: reporte com o
 > máximo de detalhes.
 

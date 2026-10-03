@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.17.1 — produto em desenvolvimento.
+> Carina 0.18.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -213,6 +213,7 @@ na barra lateral** e a exibição dos painéis.
 | Item | Atalho | O que faz |
 |---|---|---|
 | Eclipses… | `Ctrl+E` | Previsão de eclipses solares e lunares |
+| Planetas… | `Ctrl+Shift+E` | Janela de planetas: estado, melhor época, luas e eventos ([PLANETAS.md](PLANETAS.md)) |
 | A Lua em detalhe… | | Janela do globo lunar ([LUA.md](LUA.md)) |
 | Caminho dos planetas (365 dias)… | | Traça a trajetória anual |
 | Exibir caminhos dos planetas | `Shift+P` | Mostra ou esconde sem recalcular |
@@ -293,6 +294,10 @@ filtros. Descrição completa em
 ### Hoje à noite, Minhas listas, Diário e Calendário
 
 Ver [PLANEJAMENTO.md](PLANEJAMENTO.md) e [DIARIO.md](DIARIO.md).
+
+### Janela de planetas
+
+Ver [PLANETAS.md](PLANETAS.md).
 
 ### A Lua em detalhe, planejador lunar e Lunar 100
 

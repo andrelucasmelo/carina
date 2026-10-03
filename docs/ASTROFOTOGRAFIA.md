@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.17.1 — produto em desenvolvimento.
+> Carina 0.18.0 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa:
 enquadramento, influência da Lua, rastreamento e simulação do céu real.

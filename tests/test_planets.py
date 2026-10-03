@@ -166,3 +166,13 @@ def test_planet_render():
     lit = img.mean(axis=2) > 60
     rows, cols = np.nonzero(lit)
     assert (cols.max() - cols.min()) > (rows.max() - rows.min()) + 3
+
+
+def test_apparition_right_after_start(engine):
+    """Oposição de Saturno (04/10/2026 12h UTC) vista na véspera, às 22h."""
+    from carina.core.planets import apparitions, best_epoch_text
+
+    start = dt.datetime(2026, 10, 4, 1, tzinfo=UTC)
+    aps = apparitions(engine, "Saturno", start, 1.0)
+    assert aps[0].kind == "oposicao" and aps[0].when_utc.date() == dt.date(2026, 10, 4)
+    assert "04/10/2026" in best_epoch_text(engine, "Saturno", start, aps)

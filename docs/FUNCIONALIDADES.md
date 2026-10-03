@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.17.1 — produto em desenvolvimento.
+> Carina 0.18.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -143,7 +143,18 @@ Sol, Lua e os oito planetas, calculados com as efemérides **JPL DE440s**
   vira um **globo com relevo** (textura LRO, relevo LOLA), com a libração
   da noite, a luz cinérea e os nomes das formações. Detalhes em
   [A Lua](LUA.md).
-- Os **planetas** têm magnitude calculada pelo modelo de Mallama.
+- Os **planetas** têm magnitude calculada pelo modelo de Mallama e, ao
+  aproximar, viram **discos** com textura, fase e eixo; Saturno com os anéis,
+  Júpiter com a Grande Mancha Vermelha; as luas de Júpiter e Saturno aparecem
+  com nome.
+
+### Janela de planetas
+
+`Ctrl+Shift+E`: estado de cada planeta, fases de Mercúrio e Vênus, meridiano
+central de Marte, luas galileanas e de Saturno vistas da Terra com trânsitos,
+sombras, ocultações e eclipses, inclinação dos anéis, passagens da Grande
+Mancha Vermelha e a **melhor época** (temporada de visibilidade, oposições e
+elongações no seu céu). Ver [Os planetas](PLANETAS.md).
 
 ### Trajetórias anuais
 
@@ -306,7 +317,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.17.0 **não há**:
+Para não criar expectativa errada, na versão 0.18.0 **não há**:
 
 - cometas e asteroides;
 - satélites artificiais (ISS, Starlink);

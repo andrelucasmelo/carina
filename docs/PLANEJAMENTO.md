@@ -1,6 +1,6 @@
 # Planejamento de observação
 
-> Carina 0.17.1 — produto em desenvolvimento.
+> Carina 0.18.0 — produto em desenvolvimento.
 
 O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
 que horas?"** em todo lugar, e transforma a resposta num roteiro da noite

@@ -407,7 +407,9 @@ def apparitions(engine, name: str, start: dt.datetime, years: float = 3.0) -> li
     if start.tzinfo is None:
         start = start.replace(tzinfo=UTC)
     days = int(years * 365.25) + 2
-    times, el, dist = _elong_series(engine, name, start, days)
+    # começa 3 dias antes: um extremo nas primeiras horas também precisa de
+    # vizinhos dos dois lados para ser reconhecido
+    times, el, dist = _elong_series(engine, name, start - dt.timedelta(days=3), days + 3)
     lat = engine.topos.latitude.degrees
     out = []
     for i in range(1, len(times) - 1):
@@ -416,6 +418,8 @@ def apparitions(engine, name: str, start: dt.datetime, years: float = 3.0) -> li
         if not (is_max or is_min):
             continue
         when, e = _refine(engine, name, times[i], maximize=is_max)
+        if when < start - dt.timedelta(hours=12):
+            continue
         st = planet_state(engine, name, when)
         if name in INNER:
             if is_max:

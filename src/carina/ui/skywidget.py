@@ -1837,35 +1837,37 @@ class SkyWidget(QOpenGLWidget):
         lit = 0.25 + 0.75 * min(1.0, abs(float(z_ax @ sun_from)) * 6.0)
         if np.sign(z_ax @ sun_from) != np.sign(z_ax @ w):
             lit *= 0.35
-        bands = 28
+        # geometria vetorizada: faixas radiais × setores, cada célula um quad
+        bands, sectors = 28, 96
         solid = prof[prof[:, 3] > 40, :3]
         peak = float(solid.mean(axis=1).max()) if len(solid) else 255.0
-        phis = np.linspace(0.0, 2.0 * math.pi, 97)
-        tris, cols = [], []
-        c = np.array([cx, cy])
-        for k in range(bands):
-            r0 = ri + (ro - ri) * k / bands
-            r1 = ri + (ro - ri) * (k + 1) / bands
-            idx = int((k + 0.5) / bands * (len(prof) - 1))
-            a = prof[idx, 3] / 255.0
-            if a < 0.03:
-                continue
-            g = prof[idx, :3].mean() / peak * lit * dim
-            rgba = (0.93 * g, 0.86 * g, 0.72 * g, a)
-            for j in range(len(phis) - 1):
-                pm = 0.5 * (phis[j] + phis[j + 1])
-                mid = math.cos(pm) * x_ax + math.sin(pm) * y_ax
-                if (float(mid @ w) < 0) != back:
-                    continue
-                quad = []
-                for rr, ph in ((r0, phis[j]), (r1, phis[j]), (r1, phis[j + 1]), (r0, phis[j + 1])):
-                    pt = rr * (math.cos(ph) * x_ax + math.sin(ph) * y_ax)
-                    quad.append(c + radius * (float(pt @ e_t) * e_scr + float(pt @ n_t) * n_scr))
-                tris += [quad[0], quad[1], quad[2], quad[0], quad[2], quad[3]]
-                cols += [rgba] * 6
-        if tris:
-            self.renderer.draw_colored_triangles(np.array(tris, np.float32),
-                                                 np.array(cols, np.float32))
+        idx = ((np.arange(bands) + 0.5) / bands * (len(prof) - 1)).astype(int)
+        alpha = prof[idx, 3] / 255.0
+        gray = prof[idx, :3].mean(axis=1) / peak * lit * dim
+        keep_b = alpha >= 0.03
+        radii = ri + (ro - ri) * np.arange(bands + 1) / bands
+        phis = np.linspace(0.0, 2.0 * math.pi, sectors + 1)
+        mids = 0.5 * (phis[:-1] + phis[1:])
+        mid_vec = np.outer(np.cos(mids), x_ax) + np.outer(np.sin(mids), y_ax)
+        keep_s = (mid_vec @ w < 0) == back
+        if not keep_b.any() or not keep_s.any():
+            return
+        # pontos do anel projetados na tela: (bandas+1, setores+1, 2)
+        ring_dirs = np.outer(np.cos(phis), x_ax) + np.outer(np.sin(phis), y_ax)
+        sx = ring_dirs @ e_t
+        sy = ring_dirs @ n_t
+        scr = (np.array([cx, cy])[None, None, :] + radius * radii[:, None, None]
+               * (sx[None, :, None] * e_scr[None, None, :] + sy[None, :, None] * n_scr[None, None, :]))
+        bi, si = np.nonzero(keep_b[:, None] & keep_s[None, :])
+        p00 = scr[bi, si]
+        p10 = scr[bi + 1, si]
+        p11 = scr[bi + 1, si + 1]
+        p01 = scr[bi, si + 1]
+        tris = np.stack([p00, p10, p11, p00, p11, p01], axis=1).reshape(-1, 2)
+        g = gray[bi]
+        rgba = np.stack([0.93 * g, 0.86 * g, 0.72 * g, alpha[bi]], axis=1)
+        cols = np.repeat(rgba, 6, axis=0)
+        self.renderer.draw_colored_triangles(tris.astype(np.float32), cols.astype(np.float32))
 
     def _collect_planet_moons(self, name, jd, u, e_t, n_t, e_scr, n_scr, cx, cy, radius) -> None:
         """Luas de Júpiter e Saturno como pontos (desenhadas aqui, nomes

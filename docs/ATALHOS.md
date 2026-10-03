@@ -51,6 +51,7 @@ valem com a janela principal ativa.
 | Objetos | Gerenciar catálogo de céu profundo | `Ctrl+D` |
 | Sistema Solar | Eclipses | `Ctrl+E` |
 | Sistema Solar | Exibir caminhos dos planetas | `Shift+P` |
+| Sistema Solar | Planetas | `Ctrl+Shift+E` |
 | Sistema Solar | Exibir previsão da Lua no céu | `Shift+M` |
 | Sistema Solar | Zona de influência da Lua (astrofoto) | `U` |
 | Planejar | Hoje à noite | `T` |

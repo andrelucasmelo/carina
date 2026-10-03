@@ -2168,6 +2168,9 @@ class MainWindow(QMainWindow):
                 "Lua: textura LROC e relevo LOLA (NASA SVS CGI Moon Kit), nomes "
                 "da IAU/USGS (Gazetteer of Planetary Nomenclature), Lunar 100 de "
                 "Charles A. Wood; chuvas de meteoros: IMO.<br>"
+                "Planetas: texturas Solar System Scope (CC BY 4.0, a partir de "
+                "mosaicos da NASA); luas de Júpiter e Saturno pelas efemérides "
+                "de satélites do JPL; Grande Mancha Vermelha: JUPOS.<br>"
                 "Textura da Via Láctea: <b>ESO/S. Brunier</b> (CC BY 4.0)."
             ).format(v=__version__),
         )

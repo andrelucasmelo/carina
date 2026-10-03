@@ -468,8 +468,11 @@ def main(argv=None) -> int:
         win._open_chart_dialog()
         dialog = win._chart_dialog
     elif args.dialog == "planets":
-        win._open_planets(args.dialog_text or "Júpiter")
+        name, _, tab = (args.dialog_text or "Júpiter").partition(":")
+        win._open_planets(name)
         dialog = win._planet_window
+        if tab.isdigit():
+            dialog.tabs.setCurrentIndex(int(tab))
     elif args.dialog == "moon":
         win._open_moon_window(args.dialog_text)
         dialog = win._moon_window

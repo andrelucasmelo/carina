@@ -1,6 +1,28 @@
 # O que há de novo
 
-> Carina 0.17.1 — produto em desenvolvimento.
+> Carina 0.18.0 — produto em desenvolvimento.
+
+## 0.18 — Planetas
+
+**Janela de planetas** (`Ctrl+Shift+E`, ou **Detalhes** na ficha de um
+planeta). Os sete planetas com o estado de cada um e o disco como no
+telescópio:
+
+- **Mercúrio e Vênus** com a fase do dia e a série de fases dos próximos
+  meses, em escala;
+- **Marte** com o meridiano central e o disco crescendo até a oposição;
+- **Júpiter** com as faixas, a **Grande Mancha Vermelha** na longitude do
+  dia e as **quatro luas galileanas como vistas da Terra** — com trânsitos,
+  sombras, ocultações e eclipses da noite e as passagens da Mancha pelo centro;
+- **Saturno** com os **anéis na inclinação do dia** e as luas, de Titã a Jápeto.
+
+A aba **Melhor época** mostra a temporada de visibilidade no seu céu e as
+próximas oposições ou maiores elongações, com a altura que o planeta terá no
+seu local. Veja [Os planetas](PLANETAS.md).
+
+**No céu**, os planetas viram discos ao aproximar, e as luas de Júpiter e
+Saturno aparecem com nome. **Na ficha**, diâmetro, fase, elongação e melhor
+época.
 
 ## 0.17.1 — Lua mais leve
 
