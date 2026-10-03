@@ -1706,16 +1706,194 @@ class SkyWidget(QOpenGLWidget):
                 continue
             size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0)) * self._px
             dim = 0.25 if b.alt < 0 else 1.0
+            # v0.18: planeta grande na tela vira disco com textura e fase
+            disc_r = self._planet_radius_px(b)
+            if disc_r >= 3.0 * self._px and self.theme != "light":
+                specials.append((b, float(x[0]), float(y[0])))
+                out.append((b, float(x[0]), float(y[0]), max(size, 2.0 * disc_r)))
+                continue
             rows.append([x[0], y[0], size, *b.color, dim])
             out.append((b, float(x[0]), float(y[0]), size))
         if rows:
             self.renderer.draw_points(np.array(rows, dtype=np.float32))
+        self._planet_moons_px = []
         for b, cx, cy in specials:
             if b.name == "Sol":
                 self._draw_sun(b, cx, cy)
-            else:
+            elif b.name == "Lua":
                 self._draw_moon(b, cx, cy, m, t)
+            elif not self._draw_planet_disc(b, cx, cy, m, t):
+                size = float(np.clip(9.0 - 1.1 * b.magnitude, 3.5, 14.0)) * self._px
+                self.renderer.draw_points(np.array([[cx, cy, size, *b.color, 1.0]], np.float32))
         return out
+
+    # ------------------------------------------------------------------
+    # Planetas em disco (v0.18)
+    # ------------------------------------------------------------------
+    def _planet_radius_px(self, b) -> float:
+        from ..core.planets import AU_KM, NAIF_ID, radii_km
+
+        if b.name not in NAIF_ID:
+            return 0.0
+        req = radii_km(b.name)[0]
+        ext = 2.32 if b.name == "Saturno" else 1.0      # anéis
+        return math.atan(req / (b.distance_au * AU_KM)) * self.camera.pixel_scale * ext / ext
+
+    def _planet_textures(self, name: str):
+        """(cor, normal plana) na GPU, carregadas na primeira vez (2k: rápido)."""
+        cache = self.__dict__.setdefault("_planet_tex", {})
+        if name in cache:
+            return cache[name]
+        from ..core.planets import TEXTURE
+        from ..core.satellites import data_dir
+        from ..render.moontex import mip_chain, qimage_rgb
+
+        path = data_dir() / TEXTURE[name]
+        rgb = qimage_rgb(path) if path.exists() else None
+        if rgb is None:
+            cache[name] = None
+            return None
+        flat = cache.get("_flat")
+        if flat is None:
+            flat = self.renderer.mip_texture([np.full((2, 2, 3), (128, 128, 255), np.uint8)])
+            cache["_flat"] = flat
+        cache[name] = (self.renderer.mip_texture(mip_chain(rgb)), flat)
+        return cache[name]
+
+    def _draw_planet_disc(self, b, cx: float, cy: float, m, t) -> bool:
+        """Disco do planeta: textura, fase pela direção real do Sol, eixo IAU,
+        Grande Mancha Vermelha na longitude do dia e os anéis de Saturno."""
+        from ..core import planets as P
+        from ..core import satellites as S
+
+        tex = self._planet_textures(b.name)
+        if tex is None:
+            return False
+        radius = self._planet_radius_px(b)
+        m64 = m.astype(np.float64)
+        u = m64.T @ b.vec
+        u /= np.linalg.norm(u)
+        sun = next(s_ for s_ in self.engine.bodies(t) if s_.name == "Sol")
+        us = m64.T @ sun.vec
+        sun_from = us / np.linalg.norm(us) * sun.distance_au - u * b.distance_au
+        sun_from /= np.linalg.norm(sun_from)
+        jd = float(t.tdb) - b.distance_au * P.AU_KM / P.C_KM_S / 86400.0
+        system = "II" if b.name == "Júpiter" else "III"
+        frame = P.body_frame(b.name, jd, system)
+        if b.name == "Júpiter":
+            lam = S.grs_longitude(self.engine.time.current_datetime(),
+                                  getattr(self, "grs_override", None))
+            off = (S.grs_texture_u() - 0.5 + lam / 360.0) * 2.0 * math.pi
+            rz = np.array([[math.cos(off), -math.sin(off), 0.0],
+                           [math.sin(off), math.cos(off), 0.0], [0.0, 0.0, 1.0]])
+            frame = rz @ frame
+        pole = np.array([0.0, 0.0, 1.0])
+        n_t = pole - (pole @ u) * u
+        n_t /= np.linalg.norm(n_t)
+        e_t = np.cross(pole, u)
+        e_t /= np.linalg.norm(e_t)
+        w = -u
+        n_scr, e_scr = self._screen_north_east(u, m, cx, cy)
+        dim = 0.35 if b.alt < 0 and self.layers.get("below_horizon") else 1.0
+        rings = b.name == "Saturno"
+        if rings:
+            self._draw_saturn_rings(frame, u, e_t, n_t, w, e_scr, n_scr, cx, cy, radius,
+                                    sun_from, back=True, dim=dim)
+        v2b = frame @ np.column_stack([e_t, n_t, w])
+        self.renderer.draw_moon_sphere(
+            (cx, cy), radius, e_scr, n_scr, v2b, frame @ sun_from, frame @ w,
+            gain=1.0 * dim, earthshine=0.0, alpha=1.0, relief=0.0,
+            color_tex=tex[0], normal_tex=tex[1])
+        if rings:
+            self._draw_saturn_rings(frame, u, e_t, n_t, w, e_scr, n_scr, cx, cy, radius,
+                                    sun_from, back=False, dim=dim)
+        hidden = (b.alt < 0 and self.layers.get("ground", True)
+                  and not self.layers.get("below_horizon"))
+        if b.name in ("Júpiter", "Saturno") and radius >= 2.0 * self._px and not hidden:
+            self._collect_planet_moons(b.name, jd, u, e_t, n_t, e_scr, n_scr, cx, cy, radius)
+        return True
+
+    def _draw_saturn_rings(self, frame, u, e_t, n_t, w, e_scr, n_scr, cx, cy, radius,
+                           sun_from, back: bool, dim: float = 1.0) -> None:
+        """Anéis como faixas elípticas no plano do equador de Saturno.
+
+        Desenhados em duas metades: a de trás antes do globo, a da frente
+        depois — o globo esconde o anel de trás e o da frente cruza o disco.
+        """
+        from ..core import planets as P
+        from ..core import satellites as S
+        from ..render.planet_cpu import ring_profile
+
+        prof = self.__dict__.get("_ring_prof")
+        if prof is None:
+            prof = ring_profile(S.data_dir() / "saturn_ring.png")
+            self._ring_prof = prof
+        if prof is None:
+            return
+        req = P.radii_km("Saturno")[0]
+        ri, ro = (r / req for r in S.ring_radii_km())
+        x_ax, y_ax, z_ax = frame[0], frame[1], frame[2]
+        # iluminação do lado visível (B e B' do mesmo lado = face iluminada)
+        lit = 0.25 + 0.75 * min(1.0, abs(float(z_ax @ sun_from)) * 6.0)
+        if np.sign(z_ax @ sun_from) != np.sign(z_ax @ w):
+            lit *= 0.35
+        bands = 28
+        solid = prof[prof[:, 3] > 40, :3]
+        peak = float(solid.mean(axis=1).max()) if len(solid) else 255.0
+        phis = np.linspace(0.0, 2.0 * math.pi, 97)
+        tris, cols = [], []
+        c = np.array([cx, cy])
+        for k in range(bands):
+            r0 = ri + (ro - ri) * k / bands
+            r1 = ri + (ro - ri) * (k + 1) / bands
+            idx = int((k + 0.5) / bands * (len(prof) - 1))
+            a = prof[idx, 3] / 255.0
+            if a < 0.03:
+                continue
+            g = prof[idx, :3].mean() / peak * lit * dim
+            rgba = (0.93 * g, 0.86 * g, 0.72 * g, a)
+            for j in range(len(phis) - 1):
+                pm = 0.5 * (phis[j] + phis[j + 1])
+                mid = math.cos(pm) * x_ax + math.sin(pm) * y_ax
+                if (float(mid @ w) < 0) != back:
+                    continue
+                quad = []
+                for rr, ph in ((r0, phis[j]), (r1, phis[j]), (r1, phis[j + 1]), (r0, phis[j + 1])):
+                    pt = rr * (math.cos(ph) * x_ax + math.sin(ph) * y_ax)
+                    quad.append(c + radius * (float(pt @ e_t) * e_scr + float(pt @ n_t) * n_scr))
+                tris += [quad[0], quad[1], quad[2], quad[0], quad[2], quad[3]]
+                cols += [rgba] * 6
+        if tris:
+            self.renderer.draw_colored_triangles(np.array(tris, np.float32),
+                                                 np.array(cols, np.float32))
+
+    def _collect_planet_moons(self, name, jd, u, e_t, n_t, e_scr, n_scr, cx, cy, radius) -> None:
+        """Luas de Júpiter e Saturno como pontos (desenhadas aqui, nomes
+        no passo dos rótulos)."""
+        from ..core import satellites as S
+        from ..core.planets import AU_KM, radii_km
+
+        if not S.available(name) or not S.covers(name, jd):
+            return
+        req = radii_km(name)[0]
+        pos = S.moon_positions(name, jd)
+        rows = []
+        c = np.array([cx, cy])
+        for mid, mname in S.moon_names(name):
+            r = pos[mid] / req
+            depth = float(r @ -u)
+            mag = S.MOON_MAG.get(mid, 10.0)
+            if mag > self._mag_limit() + 1.0:
+                continue
+            xy = c + radius * (float(r @ e_t) * e_scr + float(r @ n_t) * n_scr)
+            # atrás do disco: escondida
+            if depth < 0 and math.hypot(xy[0] - cx, xy[1] - cy) < radius:
+                continue
+            size = float(np.clip(7.0 - 0.4 * mag, 3.0, 5.5)) * self._px
+            rows.append([xy[0], xy[1], size, 0.95, 0.93, 0.88, 1.0])
+            self._planet_moons_px.append((mname, float(xy[0]), float(xy[1])))
+        if rows:
+            self.renderer.draw_points(np.array(rows, np.float32), hard=True)
 
     def _screen_north_east(self, u_icrs: np.ndarray, m: np.ndarray,
                            cx: float, cy: float):
@@ -2211,6 +2389,16 @@ class SkyWidget(QOpenGLWidget):
         # formações da Lua (v0.17) antes dos nomes dos corpos
         if self.layers["planets"] and not self.chart_mode:
             self._draw_moon_labels(painter, dpr, placer)
+
+        # luas de Júpiter e Saturno (v0.18)
+        if self.layers["planet_names"] and getattr(self, "_planet_moons_px", None):
+            painter.setFont(self._lf(8))
+            fm_m = QFontMetrics(painter.font())
+            painter.setPen(QColor(170, 195, 235))
+            for mname, mx, my in self._planet_moons_px:
+                tx, ty = int(mx / dpr) + 5, int(my / dpr) - 4
+                if placer.place(tx, ty, fm_m.horizontalAdvance(mname), fm_m.height()):
+                    painter.drawText(tx, ty, mname)
 
         # nomes dos corpos do Sistema Solar
         if self.layers["planet_names"] and bodies_px:
@@ -2975,6 +3163,9 @@ class SkyWidget(QOpenGLWidget):
             acts["details"] = menu.addAction(self.tr("Janela de detalhes…"))
             if target == ("body", "Lua"):
                 acts["moon"] = menu.addAction(self.tr("A Lua em detalhe…"))
+            elif target[0] == "body" and target[1] not in ("Sol", "Lua"):
+                acts["planet"] = menu.addAction(
+                    self.tr("{n} em detalhe…").format(n=target[1]))
             menu.addSeparator()
             acts["select"] = menu.addAction(self.tr("Selecionar e centralizar"))
             follow = menu.addAction(self.tr("Seguir {n}").format(n=label))
@@ -3047,7 +3238,7 @@ class SkyWidget(QOpenGLWidget):
         elif key == "best":
             # a janela principal resolve com a janela útil e o horizonte
             self.contextAction.emit("goto_best", target)
-        elif key in ("list", "observed", "moon"):
+        elif key in ("list", "observed", "moon", "planet"):
             self.contextAction.emit(key, target)
         elif key == "rise":
             self.goto_when_rises(target)
@@ -3180,6 +3371,16 @@ class SkyWidget(QOpenGLWidget):
         pt = label_for(cid, "pt", latin)
         self.highlight_constellation(cid)
         self.show_notice(self.tr("Esta região é {pt} ({la})").format(pt=pt, la=latin), 8.0)
+
+    def constellation_name(self, icrs) -> str:
+        """Nome em português da constelação que contém a direção ICRS."""
+        cid = skygeometry.constellation_at(self.const_bounds, np.asarray(icrs, np.float64))
+        if cid is None:
+            return ""
+        from ..catalogs.constnames import label_for
+
+        info = next((c for c in self.const_info if c.get("id") == cid), None)
+        return label_for(cid, "pt", info.get("name", cid) if info else cid)
 
     def goto_constellation(self, cid: str) -> bool:
         """Busca ▸ constelação: centro da constelação, campo que a contém

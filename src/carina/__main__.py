@@ -41,7 +41,7 @@ def _parse_args(argv):
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
                  "lists", "tonight", "calendar", "chart", "help", "firstrun",
-                 "moon", "moonplan", "lunar100", "skycal", "today"],
+                 "moon", "moonplan", "lunar100", "skycal", "today", "planets"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -467,6 +467,9 @@ def main(argv=None) -> int:
     elif args.dialog == "chart":
         win._open_chart_dialog()
         dialog = win._chart_dialog
+    elif args.dialog == "planets":
+        win._open_planets(args.dialog_text or "Júpiter")
+        dialog = win._planet_window
     elif args.dialog == "moon":
         win._open_moon_window(args.dialog_text)
         dialog = win._moon_window

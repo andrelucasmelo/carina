@@ -427,6 +427,7 @@ class MainWindow(QMainWindow):
         self._add(m_sol, self.tr("Limpar caminhos dos planetas"),
                   lambda: self.sky.set_planet_paths([]))
         m_sol.addSeparator()
+        self._add(m_sol, self.tr("Planetas…"), self._open_planets, "Ctrl+Shift+E")
         self._add(m_sol, self.tr("A Lua em detalhe…"), self._open_moon_window)
         self._add(m_sol, self.tr("Previsão da Lua (28 dias)…"), self._open_moon_forecast)
         self.act_moon_layer = self._add(m_sol, self.tr("Exibir previsão da Lua no céu"),
@@ -749,6 +750,51 @@ class MainWindow(QMainWindow):
                 win.select_feature(f)
                 win.canvas.center_on(f, 3.0)
 
+    def _open_planets(self, planet=None) -> None:
+        """Sistema Solar ▸ Planetas (v0.18)."""
+        from .planet_window import PlanetWindow
+
+        if not isinstance(planet, str):
+            sel = self.sky.selection
+            planet = sel[1] if sel and sel[0] == "body" and sel[1] not in ("Sol", "Lua") \
+                else "Júpiter"
+        win = getattr(self, "_planet_window", None)
+        try:
+            alive = win is not None and win.isVisible()
+        except RuntimeError:
+            alive = False
+        if not alive:
+            win = PlanetWindow(self.engine, self.engine.time.current_datetime(), self,
+                               settings=self.settings,
+                               constellation_fn=self.sky.constellation_name, planet=planet)
+            win.setAttribute(Qt.WA_DeleteOnClose, True)
+            win.gotoPlanet.connect(self._goto_planet_at)
+            win.chartRequested.connect(self._planet_finder_chart)
+            self._planet_window = win
+        else:
+            win.set_time(self.engine.time.current_datetime())
+            win.select(planet)
+        win.show()
+        win.raise_()
+
+    def _planet_finder_chart(self, name: str, when) -> None:
+        """Carta de busca: o gerador de carta enquadrando o planeta em 8°."""
+        import math
+
+        self.engine.time.set_datetime(when)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self.sky.goto_object(("body", name), animate=False)   # sem animação: a carta
+        self.sky.camera.fov = math.radians(8.0)                # lê a vista na hora
+        self.sky.update()
+        self._open_chart_dialog()
+
+    def _goto_planet_at(self, name: str, when) -> None:
+        self.engine.time.set_datetime(when)
+        self.engine.time.set_speed(0.0)
+        self.sky.sync_clock()
+        self.sky.goto_object(("body", name))
+
     def _open_moon_planner(self) -> None:
         from ..catalogs.equipment import EquipmentStore
         from .moon_planner import MoonPlannerDialog
@@ -1041,6 +1087,11 @@ class MainWindow(QMainWindow):
             self.act_follow.setChecked(True)
         elif key == "track":
             self._track_selection(selection)
+        elif key == "details" and selection[0] == "body":
+            if selection[1] == "Lua":
+                self._open_moon_window()
+            elif selection[1] != "Sol":
+                self._open_planets(selection[1])
         elif key == "details":
             self._open_object_window(selection)
         elif key == "frame":
@@ -1054,6 +1105,8 @@ class MainWindow(QMainWindow):
             self._mark_observed(selection)
         elif key == "moon":
             self._open_moon_window()
+        elif key == "planet":
+            self._open_planets(selection[1])
         elif key == "copy":
             self.statusBar().showMessage(self.tr("Copiado: {t}").format(
                 t=self.card.copy_text() if self.card.selection == selection

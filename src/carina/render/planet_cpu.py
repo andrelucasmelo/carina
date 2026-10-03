@@ -40,7 +40,8 @@ def render_planet(view: MoonView, frame: np.ndarray, u_icrs: np.ndarray,
                   sun_dir: np.ndarray, texture: np.ndarray | None,
                   flattening: float, tex_offset_u: float = 0.0,
                   rings: dict | None = None, gain: float = 1.15,
-                  limb_darkening: float = 0.35, background=(6, 8, 14)) -> np.ndarray:
+                  limb_darkening: float = 0.35, background=(6, 8, 14),
+                  light_exponent: float = 1.0) -> np.ndarray:
     """Imagem RGB uint8 do planeta.
 
     ``frame``: linhas X, Y, Z do referencial do planeta em ICRS (a textura
@@ -94,7 +95,9 @@ def render_planet(view: MoonView, frame: np.ndarray, u_icrs: np.ndarray,
             alb = np.full((len(idx), 3), 0.8, np.float32)
         mu0 = np.clip(nrm @ sun_b, 0.0, 1.0)
         mu = np.clip(nrm @ view_b, 0.0, 1.0)
-        light = mu0 * (1.0 - limb_darkening + limb_darkening * mu)
+        # expoente < 1: atmosferas densas (Vênus) espalham a luz e a foice
+        # fica brilhante até perto do terminador
+        light = mu0 ** light_exponent * (1.0 - limb_darkening + limb_darkening * mu)
         if rings:
             # sombra dos anéis no globo: raio do ponto rumo ao Sol cruza o plano
             with np.errstate(divide="ignore", invalid="ignore"):

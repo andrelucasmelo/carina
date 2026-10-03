@@ -313,6 +313,40 @@ class Apparition:
         }[self.kind]
 
 
+def series(engine, name: str, times: list[dt.datetime]) -> dict:
+    """Grandezas vetorizadas para muitos instantes: direção do planeta
+    (``u``, ICRS, observador → planeta), direção do Sol vista do planeta,
+    distância (UA) e o polo IAU (lento: um só vetor no meio do intervalo)."""
+    t = engine.ts.from_datetimes(times)
+    obs = engine.site.at(t)
+    p = np.asarray(obs.observe(engine.eph[engine.body_key(name)]).apparent().position.au,
+                   np.float64)
+    s = np.asarray(obs.observe(engine.eph["sun"]).apparent().position.au, np.float64)
+    d = np.linalg.norm(p, axis=0)
+    sun_from = s - p
+    jd = np.asarray(t.tdb) - d * AU_KM / C_KM_S / 86400.0
+    return {"t": t, "u": p / d, "dist": d, "jd": jd,
+            "sun_dir": sun_from / np.linalg.norm(sun_from, axis=0),
+            "pole": pole_icrs(name, float(jd[len(jd) // 2]))}
+
+
+def cm_series(name: str, data: dict, system: str = "III") -> np.ndarray:
+    """Meridiano central (longitude oeste, graus) vetorizado.
+
+    Com X = Q·cos W + (p×Q)·sin W, a longitude leste do ponto sub-observador
+    é λ_Q − W, onde λ_Q é o ângulo dele medido a partir do nó Q; a
+    longitude oeste (meridiano central) é W − λ_Q.
+    """
+    p = data["pole"]
+    q = np.cross([0.0, 0.0, 1.0], p)
+    q /= np.linalg.norm(q)
+    pq = np.cross(p, q)
+    v = -data["u"]
+    lam_q = np.degrees(np.arctan2(pq @ v, q @ v))
+    w = np.array([prime_meridian(name, jd, system) for jd in data["jd"]])
+    return (w - lam_q) % 360.0
+
+
 def _elong_series(engine, name, start, days, step=1.0):
     n = int(days / step) + 1
     times = [start + dt.timedelta(days=step * i) for i in range(n)]
@@ -342,7 +376,7 @@ def _refine(engine, name, t0, maximize, half_days=1.5):
     f = lambda x: sign * _elong_at(engine, name, t0 + dt.timedelta(seconds=x))  # noqa: E731
     c, d = b - g * (b - a), a + g * (b - a)
     fc, fd = f(c), f(d)
-    while b - a > 600.0:
+    while b - a > 1800.0:                 # meia hora basta para a data do evento
         if fc < fd:
             b, d, fd = d, c, fc
             c = b - g * (b - a)
@@ -448,11 +482,14 @@ def best_period(dates, alts, threshold: float = 30.0) -> tuple | None:
     return best
 
 
-def best_epoch_text(engine, name: str, start: dt.datetime) -> str:
-    """Frase de "melhor época" para a ficha e a janela de planetas."""
+def best_epoch_text(engine, name: str, start: dt.datetime, aps=None) -> str:
+    """Frase de "melhor época" para a ficha e a janela de planetas.
+
+    ``aps``: aparições já calculadas (evita refazer a busca)."""
     from .localtime import to_local
 
-    aps = apparitions(engine, name, start, 2.2 if name not in ("Urano", "Netuno") else 1.2)
+    if aps is None:
+        aps = apparitions(engine, name, start, 2.2 if name not in ("Urano", "Netuno") else 1.2)
     if name in INNER:
         els = [a for a in aps if a.kind.startswith("elong")]
         if not els:

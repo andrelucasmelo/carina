@@ -90,6 +90,48 @@ class Tonight:
     sb: float | None
 
 
+_BEST_TEXT: dict = {}
+
+
+def _planet_best(engine, name: str) -> str:
+    """Frase de melhor época do planeta (em cache por dia)."""
+    from ..core import planets as P
+
+    if name not in P.PLANETS:
+        return ""
+    when = engine.time.current_datetime()
+    key = (name, when.date(), round(engine.topos.latitude.degrees, 1))
+    if key not in _BEST_TEXT:
+        try:
+            _BEST_TEXT[key] = P.best_epoch_text(engine, name, when)
+        except Exception:
+            _BEST_TEXT[key] = ""
+    return _BEST_TEXT[key]
+
+
+def _planet_rows(engine, name: str) -> list[str]:
+    """Linhas extras da ficha de um planeta: diâmetro, fase, elongação."""
+    from ..core import planets as P
+    from ..core.formats import num
+
+    if name not in P.PLANETS:
+        return []
+    try:
+        st = P.planet_state(engine, name)
+    except Exception:
+        return []
+    rows = [_row("Diâmetro", f"{num(st.diameter)}″"),
+            _row("Elongação", f"{num(st.elongation, 0)}° "
+                              f"{'a leste' if st.evening else 'a oeste'} do Sol")]
+    if name in ("Mercúrio", "Vênus", "Marte"):
+        rows.append(_row("Fase", f"{st.illumination * 100:.0f}% · {st.phase_name}"))
+    if name == "Saturno" and st.ring_tilt is not None:
+        rows.append(_row("Anéis", f"inclinação {num(st.ring_tilt)}°"))
+    if st.retrograde:
+        rows.append(_row("Movimento", "retrógrado"))
+    return rows
+
+
 def _row(label: str, value: str) -> str:
     return (f"<tr><td style='color:{MUTED}; padding-right:10px'>{label}</td>"
             f"<td>{value}</td></tr>")
@@ -228,7 +270,9 @@ class ObjectCard(QScrollArea):
             w.show()
         for b in self.buttons.values():
             b.setEnabled(True)
-        self.buttons["details"].setEnabled(self.ref.is_fixed)
+        # corpos: "Detalhes" abre a janela da Lua ou a de planetas (v0.18)
+        self.buttons["details"].setEnabled(self.ref.is_fixed or (
+            self.ref.kind == "body" and self.ref.key != "Sol"))
         self._fill_static()
         self.refresh(force=True)
 
@@ -345,6 +389,9 @@ class ObjectCard(QScrollArea):
             vis_txt, bino = SOLAR_HINTS.get(ref.key, ("", ""))
             text = vis_txt + (f"<br><span style='color:{MUTED}'>{bino}</span>"
                               if bino else "")
+            best = _planet_best(self.ctx.engine, ref.key)
+            if best:
+                text += f"<br><b>{self.tr('Melhor época')}:</b> {best}"
         self.description.setText(text)
         self._fill_journal()
 
@@ -532,6 +579,7 @@ class ObjectCard(QScrollArea):
                 if state.angular_radius > 0:
                     rows.append(_row(self.tr("Diâmetro"),
                                      f"{math.degrees(state.angular_radius) * 120:.1f}′"))
+                rows += _planet_rows(eng, ref.key)
         return f"<table>{''.join(rows)}</table>"
 
     # -- ações -------------------------------------------------------------

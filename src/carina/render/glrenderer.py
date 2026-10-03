@@ -466,7 +466,8 @@ class GLRenderer:
     def draw_moon_sphere(self, center, radius: float, e_scr, n_scr,
                          v2b: np.ndarray, sun_body, view_body,
                          gain: float = 1.0, earthshine: float = 0.0,
-                         alpha: float = 1.0, relief: float = 1.0) -> None:
+                         alpha: float = 1.0, relief: float = 1.0,
+                         color_tex: int | None = None, normal_tex: int | None = None) -> None:
         """Desenha a Lua texturizada e sombreada.
 
         ``e_scr``/``n_scr``: direções do leste e do norte celestes na tela
@@ -474,7 +475,11 @@ class GLRenderer:
         local (a, b, c) — a para leste, b para norte, c para o observador —
         ao referencial MOON_ME.
         """
-        if not self.moon_ready:
+        # v0.18: o mesmo programa desenha os planetas (textura própria,
+        # normal plana e relevo 0)
+        color_tex = color_tex if color_tex is not None else self.moon_color_tex
+        normal_tex = normal_tex if normal_tex is not None else self.moon_normal_tex
+        if not color_tex or not normal_tex:
             return
         cx, cy = float(center[0]), float(center[1])
         e = np.asarray(e_scr, np.float64) * radius * 1.03
@@ -487,10 +492,10 @@ class GLRenderer:
         prev_unit = int(GL.glGetIntegerv(GL.GL_ACTIVE_TEXTURE))
         GL.glActiveTexture(GL.GL_TEXTURE1)
         prev1 = int(GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.moon_normal_tex)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, normal_tex)
         GL.glActiveTexture(GL.GL_TEXTURE0)
         prev0 = int(GL.glGetIntegerv(GL.GL_TEXTURE_BINDING_2D))
-        GL.glBindTexture(GL.GL_TEXTURE_2D, self.moon_color_tex)
+        GL.glBindTexture(GL.GL_TEXTURE_2D, color_tex)
         u = self.u_moon
         GL.glUseProgram(self.prog_moon)
         GL.glUniform2f(u["u_viewport"], self._w, self._h)

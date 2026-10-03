@@ -75,7 +75,10 @@ def test_card_for_star_and_body(ctx):
     card.set_selection(("body", "Saturno"))
     assert card.summary()["score"] > 0
     assert "UA" in card.position.text()
-    assert not card.buttons["details"].isEnabled()      # corpo: sem gráfico anual
+    # v0.18: em planetas, "Detalhes" abre a janela de planetas
+    assert card.buttons["details"].isEnabled()
+    assert "Anéis" in card.position.text() and "″" in card.position.text()
+    assert "Melhor época" in card.description.text()
     card.set_selection(None)
     assert card.title.text() == "Nenhum objeto"
 

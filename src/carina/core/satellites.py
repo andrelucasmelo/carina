@@ -189,6 +189,75 @@ def system_view(engine, state) -> list[MoonView]:
     return out
 
 
+def moon_states(engine, planet: str, times: list[dt.datetime]) -> dict:
+    """Estado de cada lua em muitos instantes, vetorizado.
+
+    Devolve {nome: {"transito", "ocultacao", "eclipse", "sombra": arrays
+    booleanos}}. Os testes de disco e sombra só dependem da orientação do
+    polo (o giro do planeta não importa para um elipsoide), então um único
+    polo serve para a noite inteira.
+    """
+    from .planets import series
+
+    data = series(engine, planet, times)
+    if not covers(planet, float(data["jd"][0])) or not covers(planet, float(data["jd"][-1])):
+        return {}
+    s = _system(planet)
+    req, rpol = radii_km(planet)
+    f2 = (rpol / req) ** 2
+    u = data["u"]                                  # (3, N)
+    sun = data["sun_dir"]
+    pole = data["pole"]
+    # base do plano do céu em cada instante
+    zhat = np.array([0.0, 0.0, 1.0])
+    e_t = np.cross(zhat[:, None], u, axis=0)
+    e_t /= np.linalg.norm(e_t, axis=0)
+    n_t = np.cross(u, e_t, axis=0)
+    # base do corpo (sem o giro): x no nó, z no polo
+    q = np.cross(zhat, pole)
+    q /= np.linalg.norm(q)
+    B = np.stack([q, np.cross(pole, q), pole])     # corpo <- ICRS
+    pos = moon_positions(planet, data["jd"])
+    out = {}
+    for mid, name in zip(s["ids"], s["names"]):
+        r = pos[mid] / req                         # (3, N) em raios
+        depth = np.sum(r * -u, axis=0)
+        dist = data["dist"] * AU_KM / req
+        persp = dist / (dist - depth)
+        x = np.sum(r * e_t, axis=0) * persp
+        y = np.sum(r * n_t, axis=0) * persp
+        # dentro do disco projetado: raio pela direção de visada × elipsoide
+        rb = B @ r
+        vb = B @ (-u)
+        # projeção no plano do céu, em coordenadas do corpo
+        perp = rb - np.sum(rb * vb, axis=0) * vb
+        cosb = np.sqrt(np.clip(1 - vb[2] ** 2, 0, 1))
+        flat = np.sqrt(cosb ** 2 * f2 + vb[2] ** 2)
+        # componentes no plano do céu: ao longo do polo projetado e do equador
+        pz = perp[2] / np.maximum(cosb, 1e-6)
+        pe2 = np.maximum(np.sum(perp ** 2, axis=0) - pz ** 2, 0.0)
+        inside = (pe2 + (pz / flat) ** 2) < 1.0
+        transit = inside & (depth > 0)
+        occult = inside & (depth < 0)
+        along = np.sum(r * sun, axis=0)
+        sperp = r - along * sun
+        sb = B @ sperp
+        eclipse = (along < 0) & ((sb[0] ** 2 + sb[1] ** 2 + sb[2] ** 2 / f2) < 1.0) & ~transit & ~occult
+        # sombra: reta r − k·sol cruza o elipsoide do lado visível
+        db = B @ (-sun)
+        A = db[0] ** 2 + db[1] ** 2 + db[2] ** 2 / f2
+        Bq = 2 * (rb[0] * db[0] + rb[1] * db[1] + rb[2] * db[2] / f2)
+        Cq = rb[0] ** 2 + rb[1] ** 2 + rb[2] ** 2 / f2 - 1.0
+        disc = Bq * Bq - 4 * A * Cq
+        k = (-Bq - np.sqrt(np.maximum(disc, 0))) / (2 * A)
+        hitp = rb + k * db
+        facing = np.sum(hitp * vb, axis=0) > 0
+        shadow = (along > 0) & (disc > 0) & (k > 0) & facing
+        out[name] = {"transito": transit, "ocultacao": occult, "eclipse": eclipse,
+                     "sombra": shadow, "x": x, "y": y}
+    return out
+
+
 @dataclass
 class MoonEvent:
     when_utc: dt.datetime
@@ -198,36 +267,27 @@ class MoonEvent:
 
     @property
     def text(self) -> str:
-        what = {"transito": "trânsito", "sombra": "sombra no disco",
-                "ocultacao": "ocultação", "eclipse": "eclipse"}[self.kind]
-        return f"{self.moon}: {'início' if self.start else 'fim'} do {what}" \
-            if self.kind != "sombra" else \
-            f"{self.moon}: sombra {'entra no' if self.start else 'sai do'} disco"
+        if self.kind == "sombra":
+            return f"{self.moon}: sombra {'entra no' if self.start else 'sai do'} disco"
+        what = {"transito": "do trânsito", "ocultacao": "da ocultação",
+                "eclipse": "do eclipse"}[self.kind]
+        return f"{self.moon}: {'início' if self.start else 'fim'} {what}"
 
 
 def moon_events(engine, planet: str, start: dt.datetime, end: dt.datetime,
                 step_minutes: float = 2.0) -> list[MoonEvent]:
-    """Inícios e fins de trânsitos, sombras, ocultações e eclipses."""
-    from .planets import planet_state
-
+    """Inícios e fins de trânsitos, sombras, ocultações e eclipses
+    (amostragem vetorizada; precisão de ``step_minutes``)."""
     n = int((end - start).total_seconds() / 60 / step_minutes) + 1
-    prev = None
+    times = [start + dt.timedelta(minutes=step_minutes * k) for k in range(n)]
+    states = moon_states(engine, planet, times)
     out = []
-    for k in range(n):
-        when = start + dt.timedelta(minutes=step_minutes * k)
-        st = planet_state(engine, planet, when)
-        views = system_view(engine, st)
-        cur = {}
-        for v in views:
-            cur[(v.name, "transito")] = v.status == "transito"
-            cur[(v.name, "ocultacao")] = v.status == "ocultada"
-            cur[(v.name, "eclipse")] = v.status == "eclipsada"
-            cur[(v.name, "sombra")] = v.shadow is not None
-        if prev is not None:
-            for key, on in cur.items():
-                if prev.get(key) is not None and on != prev[key]:
-                    out.append(MoonEvent(when, key[0], key[1], on))
-        prev = cur
+    for name, st in states.items():
+        for kind in ("transito", "ocultacao", "eclipse", "sombra"):
+            arr = st[kind]
+            for k in np.nonzero(arr[1:] != arr[:-1])[0]:
+                out.append(MoonEvent(times[k + 1], name, kind, bool(arr[k + 1])))
+    out.sort(key=lambda e: e.when_utc)
     return out
 
 
@@ -269,27 +329,17 @@ def grs_longitude(when: dt.datetime, override: tuple | None = None) -> float:
 def grs_transits(engine, start: dt.datetime, end: dt.datetime,
                  longitude: float) -> list[dt.datetime]:
     """Instantes em que a GMV cruza o meridiano central (CM II = longitude)."""
-    from .planets import planet_state
+    from .planets import cm_series, series
 
+    # CM II avança ~36°/h: amostras de 2 min dão ±1 min, interpoladas
+    n = int((end - start).total_seconds() / 120) + 1
+    times = [start + dt.timedelta(minutes=2 * k) for k in range(n)]
+    cm2 = cm_series("Júpiter", series(engine, "Júpiter", times), "II")
+    diff = (cm2 - longitude + 180.0) % 360.0 - 180.0
     out = []
-    step = dt.timedelta(minutes=20)
-    t = start
-    prev = None
-    while t <= end:
-        cm2 = planet_state(engine, "Júpiter", t).cm2
-        diff = (cm2 - longitude + 180.0) % 360.0 - 180.0
-        if prev is not None and prev[1] < 0 <= diff:
-            a, b = prev[0], t
-            for _ in range(20):
-                mid = a + (b - a) / 2
-                dm = (planet_state(engine, "Júpiter", mid).cm2 - longitude + 180) % 360 - 180
-                if dm < 0:
-                    a = mid
-                else:
-                    b = mid
-            out.append(a + (b - a) / 2)
-        prev = (t, diff)
-        t += step
+    for k in np.nonzero((diff[:-1] < 0) & (diff[1:] >= 0) & (diff[1:] - diff[:-1] < 90))[0]:
+        f = -diff[k] / (diff[k + 1] - diff[k])
+        out.append(times[k] + (times[k + 1] - times[k]) * float(f))
     return out
 
 
@@ -310,24 +360,24 @@ RING_FEATURES = [  # raios em km (para legendas)
 
 def next_ring_crossing(engine, start: dt.datetime, years: int = 20) -> dt.datetime | None:
     """Próxima passagem da Terra pelo plano dos anéis (B muda de sinal)."""
-    from .planets import planet_state
+    from .planets import pole_icrs, series
 
-    prev = None
-    t = start
-    step = dt.timedelta(days=15)
-    end = start + dt.timedelta(days=365.25 * years)
-    while t < end:
-        b = planet_state(engine, "Saturno", t).ring_tilt
-        if prev is not None and (prev[1] > 0) != (b > 0):
-            a, c = prev[0], t
-            for _ in range(20):
-                m = a + (c - a) / 2
-                bm = planet_state(engine, "Saturno", m).ring_tilt
-                if (bm > 0) == (prev[1] > 0):
-                    a = m
-                else:
-                    c = m
-            return a + (c - a) / 2
-        prev = (t, b)
-        t += step
-    return None
+    key = (start.date(), years, round(engine.topos.latitude.degrees, 1))
+    if key in _CROSS_CACHE:
+        return _CROSS_CACHE[key]
+    n = int(365.25 * years / 10) + 1
+    times = [start + dt.timedelta(days=10 * k) for k in range(n)]
+    data = series(engine, "Saturno", times)
+    poles = np.stack([pole_icrs("Saturno", jd) for jd in data["jd"]], axis=1)
+    b = np.sum(poles * -data["u"], axis=0)                # seno de B
+    hits = np.nonzero(np.sign(b[:-1]) != np.sign(b[1:]))[0]
+    result = None
+    if len(hits):
+        k = int(hits[0])
+        f = b[k] / (b[k] - b[k + 1])
+        result = times[k] + (times[k + 1] - times[k]) * float(f)
+    _CROSS_CACHE[key] = result
+    return result
+
+
+_CROSS_CACHE: dict = {}
