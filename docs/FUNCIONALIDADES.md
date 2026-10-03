@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.16.1 — produto em desenvolvimento.
+> Carina 0.17.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -139,9 +139,10 @@ Sol, Lua e os oito planetas, calculados com as efemérides **JPL DE440s**
 (cobertura de 1849 a 2150).
 
 - O **Sol** é desenhado como disco no tamanho angular real, com halo.
-- A **Lua** aparece com a **fase geométrica correta**: o terminadouro é
-  calculado do ângulo Sol–Lua–Terra e a orientação do limbo iluminado
-  segue o ângulo de posição real.
+- A **Lua** aparece com a **fase geométrica correta** e, ao aproximar,
+  vira um **globo com relevo** (textura LRO, relevo LOLA), com a libração
+  da noite, a luz cinérea e os nomes das formações. Detalhes em
+  [A Lua](LUA.md).
 - Os **planetas** têm magnitude calculada pelo modelo de Mallama.
 
 ### Trajetórias anuais
@@ -156,6 +157,21 @@ trechos retrógrados em tom mais fraco e os eventos anotados:
 *Ferramentas → Previsão da Lua* desenha o caminho lunar dos próximos 28
 dias, com **o disco na fase de cada dia**, a data, a porcentagem
 iluminada e as quatro fases principais destacadas.
+
+### A Lua em detalhe
+
+Janela própria do globo lunar com zoom, orientação conforme o instrumento,
+a lista das formações no terminador e as próximas noites boas para cada
+uma; **planejador de foto lunar** (fase, azimute do nascer e do ocaso,
+mosaico) e o programa **Lunar 100** com progresso pelo diário. Ver
+[A Lua](LUA.md).
+
+### Calendário do céu
+
+`Ctrl+Shift+A`: fases e eventos lunares, eclipses, planetas, encontros,
+ocultações visíveis do local, picos de meteoros (IMO), noites escuras e
+estações, com filtros, lembretes e exportação `.ics`. Ver
+[Calendário do céu](CALENDARIO.md).
 
 ### Eclipses
 
@@ -290,7 +306,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.16.0 **não há**:
+Para não criar expectativa errada, na versão 0.17.0 **não há**:
 
 - cometas e asteroides;
 - satélites artificiais (ISS, Starlink);

@@ -2111,7 +2111,10 @@ class MainWindow(QMainWindow):
                 "<br><br>Dados: HYG v4.1 (CC BY-SA), d3-celestial (BSD-3), "
                 "OpenNGC (CC BY-SA 4.0), catálogos SH2/Barnard/Melotte via "
                 "VizieR e SIMBAD (CDS), imagens DSS2 via hips2fits (CDS), "
-                "efemérides JPL DE440s.<br>"
+                "efemérides JPL DE440s e orientação da Lua (NAIF).<br>"
+                "Lua: textura LROC e relevo LOLA (NASA SVS CGI Moon Kit), nomes "
+                "da IAU/USGS (Gazetteer of Planetary Nomenclature), Lunar 100 de "
+                "Charles A. Wood; chuvas de meteoros: IMO.<br>"
                 "Textura da Via Láctea: <b>ESO/S. Brunier</b> (CC BY 4.0)."
             ).format(v=__version__),
         )

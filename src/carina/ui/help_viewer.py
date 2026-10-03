@@ -34,6 +34,8 @@ INDEX = [
     ("ATALHOS.md", "Atalhos"),
     ("FUNCIONALIDADES.md", "Funcionalidades"),
     ("PLANEJAMENTO.md", "Planejamento"),
+    ("LUA.md", "A Lua"),
+    ("CALENDARIO.md", "Calendário do céu"),
     ("DIARIO.md", "Diário e listas"),
     ("ASTROFOTOGRAFIA.md", "Astrofotografia"),
     ("IMPRESSAO.md", "Impressão e cartas"),

@@ -1,6 +1,6 @@
 # Planejamento de observação
 
-> Carina 0.16.1 — produto em desenvolvimento.
+> Carina 0.17.0 — produto em desenvolvimento.
 
 O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
 que horas?"** em todo lugar, e transforma a resposta num roteiro da noite
@@ -326,3 +326,12 @@ alcance e diz o que ficou de fora.
 
 **Ajuste o tempo por objeto ao seu ritmo real.** Se você desenha ou
 fotografa, ponha 10 minutos e aceite ver menos objetos.
+
+---
+
+## Veja também
+
+- [Calendário do céu](CALENDARIO.md) — os eventos do mês para o seu local,
+  com lembretes e exportação para a agenda.
+- [A Lua](LUA.md) — o que está no terminador hoje e o planejador de foto
+  lunar.

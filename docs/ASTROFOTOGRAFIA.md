@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.16.1 — produto em desenvolvimento.
+> Carina 0.17.0 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa:
 enquadramento, influência da Lua, rastreamento e simulação do céu real.
@@ -189,6 +189,16 @@ distinguir.
 Deixe **ambas ligadas** para planejamento realista. A refração eleva os
 astros perto do horizonte — o que muda os horários de nascer e pôr — e a
 atmosfera mostra quando o céu ainda está claro demais.
+
+---
+
+## Foto da Lua
+
+O **planejador de foto lunar** (*Planejar → Lua*) diz, noite a noite, que
+tipo de foto a fase favorece — relevo no terminador, disco inteiro ou luz
+cinérea —, o azimute do nascer e do ocaso para compor com a paisagem e
+quantos quadros de mosaico o seu telescópio e a sua câmera precisam para o
+disco inteiro. Ver [A Lua](LUA.md#planejador-de-foto-lunar).
 
 ---
 

@@ -174,6 +174,44 @@ na diagonal do sensor.
 
 ---
 
+## A Lua
+
+**Terminador**
+A linha que separa o dia da noite na Lua. Perto dele o Sol está baixo no
+céu lunar e o relevo projeta sombras longas — é onde as crateras ficam mais
+bonitas.
+
+**Colongitude**
+Um número que diz onde está o terminador da manhã: 0° perto do quarto
+crescente, 90° na cheia, 180° no minguante. Os eventos lunares, como o
+Lunar X, acontecem sempre na mesma colongitude.
+
+**Libração**
+O "balanço" aparente da Lua, que permite ver ora um pouco mais da borda
+leste, ora da oeste, ora de um polo. No total, enxergamos cerca de 59% da
+superfície.
+
+**Perigeu e apogeu**
+O ponto da órbita mais perto e o mais longe da Terra. A Lua cheia perto do
+perigeu é a **superlua**, até 14% maior que no apogeu.
+
+**Luz cinérea**
+A parte escura da Lua clareada pela luz do Sol refletida na Terra. Bem
+visível na Lua fina.
+
+**Ocultação**
+A passagem da Lua (ou de um planeta) na frente de uma estrela ou de outro
+planeta, que some de uma vez e reaparece do outro lado.
+
+**Taxa horária zenital (THZ)**
+Quantos meteoros por hora uma chuva produziria com o radiante no zênite e um
+céu perfeito. Na prática se vê menos: o número cai com o radiante baixo, a
+Lua e a poluição luminosa.
+
+**Radiante**
+O ponto do céu de onde os meteoros de uma chuva parecem sair. Dá nome à
+chuva (Perseidas, de Perseu; Geminídeas, de Gêmeos).
+
 ## Observação
 
 **Star-hopping**

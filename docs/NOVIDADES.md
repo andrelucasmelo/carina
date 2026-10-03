@@ -1,6 +1,33 @@
 # O que há de novo
 
-> Carina 0.16.1 — produto em desenvolvimento.
+> Carina 0.17.0 — produto em desenvolvimento.
+
+## 0.17 — Lua e calendário do céu
+
+**A Lua de verdade.** Ao aproximar, a Lua vira um globo com o relevo da sonda
+LRO: terminador com sombras, a libração da noite, a luz cinérea nas fases
+finas e os nomes das crateras, mares e montanhas iluminados.
+
+**A Lua em detalhe** (`Ctrl+Shift+M`). Uma janela só para ela: zoom de até
+16×, orientação conforme o instrumento (como no céu, norte para cima,
+telescópio invertido ou espelhado), a lista do que está **no terminador**
+hoje e, para cada formação, as **próximas noites boas** para vê-la.
+Veja [A Lua](LUA.md).
+
+**Planejador de foto lunar.** Noite a noite: fase, nascer e ocaso com o
+azimute, altura no escuro, o tipo de foto que a fase favorece e quantos
+quadros de mosaico o seu conjunto precisa.
+
+**Lunar 100.** Os cem alvos de Charles Wood com descrições em português e o
+progresso tirado do diário.
+
+**Calendário do céu** (`Ctrl+Shift+A`). Fases e eventos da Lua (superlua,
+Lunar X, Alça Dourada, libração favorável), eclipses, oposições e
+elongações, encontros da Lua com planetas e estrelas, **ocultações
+visíveis do seu local**, os picos de 25 chuvas de meteoros com a Lua na
+noite, noites escuras e estações. Filtros, lembretes e exportação **.ics**
+para a agenda do celular; o cartão **Hoje no céu** avisa ao abrir.
+Veja [Calendário do céu](CALENDARIO.md).
 
 ## 0.16.1 — Ajustes
 

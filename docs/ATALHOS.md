@@ -54,7 +54,9 @@ valem com a janela principal ativa.
 | Sistema Solar | Exibir previsão da Lua no céu | `Shift+M` |
 | Sistema Solar | Zona de influência da Lua (astrofoto) | `U` |
 | Planejar | Hoje à noite | `T` |
+| Planejar | Calendário do céu | `Ctrl+Shift+A` |
 | Planejar | Calendário de noites escuras | `Ctrl+Shift+N` |
+| Planejar ▸ Lua | A Lua em detalhe | `Ctrl+Shift+M` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |
 | Ajuda | Ajuda do Carina | `F1` |

@@ -11,7 +11,7 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.16.1-blue)](#estado-do-projeto)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.17.0-blue)](#estado-do-projeto)
 [![testes](https://img.shields.io/badge/testes-306%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.16.1 — **em desenvolvimento**
+> ### Versão 0.17.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -51,6 +51,8 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 🌌 | **Céu realista** | 860 mil estrelas, Via Láctea fotográfica, atmosfera, refração e simulação de poluição luminosa (Bortle 1–9) |
 | 🔭 | **Céu profundo** | 18.632 objetos de 11 catálogos, filtro de exibição por catálogo/tipo/magnitude/tamanho, nomes em português e 1.179 imagens reais do levantamento DSS embarcadas |
 | 🪐 | **Sistema Solar** | Planetas, Sol e Lua com fase geométrica; trajetórias anuais, oposições e elongações máximas |
+| 🌕 | **A Lua** | Globo com relevo, libração e nomes das formações; o que está no terminador hoje, planejador de foto lunar e Lunar 100 |
+| 📅 | **Calendário do céu** | Eventos do mês para o seu local — Lua, eclipses, planetas, ocultações, meteoros — com lembretes e exportação .ics |
 | 🌑 | **Eclipses** | Previsão de eclipses solares e lunares, com a visibilidade calculada para o seu local |
 | 🌙 | **Hoje à noite** | Em uma tecla: a noite, a Lua, as horas escuras sem ela e os melhores alvos para o seu céu, cada um com nota de 0 a 100 explicada |
 | 📋 | **Planejamento** | Roteiros com nasce/culmina/se põe e janela útil de cada alvo, linha do tempo arrastável, filtros e calendário de noites escuras |
@@ -117,6 +119,8 @@ Toda a documentação de uso está na pasta **[`docs/`](docs/)**:
 | **[Primeiros passos](docs/PRIMEIROS_PASSOS.md)** | um passeio guiado da primeira abertura até a primeira noite planejada |
 | **[Funcionalidades](docs/FUNCIONALIDADES.md)** | conhecer tudo o que o programa faz, recurso por recurso |
 | **[Interface](docs/INTERFACE.md)** | a referência completa: cada menu, botão e painel |
+| **[A Lua](docs/LUA.md)** | explorar o relevo lunar, saber o que olhar hoje e planejar a foto |
+| **[Calendário do céu](docs/CALENDARIO.md)** | não perder eclipses, chuvas de meteoros e ocultações |
 | **[Planejamento de observação](docs/PLANEJAMENTO.md)** | dominar as maratonas, os roteiros e as cartas de busca |
 | **[Observação e astrofotografia](docs/ASTROFOTOGRAFIA.md)** | enquadrar com seu equipamento, fugir da Lua e rastrear alvos |
 | **[Catálogos e dados](docs/CATALOGOS.md)** | saber de onde vêm os dados e como criar seus próprios objetos |
@@ -146,7 +150,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **306 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **336 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
   renderização;
 - **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield
@@ -157,6 +161,9 @@ conferido contra fontes independentes:
   48°, coerentes com as efemérides publicadas;
 - **alinhamento da Via Láctea** verificado estrela a estrela contra o
   catálogo — erro mediano de cerca de um pixel de textura;
+- **libração e colongitude** conferidas contra o exemplo de Meeus (erro
+  abaixo de 0,05°), o **perigeu** da superlua de 14/11/2016 e a
+  **ocultação de Antares** de 03/03/2024 (erro abaixo de dois minutos);
 - **altitudes e horários** conferidos contra varreduras finas
   independentes, com erro de 0,003°.
 
@@ -187,7 +194,11 @@ O Carina se apoia em dados públicos de astronomia, todos com atribuição:
 
 - **HYG v4.1** e **ATHYG v3.2** — catálogos estelares
 - **OpenNGC**, **VizieR** e **SIMBAD** (CDS) — objetos de céu profundo
-- **JPL DE440s** — efemérides do Sistema Solar
+- **JPL DE440s** — efemérides do Sistema Solar; **NAIF** — orientação da Lua
+- **NASA SVS CGI Moon Kit** — textura LROC e relevo LOLA da Lua (domínio público)
+- **IAU/USGS Gazetteer of Planetary Nomenclature** — nomes das formações lunares
+- **IMO** — lista de trabalho das chuvas de meteoros
+- **Lunar 100** — lista de Charles A. Wood (Sky & Telescope)
 - **ESO / S. Brunier** — panorâmica da Via Láctea (CC BY 4.0)
 - **DSS2 color via hips2fits** (CDS) — imagens dos objetos
 - **GeoNames** — base de cidades (CC BY 4.0)
