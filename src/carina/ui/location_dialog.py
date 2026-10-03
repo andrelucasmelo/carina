@@ -102,6 +102,20 @@ class LocationDialog(QDialog):
         form.addRow(self.tr("Elevação:"), row2)
         layout.addLayout(form)
 
+        # --- céu estimado (v0.19): mapa de luzes noturnas -----------------
+        from PySide6.QtWidgets import QCheckBox
+
+        self.sky_label = QLabel()
+        self.sky_label.setWordWrap(True)
+        self.sky_label.setStyleSheet("color:#8a93a5")
+        self.chk_bortle = QCheckBox()
+        layout.addWidget(self.sky_label)
+        layout.addWidget(self.chk_bortle)
+        self.lat_spin.valueChanged.connect(self._update_sky)
+        self.lon_spin.valueChanged.connect(self._update_sky)
+        self.suggested_bortle: int | None = None
+        self._update_sky()
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self
         )
@@ -148,6 +162,22 @@ class LocationDialog(QDialog):
         self.elev_spin.setValue(float(city["el"]))
         self._tz = city["tz"]
         self.tz_label.setText(city["tz"])
+
+    def _update_sky(self, *_a) -> None:
+        from ..core.lightpollution import available, suggest
+
+        if not available():
+            self.sky_label.hide()
+            self.chk_bortle.hide()
+            return
+        s = suggest(self.lat_spin.value(), self.lon_spin.value())
+        self.suggested_bortle = s.bortle
+        self.sky_label.setText(self.tr("Neste ponto: {t}.").format(t=s.text()))
+        self.chk_bortle.setText(self.tr("Usar Bortle {b} como o meu céu").format(b=s.bortle))
+
+    def bortle_choice(self) -> int | None:
+        """Bortle a aplicar, se o usuário marcou a sugestão."""
+        return self.suggested_bortle if self.chk_bortle.isChecked() else None
 
     def location(self) -> ObserverLocation:
         return ObserverLocation(

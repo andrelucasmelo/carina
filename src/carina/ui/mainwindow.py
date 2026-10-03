@@ -2025,6 +2025,9 @@ class MainWindow(QMainWindow):
         dlg = LocationDialog(self.settings.location(), self)
         if dlg.exec():
             self._apply_location(dlg.location())
+            b = dlg.bortle_choice()
+            if b is not None:
+                self._apply_bortle(b)
 
     def _apply_location(self, loc) -> None:
         """Muda o local do observador (diálogo, assistente, locais salvos)."""

@@ -66,7 +66,10 @@ def test_suggest_bortle_and_wizard(qt_app):
     assert wiz.chosen is not None and wiz.chosen["n"] == "Lisbon"
     vals = wiz.result_values()
     assert vals["location"].timezone == "Europe/Lisbon"
-    assert vals["bortle"] == suggest_bortle(wiz.chosen.get("pop"))
+    from carina.core.lightpollution import suggest
+
+    assert vals["bortle"] == suggest(wiz.chosen["lat"], wiz.chosen["lon"],
+                                     wiz.chosen.get("pop")).bortle
     assert vals["instrument"] == "binoculo"
     wiz.close()
 

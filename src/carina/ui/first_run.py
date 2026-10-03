@@ -176,12 +176,13 @@ class FirstRunWizard(QWizard):
         self.chosen = item.data(Qt.UserRole)
         self.picked.setText(self.tr("Escolhida: {c} · fuso {tz}").format(
             c=item.text(), tz=self.chosen.get("tz", "—")))
-        sug = suggest_bortle(self.chosen.get("pop"))
+        from ..core.lightpollution import suggest
+
+        s = suggest(self.chosen["lat"], self.chosen["lon"], self.chosen.get("pop"))
+        sug = s.bortle
         self.suggestion.setText(self.tr(
-            "Sugestão para {c} ({p} habitantes): Bortle {b}. Se você observa fora da "
-            "cidade, escolha um número menor.").format(
-                c=self.chosen["n"], p=f"{int(self.chosen.get('pop') or 0):,}".replace(",", "."),
-                b=sug))
+            "Sugestão para {c}: {t}. Se você observa fora do centro, escolha um "
+            "número menor.").format(c=self.chosen["n"], t=s.text()))
         self.bortle.setCurrentIndex(max(0, self.bortle.findData(sug)))
 
     def result_values(self) -> dict:
