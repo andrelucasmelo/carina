@@ -41,7 +41,8 @@ def _parse_args(argv):
         choices=["dso", "search", "eclipses", "track", "fov", "object",
                  "catalogs", "print", "night", "location", "horizon",
                  "lists", "tonight", "calendar", "chart", "help", "firstrun",
-                 "moon", "moonplan", "lunar100", "skycal", "today", "planets"],
+                 "moon", "moonplan", "lunar100", "skycal", "today", "planets",
+                 "session"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -467,6 +468,18 @@ def main(argv=None) -> int:
     elif args.dialog == "chart":
         win._open_chart_dialog()
         dialog = win._chart_dialog
+    elif args.dialog == "session":
+        win._open_session()
+        dialog = win._session_window
+        for name in (args.dialog_text or "").split(","):
+            name = name.strip()
+            if not name:
+                continue
+            row = win.dso_catalog.cx.execute(
+                "SELECT id FROM objects WHERE name = ? COLLATE NOCASE", (name,)).fetchone()
+            if row:
+                win.sky.selection = ("dso", int(row["id"]))
+                dialog.add_current()
     elif args.dialog == "planets":
         name, _, tab = (args.dialog_text or "Júpiter").partition(":")
         win._open_planets(name)

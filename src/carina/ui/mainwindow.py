@@ -442,6 +442,7 @@ class MainWindow(QMainWindow):
                   "Ctrl+Shift+A")
         self._add(m_plan, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
                   "Ctrl+Shift+N")
+        self._add(m_plan, self.tr("Sessão de astrofoto…"), self._open_session, "Ctrl+Shift+S")
         m_moon = m_plan.addMenu(self.tr("Lua"))
         self._add(m_moon, self.tr("A Lua em detalhe…"), self._open_moon_window, "Ctrl+Shift+M")
         self._add(m_moon, self.tr("Planejador de foto lunar…"), self._open_moon_planner)
@@ -749,6 +750,40 @@ class MainWindow(QMainWindow):
             if f is not None and f.lat == f.lat:
                 win.select_feature(f)
                 win.canvas.center_on(f, 3.0)
+
+    def _open_session(self) -> None:
+        """Planejar ▸ Sessão de astrofoto (v0.19)."""
+        from .session_window import SessionWindow
+
+        win = getattr(self, "_session_window", None)
+        try:
+            alive = win is not None and win.isVisible()
+        except RuntimeError:
+            alive = False
+        if not alive:
+            win = SessionWindow(
+                self.engine, self.engine.time.current_datetime(), self,
+                equipment=self.equipment(), userdata=self.userdata,
+                bortle=lambda: self.sky.bortle, horizon=lambda: self.horizon_profile,
+                current_target=self._session_target,
+                active_setup=self.settings.value("equipment/active_setup", "", str))
+            win.setAttribute(Qt.WA_DeleteOnClose, True)
+            win.gotoTarget.connect(self._goto_ident)
+            self._session_window = win
+            win.add_current()
+        win.show()
+        win.raise_()
+
+    def _session_target(self):
+        """(nome, icrs, ident, kind, tamanho′) do objeto selecionado."""
+        sel = self.sky.selection
+        if sel is None:
+            return None
+        ref = ObjectRef.resolve(sel, self.star_catalog, self.dso_catalog)
+        if ref is None or ref.icrs is None:
+            return None
+        size = (ref.data or {}).get("maj") if ref.kind == "dso" else 0.0
+        return (ref.name, ref.icrs, ref.ident, ref.kind, size or 0.0)
 
     def _open_planets(self, planet=None) -> None:
         """Sistema Solar ▸ Planetas (v0.18)."""
@@ -1058,6 +1093,7 @@ class MainWindow(QMainWindow):
             horizon=lambda: self.horizon_profile,
             min_alt=lambda: self._plan_settings().min_altitude,
             instrument=lambda: self.settings.value("card/instrument", "pequeno", str),
+            setup_shape=self._active_setup_shape,
         )
 
     def _refresh_cards(self, reselect: bool = False) -> None:
@@ -1884,7 +1920,40 @@ class MainWindow(QMainWindow):
             )
         dlg = FovDialog(self._equipment, self)
         dlg.fovChanged.connect(self.sky.set_fov_shapes)
+        dlg.setupChosen.connect(self._set_active_setup)
+        active = self.active_setup()
+        if active is not None:
+            i = dlg.cb_saved.findText(active.name)
+            if i >= 0:
+                dlg.cb_saved.setCurrentIndex(i)
+                dlg.apply_setup(active)
         dlg.exec()
+
+    # -- setup ativo (v0.19) ------------------------------------------------
+    def equipment(self):
+        from ..catalogs.equipment import EquipmentStore
+
+        if not hasattr(self, "_equipment"):
+            self._equipment = EquipmentStore(user_data_path() / "equipamentos.json")
+        return self._equipment
+
+    def active_setup(self):
+        from ..catalogs.equipment import load_setup
+
+        name = self.settings.value("equipment/active_setup", "", str)
+        return load_setup(name, self.userdata) if name else None
+
+    def _set_active_setup(self, name: str) -> None:
+        self.settings.set_value("equipment/active_setup", name)
+        self._refresh_cards(reselect=True)
+
+    def _active_setup_shape(self):
+        """(nome, campo da câmera) do setup ativo, para a ficha."""
+        s = self.active_setup()
+        if s is None:
+            return None
+        shape = s.camera_shape(self.equipment())
+        return (s.name, shape) if shape is not None else None
 
     def _open_eclipses(self) -> None:
         from .eclipse_dialog import EclipseDialog

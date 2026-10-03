@@ -134,6 +134,7 @@ class FovDialog(QDialog):
     A segunda aba gerencia o acervo de equipamentos do usuário."""
 
     fovChanged = Signal(list, float, bool)   # shapes, ângulo, seguir seleção
+    setupChosen = Signal(str)                # setup salvo escolhido (vira o ativo)
 
     def __init__(self, store: EquipmentStore, parent=None) -> None:
         super().__init__(parent)
@@ -159,12 +160,112 @@ class FovDialog(QDialog):
         layout.addLayout(row)
 
         self._refresh_combos()
+        self._refresh_saved()
+        self._recompute()
+
+    # -- setups salvos (v0.19) ---------------------------------------------
+    def current_setup(self, name: str = ""):
+        from ..catalogs.equipment import Setup
+
+        return Setup(
+            name=name or self.cb_saved.currentText(),
+            telescope=self.cb_scope.currentText(),
+            camera=self.cb_camera.currentText() if self.chk_camera.isChecked() else "",
+            eyepiece=self.cb_eyepiece.currentText() if self.chk_eyepiece.isChecked() else "",
+            accessory=self.cb_accessory.currentText(),
+            mount=self.cb_mount.currentText(),
+            rotation_deg=float(self.slider_angle.value()),
+            mosaic_cols=self.sp_cols.value(), mosaic_rows=self.sp_rows.value(),
+            overlap=self.sp_overlap.value() / 100.0,
+            train=self.cb_train.currentData() or "direta")
+
+    def _refresh_saved(self) -> None:
+        from ..catalogs.equipment import setup_names
+
+        cur = self.cb_saved.currentText()
+        self.cb_saved.blockSignals(True)
+        self.cb_saved.clear()
+        self.cb_saved.addItem(self.tr("(setup atual, sem nome)"), "")
+        for n in setup_names():
+            self.cb_saved.addItem(n, n)
+        i = self.cb_saved.findText(cur)
+        self.cb_saved.setCurrentIndex(max(0, i))
+        self.cb_saved.blockSignals(False)
+
+    def _save_setup(self) -> None:
+        from PySide6.QtWidgets import QInputDialog
+
+        from ..catalogs.equipment import save_setup
+
+        name, ok = QInputDialog.getText(self, self.tr("Salvar setup"), self.tr("Nome do setup:"),
+                                        text=self.cb_saved.currentData() or "")
+        if not ok or not name.strip():
+            return
+        save_setup(self.current_setup(name.strip()))
+        self._refresh_saved()
+        self.cb_saved.setCurrentIndex(self.cb_saved.findText(name.strip()))
+        self.setupChosen.emit(name.strip())
+
+    def _delete_setup(self) -> None:
+        from ..catalogs.equipment import delete_setup
+
+        name = self.cb_saved.currentData()
+        if name:
+            delete_setup(name)
+            self._refresh_saved()
+
+    def _load_setup(self, *_a) -> None:
+        from ..catalogs.equipment import load_setup
+
+        name = self.cb_saved.currentData()
+        if not name:
+            return
+        self.apply_setup(load_setup(name))
+        self.setupChosen.emit(name)
+
+    def apply_setup(self, s) -> None:
+        if s is None:
+            return
+        widgets = (self.cb_scope, self.cb_camera, self.cb_eyepiece, self.cb_accessory,
+                   self.cb_mount, self.cb_train, self.sp_cols, self.sp_rows,
+                   self.sp_overlap, self.slider_angle, self.chk_camera, self.chk_eyepiece)
+        for w in widgets:
+            w.blockSignals(True)
+        for cb, value in ((self.cb_scope, s.telescope), (self.cb_camera, s.camera),
+                          (self.cb_eyepiece, s.eyepiece), (self.cb_accessory, s.accessory),
+                          (self.cb_mount, s.mount)):
+            i = cb.findText(value)
+            if i >= 0:
+                cb.setCurrentIndex(i)
+        self.chk_camera.setChecked(bool(s.camera))
+        self.chk_eyepiece.setChecked(bool(s.eyepiece))
+        self.cb_train.setCurrentIndex(max(0, self.cb_train.findData(s.train)))
+        self.sp_cols.setValue(s.mosaic_cols)
+        self.sp_rows.setValue(s.mosaic_rows)
+        self.sp_overlap.setValue(int(round(s.overlap * 100)))
+        self.slider_angle.setValue(int(s.rotation_deg))
+        for w in widgets:
+            w.blockSignals(False)
         self._recompute()
 
     # ------------------------------------------------------------------
     def _build_fov_tab(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
+
+        saved = QGroupBox(self.tr("Setups salvos"))
+        srow = QHBoxLayout(saved)
+        self.cb_saved = QComboBox()
+        self.cb_saved.setMinimumWidth(220)
+        self.cb_saved.activated.connect(self._load_setup)
+        btn_save = QPushButton(self.tr("Salvar como…"))
+        btn_save.clicked.connect(self._save_setup)
+        btn_del = QPushButton(self.tr("Excluir"))
+        btn_del.clicked.connect(self._delete_setup)
+        srow.addWidget(self.cb_saved, 1)
+        srow.addWidget(btn_save)
+        srow.addWidget(btn_del)
+        layout.addWidget(saved)
 
         setup = QGroupBox(self.tr("Setup"))
         form = QFormLayout(setup)
@@ -187,6 +288,35 @@ class FovDialog(QDialog):
         form.addRow(self.chk_camera, self.cb_camera)
         form.addRow(self.chk_eyepiece, self.cb_eyepiece)
         form.addRow(self.tr("Montagem:"), self.cb_mount)
+        self.cb_train = QComboBox()
+        from ..catalogs.equipment import TRAIN_LABEL
+
+        for key, label in TRAIN_LABEL.items():
+            self.cb_train.addItem(label, key)
+        self.cb_train.currentIndexChanged.connect(self._recompute)
+        form.addRow(self.tr("Imagem na ocular:"), self.cb_train)
+        from PySide6.QtWidgets import QSpinBox
+
+        mrow = QHBoxLayout()
+        self.sp_cols = QSpinBox()
+        self.sp_rows = QSpinBox()
+        for sp in (self.sp_cols, self.sp_rows):
+            sp.setRange(1, 8)
+            sp.valueChanged.connect(self._recompute)
+        self.sp_overlap = QSpinBox()
+        self.sp_overlap.setRange(0, 50)
+        self.sp_overlap.setValue(15)
+        self.sp_overlap.setSuffix(" %")
+        self.sp_overlap.valueChanged.connect(self._recompute)
+        mrow.addWidget(self.sp_cols)
+        mrow.addWidget(QLabel("×"))
+        mrow.addWidget(self.sp_rows)
+        mrow.addWidget(QLabel(self.tr("sobreposição")))
+        mrow.addWidget(self.sp_overlap)
+        mrow.addStretch(1)
+        holder_m = QWidget()
+        holder_m.setLayout(mrow)
+        form.addRow(self.tr("Mosaico (câmera):"), holder_m)
         layout.addWidget(setup)
 
         opts = QGroupBox(self.tr("Exibição"))
@@ -331,18 +461,22 @@ class FovDialog(QDialog):
         self.lbl_angle.setText(f"{self.slider_angle.value()}°")
         scope = self.store.find("telescopes", self.cb_scope.currentText())
         accessory = self.store.find("accessories", self.cb_accessory.currentText())
-        shapes = []
         blocks = []
-        if scope is not None:
-            if self.chk_camera.isChecked():
-                cam = self.store.find("cameras", self.cb_camera.currentText())
-                if cam is not None:
-                    shapes.append(compute_camera_fov(scope, cam, accessory))
-            if self.chk_eyepiece.isChecked():
-                eye = self.store.find("eyepieces", self.cb_eyepiece.currentText())
-                if eye is not None:
-                    shapes.append(compute_eyepiece_fov(scope, eye, accessory))
+        shapes = self.current_setup().shapes(self.store) if scope is not None else []
+        cols, rows = self.sp_cols.value(), self.sp_rows.value()
+        if cols * rows > 1 and shapes and shapes[0].kind == "rect":
+            from ..catalogs.equipment import mosaic_extent
+
+            base = self.current_setup().camera_shape(self.store)
+            w, h = mosaic_extent(base, cols, rows, self.sp_overlap.value() / 100.0)
+            import math as _m
+
+            blocks.append(f"<p><b>Mosaico {cols} × {rows}</b>: cobre "
+                          f"{_m.degrees(w):.2f}° × {_m.degrees(h):.2f}° "
+                          f"({cols * rows} painéis)</p>")
         for shape in shapes:
+            if not shape.details:
+                continue
             rows = "".join(
                 f"<tr><td style='color:#8a93a5;padding-right:8px'>{k}</td>"
                 f"<td>{v}</td></tr>"

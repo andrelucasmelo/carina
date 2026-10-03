@@ -77,6 +77,7 @@ class CardContext:
     horizon: Callable[[], object] = lambda: None
     min_alt: Callable[[], float] = lambda: 20.0
     instrument: Callable[[], str] = lambda: "pequeno"
+    setup_shape: Callable[[], object] = lambda: None      # (nome, FovShape) do setup ativo
 
 
 @dataclass
@@ -369,6 +370,9 @@ class ObjectCard(QScrollArea):
                     f"{BINOCULAR_HINTS.get(klass, BINOCULAR_HINTS['OTHER'])}</span>")
             if ref.data.get("notes"):
                 text += f"<br><i>{ref.data['notes']}</i>"
+            fit_txt = self._fit_text(maj, mnr)
+            if fit_txt:
+                text += f"<br>{fit_txt}"
         elif ref.kind == "star":
             st = self.ctx.stars
             i = ref.key
@@ -394,6 +398,27 @@ class ObjectCard(QScrollArea):
                 text += f"<br><b>{self.tr('Melhor época')}:</b> {best}"
         self.description.setText(text)
         self._fill_journal()
+
+    def _fit_text(self, maj, mnr) -> str:
+        """'Cabe no meu campo?' com o setup ativo (v0.19)."""
+        if not maj:
+            return ""
+        try:
+            got = self.ctx.setup_shape()
+        except Exception:
+            got = None
+        if not got:
+            return ""
+        from ..catalogs.equipment import fit_in_field
+
+        name, shape = got
+        r = fit_in_field(float(maj), float(mnr) if mnr else None, shape)
+        if r["fits"]:
+            return self.tr("<b>No setup {n}:</b> cabe no quadro (ocupa {p}% da área).").format(
+                n=name, p=f"{r['fill'] * 100:.0f}")
+        c, rr = r["mosaic"]
+        return self.tr("<b>No setup {n}:</b> não cabe — mosaico de {c} × {r} painéis.").format(
+            n=name, c=c, r=rr)
 
     def _fill_journal(self) -> None:
         ud = self.ctx.userdata

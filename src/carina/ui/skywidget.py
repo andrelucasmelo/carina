@@ -1427,9 +1427,13 @@ class SkyWidget(QOpenGLWidget):
             (0.35, 0.95, 0.65, 0.95), (0.95, 0.75, 0.35, 0.95),
             (0.75, 0.55, 0.95, 0.95),
         ]
+        self._fov_marks = []
         for i, shape in enumerate(self.fov_shapes):
-            color = palette[i % len(palette)]
+            mosaic = getattr(shape, "offset", (0.0, 0.0)) != (0.0, 0.0)
+            color = palette[0] if mosaic else palette[i % len(palette)]
             if shape.kind == "circle":
+                if getattr(shape, "orientation", ""):
+                    self._fov_orientation_marks(u, e1, e2, shape)
                 ang = np.linspace(0.0, 2.0 * math.pi, 145)
                 a = shape.width / 2.0
                 pts = (
@@ -1450,7 +1454,7 @@ class SkyWidget(QOpenGLWidget):
                              t0[1] + (t1[1] - t0[1]) * f)
                         )
                 edge.append(edge[0])
-                arr = np.asarray(edge)
+                arr = np.asarray(edge) + np.asarray(getattr(shape, "offset", (0.0, 0.0)))
                 # gnomônica local: tan dos ângulos no plano tangente
                 pts = (
                     u[np.newaxis, :]
@@ -2669,8 +2673,34 @@ class SkyWidget(QOpenGLWidget):
         self.update()
 
     # ------------------------------------------------------------------
+    def _fov_orientation_marks(self, u, e1, e2, shape) -> None:
+        """Onde o norte e o leste aparecem NA OCULAR (trem óptico)."""
+        m = self._frame_m.astype(np.float64)
+        pole_h = m @ np.array([0.0, 0.0, 1.0])
+        n_t = pole_h - np.dot(pole_h, u) * u
+        if np.linalg.norm(n_t) < 1e-9:
+            return
+        n_t /= np.linalg.norm(n_t)
+        e_t = np.cross(pole_h, u)          # leste celeste (mesma regra do resto do mapa)
+        e_t /= max(np.linalg.norm(e_t), 1e-12)
+        if shape.orientation == "invertida":
+            n_t, e_t = -n_t, -e_t
+        elif shape.orientation == "espelhada":
+            e_t = -e_t
+        a = shape.width / 2.0 * 0.82
+        for label, d in (("N", n_t), ("L", e_t)):
+            p = math.cos(a) * u + math.sin(a) * d
+            x, y, vis = self.camera.project(p[np.newaxis, :], margin=64.0)
+            if vis[0]:
+                self._fov_marks.append((label, float(x[0]), float(y[0])))
+
     def _draw_fov_labels(self, painter: QPainter, dpr: float) -> None:
         """Legenda dos campos de visão ativos (canto inferior esquerdo)."""
+        if getattr(self, "_fov_marks", None):
+            painter.setFont(self._lf(9, QFont.Bold))
+            painter.setPen(QColor(255, 200, 120))
+            for label, x, y in self._fov_marks:
+                painter.drawText(int(x / dpr) - 4, int(y / dpr) + 5, label)
         if not self.fov_shapes:
             return
         painter.setFont(QFont("Segoe UI", 8, QFont.DemiBold))
