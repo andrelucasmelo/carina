@@ -1,19 +1,19 @@
 # Observação e astrofotografia
 
-> Carina 0.18.0 — produto em desenvolvimento.
+> Carina 0.19.0 — produto em desenvolvimento.
 
-As ferramentas para quem observa com instrumento e para quem fotografa:
-enquadramento, influência da Lua, rastreamento e simulação do céu real.
+As ferramentas para quem observa com instrumento e para quem fotografa: o
+equipamento e o campo, a sessão da noite, a exposição, as horas de
+integração, a influência da Lua e o céu real do seu local.
 
 ---
 
-## Simulador de enquadramento
+## Equipamento e campo de visão
 
-`Ctrl+K` ou o botão de campo de visão na barra lateral.
+`Ctrl+K` ou *Planejar → Campo de visão*.
 
 Combine **telescópio + câmera** (ou **ocular**) + **acessório** e o campo
-resultante é desenhado sobre o céu, no lugar e no tamanho corretos — do
-mesmo modo que o Aladin Lite faz.
+resultante é desenhado sobre o céu, no lugar e no tamanho corretos.
 
 ### O acervo de fábrica
 
@@ -29,63 +29,147 @@ São 67 equipamentos prontos:
 | **Acessórios** | Barlows 1,5× a 4×, redutores 0,5× a 0,8×, flattener, **rotacionador de campo** |
 | **Montagens** | EQ3, EQ5/HEQ5, EQ6-R, ZWO AM5, iOptron CEM40, Star Adventurer, AZ-GTi, Dobson |
 
-Você pode acrescentar os seus na aba de gerenciamento; eles ficam
-guardados no seu perfil. Ao atualizar o programa, equipamentos novos do
-acervo padrão são acrescentados **sem apagar nem duplicar** os seus.
+Acrescente os seus na aba **Equipamentos**; ao atualizar o programa, os
+itens novos do acervo de fábrica entram **sem apagar nem duplicar** os seus.
+
+### Setups salvos
+
+Monte o conjunto e clique em **Salvar como…**: "Seestar no quintal",
+"80ED + 533 no sítio". O setup escolhido vira o **setup ativo** — é ele que
+a ficha usa para dizer se o objeto cabe no campo e que a sessão de
+astrofoto usa para a exposição.
+
+### Mosaico
+
+Em **Mosaico (câmera)**, escolha colunas × linhas e a sobreposição: os
+painéis aparecem no céu, e a ficha técnica diz a área total coberta. É o
+jeito de planejar M 31 num Seestar ou a Grande Nuvem de Magalhães numa lente
+de 200 mm.
+
+### Cabe no meu campo?
+
+Com um setup ativo, a ficha de cada objeto de céu profundo responde: *"No
+setup Quintal: cabe no quadro (ocupa 23% da área)"* ou *"não cabe — mosaico
+de 2 × 2 painéis"*.
 
 ### A ficha técnica
-
-Escolhido o conjunto, o programa calcula:
 
 **Com câmera** (astrofotografia):
 
 - **campo em graus** — `2·atan(sensor / 2f)`;
 - **focal efetiva** e razão focal, já com o acessório;
 - **escala de placa** em segundos de arco por pixel;
-- **amostragem** — se está *subamostrado*, *adequado* ou
-  *superamostrado*. É o número que diz se o conjunto resolve o seeing
-  típico (~2″) ou desperdiça pixels.
+- **amostragem** — *subamostrado*, *adequado* ou *superamostrado* para o
+  seeing típico (~2″).
 
 **Com ocular** (visual):
 
-- **ampliação** — focal do telescópio dividida pela da ocular;
-- **campo real** — campo aparente dividido pela ampliação;
-- **pupila de saída** — abaixo de 0,5 mm a imagem fica escura demais;
-  acima de 7 mm você desperdiça abertura;
-- **magnitude limite estimada** para a abertura.
+- **ampliação**, **campo real**, **pupila de saída** (entre 0,5 e 7 mm) e
+  **magnitude limite estimada**;
+- **imagem na ocular**: como no céu, girada 180° (refletor ou SCT sem
+  diagonal) ou espelhada (refrator ou SCT com diagonal). O círculo no céu
+  ganha as marcas **N** e **L** onde o norte e o leste aparecem *na ocular*
+  — o que poupa muita confusão ao procurar um objeto.
 
 ### O rotacionador de campo
 
-O controle **Rotação do campo (rotacionador)** gira o retângulo do sensor
-de 0° a 359°, para você planejar o enquadramento de um alvo alongado —
-uma galáxia de perfil, o Véu, a Nebulosa da Chama.
+O controle **Rotação do campo** gira o retângulo do sensor de 0° a 359°,
+para enquadrar um alvo alongado — uma galáxia de perfil, o Véu, a Chama.
 
-> Em montagens **altazimutais** há rotação de campo natural em exposições
-> longas; o programa avisa disso na ficha. Em equatoriais, o
-> enquadramento se mantém.
+> Em montagens **altazimutais** há rotação de campo em exposições longas;
+> a ficha avisa. Em equatoriais, o enquadramento se mantém.
 
-### Exemplo verificado
-
-Seestar S50 (50 mm de abertura, 250 mm de focal) com o sensor IMX462:
+**Exemplo verificado:** Seestar S50 (250 mm de focal) com o sensor IMX462 dá
 **1,28° × 0,72°** — exatamente o campo divulgado pelo fabricante.
+
+---
+
+## Sessão de astrofoto
+
+*Planejar → Sessão de astrofoto…* (`Ctrl+Shift+S`).
+
+<div align="center">
+<img src="imagens/sessao-astrofoto.png" alt="Sessão de astrofoto" width="95%">
+</div>
+
+Diferente do roteiro visual (minutos por objeto), aqui cada alvo recebe
+**horas de integração** na noite escura. Acrescente os alvos (o objeto
+selecionado no mapa ou uma das suas listas), escolha o **setup** e o Carina
+divide a noite:
+
+- cada alvo fica com uma **cota** (partes iguais, ou as horas que você
+  pedir) e a **prioridade** desempata;
+- a montagem fica num alvo até a cota acabar ou ele deixar de ser
+  utilizável; o próximo é o mais alto, preferindo quem vai se pôr primeiro;
+- blocos menores que 30 minutos não valem a pena e viram folga.
+
+E respeita o que a montagem permite:
+
+| Montagem | Regra |
+|---|---|
+| **Equatorial alemã** | Nenhum bloco atravessa o **meridiano**. O bloco termina antes, e a agenda marca **↺ virar a montagem** (*meridian flip*), com uma folga configurável |
+| **Altazimutal** (Seestar, Dobson motorizado) | A agenda evita a **zona do zênite** (acima de 80°, ajustável), onde a rotação de campo dispara |
+
+A linha do tempo mostra a altura de cada alvo, os blocos em cores, o
+meridiano de cada um e a zona do zênite. **Copiar agenda** leva a agenda
+como texto; ela também vai para o [celular](CELULAR.md).
+
+### Exposição sugerida
+
+Com um setup que tenha câmera, a sessão sugere a **duração das subs**: longa
+o bastante para o ruído do fundo de céu cobrir o ruído de leitura da câmera,
+calculado com a abertura, a escala de placa, a eficiência da câmera e o
+**brilho do céu do seu Bortle**. Em montagem altazimutal o limite é de 30 s
+(rotação de campo); em focal longa, 5 min (guiagem). Bortle 8 pede subs
+bem mais curtas que Bortle 3 — e, abaixo de 5 s, o programa sugere um filtro.
+
+> É uma ordem de grandeza para começar: faça uma sub de teste e confira o
+> histograma — o pico do fundo deve sair da borda esquerda.
+
+### Quantas noites?
+
+Defina a **meta de integração** por alvo (10 h, por exemplo): para cada um,
+o Carina soma as horas úteis das próximas noites — já descontando a Lua e
+dividindo a noite entre os alvos — e diz quantas noites corridas são
+necessárias.
+
+### Calendário de imageabilidade
+
+Embaixo da linha do tempo, o gráfico do alvo selecionado: **horas úteis por
+noite ao longo do ano** (acima da altura mínima, no escuro, longe da Lua
+cheia e fora do horizonte do quintal). Os três melhores meses vêm no título.
+M 42, do Rio, rende muito mais em dezembro do que em junho.
+
+---
+
+## Minha foto no mapa
+
+*Arquivo → Minha foto no mapa…*
+
+Sobreponha uma foto sua ao céu do Carina:
+
+1. **Abrir foto…**;
+2. clique numa estrela da foto e escolha o nome dela (ou **Usar a estrela
+   selecionada no mapa**);
+3. faça o mesmo com uma segunda estrela, longe da primeira;
+4. **Alinhar e mostrar no céu**.
+
+A foto aparece no lugar, na escala e na rotação certos, com **opacidade**
+ajustável; a janela informa a escala (″/pixel) e a orientação da foto. Se a
+foto foi feita por uma diagonal (imagem espelhada), marque **Foto
+espelhada**. A foto alinhada volta na próxima vez que você abrir o programa.
+
+Bom para conferir um enquadramento, identificar o que saiu no canto da foto
+ou comparar a sua imagem com o mapa.
 
 ---
 
 ## Zona de influência da Lua
 
-Tecla `U`.
-
-Desenha dois anéis em torno da Lua:
-
-- **interno** — a zona crítica, onde o brilho lunar realmente estraga a
-  foto;
-- **externo** — a zona de cautela.
-
-O raio **cresce com a fase**: de cerca de 10° numa Lua fina a 50° na
-cheia. Uma Lua cheia lava o céu a dezenas de graus de distância.
-
-Use junto com o planejamento: os objetos dentro da zona aparecem
-**marcados em laranja** nos roteiros.
+Tecla `U`. Dois anéis em torno da Lua — **interno**, onde o brilho lunar
+estraga a foto, e **externo**, de cautela. O raio cresce com a fase: de
+cerca de 10° numa Lua fina a 50° na cheia. A sessão de astrofoto e o
+calendário de imageabilidade já levam a Lua em conta.
 
 ---
 
@@ -97,19 +181,13 @@ Use junto com o planejamento: os objetos dentro da zona aparecem
 <img src="imagens/rastreamento.png" alt="Rastreamento noturno" width="80%">
 </div>
 
-Uma **carta polar do céu**: o zênite no centro, o horizonte na borda, os
-pontos cardeais em volta. A trajetória do objeto durante a noite é
-desenhada com informação em cada traço:
-
-### O que a linha conta
+Uma **carta polar do céu** com a trajetória do objeto na noite:
 
 | Estilo | Significado |
 |---|---|
-| **Pontilhado** | Crepúsculo civil — céu ainda claro |
+| **Pontilhado** | Crepúsculo civil |
 | **Tracejado** | Crepúsculo náutico |
-| **Contínuo** | Noite astronômica — céu escuro |
-
-E as **cores** dizem a qualidade da posição:
+| **Contínuo** | Noite astronômica |
 
 | Cor | Situação |
 |---|---|
@@ -117,99 +195,56 @@ E as **cores** dizem a qualidade da posição:
 | Azul | Afetado pela Lua |
 | Amarelo | Abaixo de 45° |
 | Laranja escuro | Abaixo de 30° |
-| Vermelho | Abaixo de 20° — massa de ar alta demais |
+| Vermelho | Abaixo de 20° |
 
-Os limiares e todas as cores são configuráveis.
-
-### Marcadores de hora
-
-Pontos ao longo da trajetória a cada 30 minutos, com o **horário
-rotulado** a cada hora ("19h", "20h"…). Eles caem em minutos redondos —
-18:00, 18:30, 19:00 — para você conferir contra o relógio no campo. Os
-horários saem em **negrito com contorno**, afastados da linha, para não se
-confundirem com o traçado; quando a trajetória é curta e apertada, uma
-linha guia liga o horário ao ponto.
-
-A janela abre com a **altura toda da tela** e a vista do céu (leste à
-esquerda), fonte 1,4× e a legenda embaixo. Tudo o que você mudar em
-**Configurações** fica salvo e vale para as próximas janelas.
-
-### Configurações
-
-Menu **Configurações** da própria janela:
-
-- **cores** de cada situação e os **limiares** de altitude;
-- **grade**: linhas de altitude e azimute, com o passo, e os cardeais;
-- **marcadores** a cada 15, 30 ou 60 minutos; **horários** a cada 30, 60
-  ou 120;
-- **orientação**: bússola (leste à direita) ou vista do céu (leste à
-  esquerda, como um planisfério erguido sobre a cabeça);
-- **tema** claro ou escuro, e exibição do ano nas datas;
-- **tamanho da fonte** — de 0,6× a 2,5×, para leitura no escuro ou para
-  impressão em cartaz;
-- **legenda**: exibir ou ocultar, e posicionar abaixo, acima, à esquerda
-  ou à direita da carta.
-
-### Exportação
-
-*Arquivo → Exportar* em **PNG**, **JPG**, **PDF** ou **SVG**. A imagem
-sai **quadrada** — a carta é redonda, e faixas laterais vazias seriam
-desperdício. O PDF sai em retrato, com a carta centrada na página.
-
-O rodapé traz o resumo: horário de visibilidade, altitude máxima e
-quando ela ocorre, fase da Lua e os limites da noite astronômica.
+Pontos a cada 30 minutos e o horário em cada hora cheia, em negrito com
+contorno, afastado da linha. A janela abre com a altura da tela, na vista do
+céu, e tudo o que você muda em **Configurações** (cores, limiares, grade,
+marcadores, orientação, tema, fonte, legenda) fica salvo.
+*Arquivo → Exportar* em PNG, JPG, PDF ou SVG.
 
 ---
 
-## Simulando o seu céu
+## O céu do seu local
+
+### Bortle automático
+
+Ao escolher a cidade (no assistente de primeiro uso ou em *Local →
+Localização*), o Carina mostra o **brilho estimado do céu** naquele ponto,
+em mag/arcsec² — a escala dos medidores SQM — e a classe de Bortle
+correspondente, com a opção de usá-la.
+
+A estimativa vem do mapa de luzes noturnas da NASA (Black Marble 2016,
+satélite VIIRS) com um modelo de espalhamento da luz pela atmosfera e
+calibração em locais conhecidos. O erro típico é de meia classe a uma
+classe: o seu quintal depende dos postes da rua, das árvores e da direção da
+cidade mais próxima, então a escolha final continua sendo sua.
 
 ### Poluição luminosa
 
-*Exibir → Poluição luminosa (Bortle)*. Antes de planejar uma noite,
-ajuste para a sua realidade — o programa passa a mostrar **o que você
-vai realmente enxergar**, e não um céu ideal que não existe no seu
-quintal.
-
-Isso muda os roteiros também: objetos que somem no seu Bortle continuam
-listados (a lista é do céu, não do seu olho), mas você vê na tela que
-não vale a pena tentar sem instrumento.
+*Exibir → Céu → Poluição luminosa (Bortle)*. Com o Bortle certo o programa
+mostra **o que você vai realmente enxergar**, e a nota de cada objeto e a
+exposição sugerida passam a usar esse céu.
 
 ### Magnitude limite manual
 
-*Exibir → Magnitude máxima das estrelas* impõe um **teto** ao filtro
-automático. Serve para simular um instrumento: um binóculo 10×50 alcança
-cerca de magnitude 9,5; um telescópio de 8 polegadas, perto de 13.
-
-Lembre que é um teto, não um piso: em campo aberto o programa continua
-mostrando menos estrelas que o teto, porque é isso que a escala permite
-distinguir.
+*Exibir → Céu → Magnitude máxima das estrelas* impõe um **teto** ao filtro
+automático — para simular um instrumento: um binóculo 10×50 alcança cerca de
+magnitude 9,5; um telescópio de 8 polegadas, perto de 13.
 
 ### Refração e atmosfera
 
-Deixe **ambas ligadas** para planejamento realista. A refração eleva os
-astros perto do horizonte — o que muda os horários de nascer e pôr — e a
-atmosfera mostra quando o céu ainda está claro demais.
+Deixe **ambas ligadas** para planejar: a refração eleva os astros perto do
+horizonte (muda nascer e ocaso) e a atmosfera mostra quando o céu ainda está
+claro demais. Sem atmosfera, o céu é desenhado como Bortle 1.
 
 ---
 
-## Foto da Lua
+## Fluxo sugerido para uma noite de astrofoto
 
-O **planejador de foto lunar** (*Planejar → Lua*) diz, noite a noite, que
-tipo de foto a fase favorece — relevo no terminador, disco inteiro ou luz
-cinérea —, o azimute do nascer e do ocaso para compor com a paisagem e
-quantos quadros de mosaico o seu telescópio e a sua câmera precisam para o
-disco inteiro. Ver [A Lua](LUA.md#planejador-de-foto-lunar).
-
----
-
-## Fluxo sugerido para uma sessão de astrofoto
-
-1. **Localização** (`Ctrl+L`) e **Bortle** conferidos.
-2. **Previsão da Lua** (*Ferramentas → Previsão da Lua*): veja em que
-   noites do mês ela atrapalha menos.
-3. Escolha a data e ative a **zona de influência da Lua** (`U`).
-4. **Rastreie o alvo** (`Ctrl+R`): confirme que ele sobe alto o
-   suficiente e por quantas horas.
-5. **Enquadre** (`Ctrl+K`): monte o conjunto e gire o rotacionador até a
-   composição desejada.
-6. **Exporte** a carta de rastreamento e a vista enquadrada para levar.
+1. **Local** (`Ctrl+L`) e **Bortle** conferidos — use a estimativa do mapa.
+2. **Setup** salvo em *Planejar → Campo de visão*, com o mosaico, se for o caso.
+3. **Calendário do céu** e **noites escuras**: escolha a noite sem Lua.
+4. **Sessão de astrofoto** (`Ctrl+Shift+S`): alvos, agenda, flip, subs.
+5. **Companheiro no celular**: leve a agenda para o lado do telescópio.
+6. Depois, **Minha foto no mapa** para conferir o enquadramento obtido.

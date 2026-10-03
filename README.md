@@ -11,7 +11,7 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.18.0-blue)](#estado-do-projeto)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.19.0-blue)](#estado-do-projeto)
 [![testes](https://img.shields.io/badge/testes-306%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.18.0 — **em desenvolvimento**
+> ### Versão 0.19.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -59,7 +59,9 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 🏠 | **Horizonte do quintal** | Desenhe a silhueta de prédios e árvores; o céu, as notas e os roteiros passam a respeitá-la |
 | 📓 | **Diário e listas** | Listas de alvos com a nota da noite e diário de observação com condições, guardados no seu computador |
 | 🗺️ | **Cartas de campo** | PDF com a carta geral da noite, checklist e uma carta de localização por objeto, em tema claro, escuro ou vermelho |
-| 📷 | **Astrofotografia** | Simulador de enquadramento (inclusive Seestar S50/S30), zona de influência da Lua e rastreamento noturno |
+| 📷 | **Astrofotografia** | Sessão da noite com blocos de integração (meridiano e zênite), exposição sugerida, imageabilidade no ano, setups salvos, mosaico, "cabe no meu campo?" e minha foto no mapa |
+| 📱 | **Companheiro no celular** | O roteiro em vermelho no celular pelo QR code; o "observado" vai para o diário |
+| 🛰️ | **ISS e satélites** | Passagens visíveis a partir de elementos orbitais importados, com trilha no céu |
 | 🖨️ | **Cartas celestes** | Gerador de cartas com moldura, legenda, escala e bússola, em papel, escuro ou vermelho; perfis e atlas multipágina; anotações à mão livre |
 | 🔴 | **No campo** | Modo noturno vermelho, tela cheia, modo observação com o próximo alvo e cronômetro, linha do tempo da noite no rodapé |
 
@@ -119,6 +121,7 @@ Toda a documentação de uso está na pasta **[`docs/`](docs/)**:
 | **[Primeiros passos](docs/PRIMEIROS_PASSOS.md)** | um passeio guiado da primeira abertura até a primeira noite planejada |
 | **[Funcionalidades](docs/FUNCIONALIDADES.md)** | conhecer tudo o que o programa faz, recurso por recurso |
 | **[Interface](docs/INTERFACE.md)** | a referência completa: cada menu, botão e painel |
+| **[Companheiro no celular](docs/CELULAR.md)** | levar o roteiro para o lado do telescópio |
 | **[Os planetas](docs/PLANETAS.md)** | saber quando e como ver cada planeta, as luas de Júpiter e os anéis de Saturno |
 | **[A Lua](docs/LUA.md)** | explorar o relevo lunar, saber o que olhar hoje e planejar a foto |
 | **[Calendário do céu](docs/CALENDARIO.md)** | não perder eclipses, chuvas de meteoros e ocultações |
@@ -151,7 +154,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **353 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **380 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
   renderização;
 - **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield
@@ -204,6 +207,7 @@ O Carina se apoia em dados públicos de astronomia, todos com atribuição:
 - **IMO** — lista de trabalho das chuvas de meteoros
 - **JPL** — efemérides de satélites jup365 e sat441 (luas de Júpiter e Saturno)
 - **Solar System Scope** — texturas dos planetas (CC BY 4.0)
+- **NASA Black Marble 2016** (VIIRS) — luzes noturnas para o Bortle automático
 - **JUPOS** — longitude da Grande Mancha Vermelha
 - **Lunar 100** — lista de Charles A. Wood (Sky & Telescope)
 - **ESO / S. Brunier** — panorâmica da Via Láctea (CC BY 4.0)

@@ -1,6 +1,33 @@
 # O que há de novo
 
-> Carina 0.18.0 — produto em desenvolvimento.
+> Carina 0.19.0 — produto em desenvolvimento.
+
+## 0.19 — Astrofotografia e companheiro
+
+**Sessão de astrofoto** (`Ctrl+Shift+S`). Os alvos da noite divididos em
+blocos de integração, sem atravessar o meridiano numa montagem equatorial
+(com o aviso de virar a montagem) e fora da zona do zênite numa altazimutal
+como o Seestar. Sub-exposição sugerida para o seu céu, quantas noites para
+juntar as horas desejadas e o **calendário de imageabilidade** de cada alvo
+no ano. Veja [Astrofotografia](ASTROFOTOGRAFIA.md).
+
+**Campo de visão**: **setups salvos** com nome, **mosaico** N×M no céu,
+**"cabe no meu campo?"** na ficha e a imagem na ocular conforme o trem
+óptico (marcas N e L).
+
+**Minha foto no mapa**: clique em duas estrelas de uma foto sua e ela é
+sobreposta ao céu, alinhada.
+
+**Companheiro no celular**: o roteiro em vermelho no celular, pelo QR code,
+com o botão "observado" que vai para o diário. Veja [Companheiro no
+celular](CELULAR.md).
+
+**Bortle automático**: ao escolher a cidade, o brilho estimado do céu pelo
+mapa de luzes noturnas da NASA.
+
+**ISS e satélites**: importe os elementos orbitais (arquivo da CelesTrak) e
+veja as passagens visíveis, com a trilha no céu; o cartão "Hoje no céu" avisa
+quando a ISS passa.
 
 ## 0.18 — Planetas
 

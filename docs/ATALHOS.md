@@ -57,6 +57,7 @@ valem com a janela principal ativa.
 | Planejar | Hoje à noite | `T` |
 | Planejar | Calendário do céu | `Ctrl+Shift+A` |
 | Planejar | Calendário de noites escuras | `Ctrl+Shift+N` |
+| Planejar | Sessão de astrofoto | `Ctrl+Shift+S` |
 | Planejar ▸ Lua | A Lua em detalhe | `Ctrl+Shift+M` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |

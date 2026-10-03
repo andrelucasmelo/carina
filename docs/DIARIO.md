@@ -1,6 +1,6 @@
 # Diário e listas
 
-> Carina 0.18.0 — produto em desenvolvimento.
+> Carina 0.19.0 — produto em desenvolvimento.
 
 O Carina guarda o que você cria: listas de alvos, o diário do que
 observou e os perfis de horizonte. Tudo fica num único arquivo no seu

@@ -4,7 +4,7 @@ Bem-vindo. Esta pasta reúne tudo o que você precisa para **instalar, usar
 e tirar proveito** do Carina — do primeiro clique ao planejamento de uma
 noite inteira de observação.
 
-> **Versão documentada: 0.18.0** — produto em desenvolvimento. Recursos e
+> **Versão documentada: 0.19.0** — produto em desenvolvimento. Recursos e
 > telas podem mudar entre versões; quando isso acontecer, esta pasta é
 > atualizada junto.
 
@@ -35,6 +35,7 @@ Se você **nunca abriu o programa**, siga esta ordem:
 
 | Documento | Conteúdo |
 |---|---|
+| [Companheiro no celular](CELULAR.md) | O roteiro no celular pelo QR code, com o "observado" indo para o diário |
 | [Os planetas](PLANETAS.md) | Janela de planetas: estado, melhor época, fases de Mercúrio e Vênus, luas de Júpiter e Saturno, anéis, Grande Mancha Vermelha |
 | [A Lua](LUA.md) | O globo lunar, a Lua em detalhe, o terminador, o planejador de foto lunar e a Lunar 100 |
 | [Calendário do céu](CALENDARIO.md) | Eventos do mês e do ano para o seu local, lembretes e exportação .ics |

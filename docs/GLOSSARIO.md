@@ -174,6 +174,53 @@ na diagonal do sensor.
 
 ---
 
+## Astrofotografia
+
+**SQM (mag/arcsec²)**
+O brilho do fundo do céu, medido em magnitudes por segundo de arco
+quadrado (a escala dos medidores *Sky Quality Meter*). Quanto maior, mais
+escuro: 22 é um céu perfeito; 18, o centro de uma cidade grande.
+
+**Sub-exposição (sub)**
+Cada foto curta de uma série que depois é empilhada. A soma das subs é a
+**integração** (horas de dados num alvo).
+
+**Ruído de leitura**
+O ruído que a câmera acrescenta a cada foto, em elétrons. A sub precisa ser
+longa o bastante para o brilho do céu "afogar" esse ruído.
+
+**Meridian flip (virar a montagem)**
+Numa montagem equatorial alemã, quando o alvo cruza o meridiano o tubo
+precisa passar para o outro lado do pilar. A sessão termina o bloco antes e
+avisa.
+
+**Zona do zênite**
+Perto do ponto acima da cabeça, uma montagem altazimutal gira muito rápido
+para acompanhar o céu e a rotação de campo borra as fotos.
+
+**Mosaico**
+Várias fotos lado a lado, com sobreposição, para cobrir um objeto maior que
+o campo da câmera.
+
+**TLE (elementos orbitais)**
+Duas linhas de números que descrevem a órbita de um satélite numa data. Com
+eles se calcula onde o satélite estará — com precisão que cai em poucos dias.
+
+## Planetas
+
+**Movimento retrógrado**
+Perto da oposição, a Terra "ultrapassa" o planeta e ele parece andar para
+trás (para oeste) entre as estrelas por algumas semanas.
+
+**Meridiano central**
+A longitude do planeta que está no centro do disco, virada para nós. Diz
+que lado de Marte se vê e quando a Mancha Vermelha de Júpiter passa pelo meio.
+
+**Trânsito, sombra, ocultação e eclipse (luas)**
+Uma lua de Júpiter passa na frente do disco (trânsito), projeta sua sombra
+nas nuvens (sombra), passa atrás do planeta (ocultação) ou entra na sombra
+dele e some (eclipse).
+
 ## A Lua
 
 **Terminador**

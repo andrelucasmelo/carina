@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.18.0 — produto em desenvolvimento.
+> Carina 0.19.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -129,6 +129,7 @@ Oito menus, agrupados por tarefa. A lista completa de atalhos está em
 | Exportar vista… | `Ctrl+S` | Salva a tela atual em PNG, JPG ou PDF |
 | Gerar carta celeste… | `Ctrl+Shift+P` | Carta para imprimir com moldura, perfis e atlas ([IMPRESSAO.md](IMPRESSAO.md)) |
 | Anotar a vista atual… | | Editor de anotações sobre a tela em modo mapa |
+| Minha foto no mapa… | | Sobrepõe uma foto sua, alinhada por duas estrelas ([ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md#minha-foto-no-mapa)) |
 | Preferências… | `Ctrl+,` | Idioma, fonte da interface, rótulos do céu, instrumento da nota |
 | Sair | | Fecha o programa |
 
@@ -229,9 +230,12 @@ na barra lateral** e a exibição dos painéis.
 | Hoje à noite… | `T` | Resumo da noite com os melhores alvos |
 | Calendário do céu… | `Ctrl+Shift+A` | Eventos do mês ou do ano, filtros, lembretes e .ics ([CALENDARIO.md](CALENDARIO.md)) |
 | Calendário de noites escuras… | `Ctrl+Shift+N` | Horas sem Lua de cada noite do mês; destaca as com mais de 8 h; clique leva à data |
+| Sessão de astrofoto… | `Ctrl+Shift+S` | Agenda de integração da noite, exposição e imageabilidade ([ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md#sessão-de-astrofoto)) |
+| Companheiro no celular… | | Roteiro no celular pelo QR code ([CELULAR.md](CELULAR.md)) |
+| Satélites e ISS… | | Passagens a partir de elementos orbitais importados, trilha no céu |
 | Lua ▸ | | **A Lua em detalhe…** (`Ctrl+Shift+M`), **Planejador de foto lunar…** e **Lunar 100…** ([LUA.md](LUA.md)) |
 | Roteiros ▸ | | Maratonas, melhores objetos, roteiro da minha lista, destaques ([PLANEJAMENTO.md](PLANEJAMENTO.md)) |
-| Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento |
+| Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento, setups salvos e mosaico |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |
 
 ### Ajuda

@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.18.0 — produto em desenvolvimento.
+> Carina 0.19.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -243,11 +243,33 @@ Detalhes em [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
   Aladin. Inclui **rotacionador de campo** e os telescópios inteligentes
   **Seestar S50, S30 e S30 Pro**. O acervo traz 67 equipamentos de
   fábrica e aceita os seus.
+- **Setups salvos**, **mosaico** N×M desenhado no céu, **"cabe no meu
+  campo?"** na ficha e a imagem na ocular conforme o trem óptico.
+- **Sessão de astrofoto** (`Ctrl+Shift+S`): a noite dividida em blocos de
+  integração, respeitando o meridiano (equatorial) e o zênite (altazimutal);
+  sub-exposição sugerida pelo céu e pela câmera; noites para juntar N horas;
+  calendário de imageabilidade do alvo no ano.
+- **Minha foto no mapa**: uma foto sua sobreposta ao céu, alinhada por duas
+  estrelas.
+- **Bortle automático**: brilho estimado do céu em cada local (mapa de luzes
+  noturnas da NASA).
 - **Zona de influência da Lua** (`U`): os anéis que mostram até onde o
   brilho lunar estraga a foto, com raio proporcional à fase.
 - **Rastreamento noturno** (`Ctrl+R`): a trajetória do objeto na noite
   numa carta polar, com estilo de linha por faixa de crepúsculo, cores
   por altitude e marcadores de hora. Exporta em PNG, JPG, PDF e SVG.
+
+---
+
+## Satélites e celular
+
+- **ISS e satélites** (*Planejar → Satélites e ISS*): importe os elementos
+  orbitais (TLE, por exemplo o arquivo `stations.txt` da CelesTrak) e veja
+  as passagens dos próximos dias, com o trecho visível (satélite iluminado e
+  céu escuro) e a trilha no céu. O cartão "Hoje no céu" avisa as passagens
+  visíveis da ISS. Os elementos envelhecem: atualize a cada poucos dias.
+- **Companheiro no celular**: o roteiro da noite no celular, em vermelho,
+  pelo QR code; o "observado" vai para o diário. Ver [CELULAR.md](CELULAR.md).
 
 ---
 
@@ -317,10 +339,11 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.18.0 **não há**:
+Para não criar expectativa errada, na versão 0.19.0 **não há**:
 
 - cometas e asteroides;
-- satélites artificiais (ISS, Starlink);
+- atualização automática dos elementos orbitais de satélites e previsão do
+  tempo — o programa não acessa a internet sozinho (importe o arquivo TLE);
 - controle de telescópio (ASCOM, INDI);
 - tradução para outros idiomas — a interface é só em português, embora o
   código já esteja preparado para tradução.
