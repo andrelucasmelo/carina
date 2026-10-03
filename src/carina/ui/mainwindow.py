@@ -444,6 +444,7 @@ class MainWindow(QMainWindow):
         self._add(m_plan, self.tr("Calendário de noites escuras…"), self._open_dark_calendar,
                   "Ctrl+Shift+N")
         self._add(m_plan, self.tr("Sessão de astrofoto…"), self._open_session, "Ctrl+Shift+S")
+        self._add(m_plan, self.tr("Companheiro no celular…"), self._open_companion)
         m_moon = m_plan.addMenu(self.tr("Lua"))
         self._add(m_moon, self.tr("A Lua em detalhe…"), self._open_moon_window, "Ctrl+Shift+M")
         self._add(m_moon, self.tr("Planejador de foto lunar…"), self._open_moon_planner)
@@ -777,6 +778,93 @@ class MainWindow(QMainWindow):
             ov = overlay_from_profile(d)
             if ov is not None:
                 self.sky.set_photo_overlay(ov)
+
+    def _open_companion(self) -> None:
+        """Planejar ▸ Companheiro no celular (v0.19)."""
+        from .companion_dialog import CompanionDialog
+
+        dlg = getattr(self, "_companion", None)
+        try:
+            alive = dlg is not None and dlg.isVisible()
+        except RuntimeError:
+            alive = False
+        if not alive:
+            dlg = CompanionDialog(self.companion_plan, self)
+            dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+            # o servidor roda em outra thread: o sinal chega na fila da interface
+            dlg.observedReceived.connect(self._companion_observed, Qt.QueuedConnection)
+            self._companion = dlg
+            dlg.start()
+        dlg.show()
+        dlg.raise_()
+
+    def companion_plan(self) -> dict:
+        """Roteiro para o celular: o plano aberto, a sessão de astrofoto ou,
+        sem nenhum dos dois, os melhores alvos de hoje à noite (chamado na
+        thread da interface pelo diálogo, que guarda a cópia para o servidor)."""
+        from ..core.localtime import to_local
+
+        observed = self.userdata.observed_idents()
+        items = []
+        title = "Carina"
+        subtitle = self.settings.location().name
+        plan_win = next((w for w in reversed(self._track_windows)
+                         if hasattr(w, "plan") and getattr(w.plan, "entries", None)), None)
+        sess = getattr(self, "_session_window", None)
+        try:
+            if plan_win is not None:
+                plan = plan_win.plan
+                title = plan.title
+                for e in plan.entries:
+                    items.append({
+                        "time": f"{to_local(e.when_utc):%H:%M}", "name": e.catalog_id,
+                        "kind": e.kind, "ident": e.ident or e.name,
+                        "detail": f"{e.type_label} · {e.constellation} · alt {e.altitude:.0f}°"
+                                  + (f" · {e.how_to_find}" if e.how_to_find else ""),
+                    })
+            elif sess is not None and sess.plan is not None and sess.plan.blocks:
+                title = "Sessão de astrofoto"
+                for b in sess.plan.blocks:
+                    tg = sess.plan.targets[b.target]
+                    items.append({
+                        "time": f"{to_local(b.start):%H:%M}", "name": tg.name,
+                        "kind": tg.kind, "ident": tg.ident,
+                        "detail": f"até {to_local(b.end):%H:%M} · alt {b.alt_min:.0f}–{b.alt_max:.0f}°"
+                                  + (" · virar a montagem no fim" if b.flip_after else ""),
+                    })
+            else:
+                from ..core.tonight import tonight_summary
+
+                s = tonight_summary(self.engine, self.dso_catalog,
+                                    self.engine.time.current_datetime(), bortle=self.sky.bortle,
+                                    horizon=self.horizon_profile, n_best=12)
+                title = "Hoje à noite"
+                subtitle += f" · {s.verdict}"
+                for it in s.planets + s.best:
+                    items.append({
+                        "time": f"{to_local(it.best_utc):%H:%M}" if it.best_utc else "",
+                        "name": it.name, "kind": it.kind, "ident": it.ident,
+                        "detail": f"{it.type_label} · nota {it.score} · {it.explain}",
+                    })
+        except RuntimeError:
+            pass
+        for it in items:
+            it["observed"] = (it["kind"], it["ident"]) in observed
+        return {"title": title, "subtitle": subtitle, "items": items}
+
+    def _companion_observed(self, kind: str, ident: str, name: str) -> None:
+        """Registro vindo do celular: entra no diário sem diálogo."""
+        self.userdata.add_observation(kind, ident, name,
+                                      location=self.settings.location().name,
+                                      note="registrado pelo celular", bortle=self.sky.bortle)
+        self.statusBar().showMessage(self.tr("{o} observado (pelo celular)").format(o=name), 6000)
+        self._refresh_cards(reselect=True)
+        dlg = getattr(self, "_companion", None)
+        try:
+            if dlg is not None:
+                dlg.refresh_plan()
+        except RuntimeError:
+            pass
 
     def _open_session(self) -> None:
         """Planejar ▸ Sessão de astrofoto (v0.19)."""
