@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.19.0 — produto em desenvolvimento.
+> Carina 0.19.1 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -58,6 +58,8 @@ e diz a hora em que ele nasce.
   altitude dentro da janela útil, já com o seu horizonte (e pausa)
 - **Ir para quando nasce** — aparece quando o objeto está sob o horizonte
 - **Enquadrar com equipamento…** — abre o simulador de campo centrado nele
+- **📷 Adicionar à sessão de astrofotografia** — objetos de céu profundo e
+  estrelas; abre a sessão, se preciso, com o objeto já na lista
 - **★ Acrescentar à minha lista** · **✓ Marcar como observado…**
 - **Copiar nome** · **Copiar coordenadas** (AR/Dec J2000 e Az/Alt atuais)
 

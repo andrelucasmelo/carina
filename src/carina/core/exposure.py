@@ -88,14 +88,21 @@ class ExposureAdvice:
                 f"({num(self.read_noise)} e⁻). {self.reason}")
 
 
-def suggest_sub(sqm: float, scope, camera, accessory=None, altaz: bool = False) -> ExposureAdvice:
-    """Sub-exposição sugerida (segundos)."""
+def suggest_sub(sqm: float, scope, camera, accessory=None, altaz: bool = False,
+                mount: str = "") -> ExposureAdvice:
+    """Sub-exposição sugerida (segundos). ``mount`` é o tipo da montagem
+    (``catalogs.equipment.MOUNT_KINDS``); ``altaz`` vale quando não há tipo."""
     rn, _qe = camera_noise(camera)
     sky = sky_electrons_per_s(sqm, scope, camera, accessory)
     t = SWAMP * rn * rn / max(sky, 1e-6)
     reason = ""
     limit = 600
-    if altaz:
+    if mount == "smart-eq":
+        # na cunha a rotação de campo some; o limite passa a ser o do aparelho
+        limit = 60
+        reason = ("Telescópio inteligente em modo EQ: sem rotação de campo, subs de "
+                  "até ~60 s.")
+    elif altaz or mount in ("altazimute", "smart-altaz"):
         # rotação de campo: alt-az limita a sub (Seestar trabalha com 10–30 s)
         limit = 30
         reason = "Montagem altazimutal: subs curtas por causa da rotação de campo."
@@ -121,3 +128,58 @@ def nights_for(hours_goal: float, hours_per_night: list[float]) -> int | None:
         if acc >= hours_goal:
             return k
     return None
+
+
+# ---------------------------------------------------------------------------
+# Quantidade de subs e margem para perdas (vento, nuvem, satélite, guiagem)
+# ---------------------------------------------------------------------------
+
+# (até N segundos, margem %) — a última faixa (None) vale "acima de"; subs
+# longas perdem mais: uma rajada de vento estraga 5 min de uma vez
+DEFAULT_MARGINS: list[tuple[float | None, float]] = [
+    (60, 10.0), (120, 15.0), (180, 20.0), (300, 25.0), (None, 30.0)]
+
+
+def normalize_margins(table) -> list[tuple[float | None, float]]:
+    """Faixas em ordem crescente, com uma última faixa aberta ("acima de")."""
+    closed = sorted({float(lim): float(pct) for lim, pct in table if lim is not None}.items())
+    above = [float(pct) for lim, pct in table if lim is None]
+    out: list[tuple[float | None, float]] = [(lim, pct) for lim, pct in closed]
+    out.append((None, above[-1] if above else (closed[-1][1] if closed else 0.0)))
+    return out
+
+
+def margin_for(sub_s: float, table=None) -> float:
+    """Margem (%) da faixa em que a sub cai (limites inclusivos: 60 s → ≤60)."""
+    for lim, pct in normalize_margins(table or DEFAULT_MARGINS):
+        if lim is None or sub_s <= lim:
+            return pct
+    return 0.0
+
+
+@dataclass
+class SubPlan:
+    sub_s: float
+    margin_pct: float
+    good: int            # subs aproveitáveis para a meta
+    total: int           # a fotografar, já com a margem
+
+    @property
+    def shoot_hours(self) -> float:
+        return self.total * self.sub_s / 3600.0
+
+
+def subs_for(goal_hours: float, sub_s: float, table=None) -> SubPlan:
+    """Quantas subs de ``sub_s`` segundos para ``goal_hours`` horas úteis,
+    e quantas fotografar contando as que se perdem."""
+    sub_s = max(1.0, float(sub_s))
+    pct = margin_for(sub_s, table)
+    good = math.ceil(goal_hours * 3600.0 / sub_s - 1e-9)
+    return SubPlan(sub_s, pct, good, math.ceil(good * (1.0 + pct / 100.0) - 1e-9))
+
+
+def subs_in(hours: float, sub_s: float, table=None) -> tuple[int, int]:
+    """Num tempo de captura de ``hours``: (subs feitas, aproveitáveis esperadas)."""
+    sub_s = max(1.0, float(sub_s))
+    shot = int(hours * 3600.0 // sub_s)
+    return shot, int(shot / (1.0 + margin_for(sub_s, table) / 100.0))

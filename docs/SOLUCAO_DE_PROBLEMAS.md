@@ -1,6 +1,6 @@
 # Solução de problemas
 
-> Carina 0.19.0 — produto em desenvolvimento. Se o seu problema não
+> Carina 0.19.1 — produto em desenvolvimento. Se o seu problema não
 > estiver aqui, ele pode ser um defeito ainda desconhecido: reporte com o
 > máximo de detalhes.
 
@@ -151,6 +151,13 @@ o fuso em `Ctrl+L`.
 Se a curva de altitude máxima tiver quedas bruscas no meio de uma rampa,
 é defeito — foi corrigido na versão 0.13.2. Confirme sua versão em
 *Ajuda → Sobre o Carina*.
+
+### Apareceu "Ocorreu um erro inesperado"
+
+É um defeito do programa. O detalhe técnico fica em
+`%LOCALAPPDATA%\Carina\Carina\erros.log`; envie esse arquivo junto com o
+que você estava fazendo. A mensagem aparece uma vez por tipo de erro, e o
+resto do programa segue funcionando.
 
 ---
 

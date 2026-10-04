@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import sys
 
 import numpy as np
 from PySide6.QtCore import QEasingCurve, QPointF, Qt, QTimer, QVariantAnimation, Signal
@@ -906,7 +907,13 @@ class SkyWidget(QOpenGLWidget):
 
         # --- campos de visão dos equipamentos (item 7) ---
         if self.fov_shapes:
-            self._draw_fov_shapes(m)
+            # um erro aqui não pode derrubar o resto do quadro: antes ele saía
+            # do paintGL sem fechar o GL e sem os rótulos (B-029)
+            try:
+                self._draw_fov_shapes(m)
+            except Exception:              # noqa: BLE001 — registrado no erros.log
+                self._fov_marks = []
+                sys.excepthook(*sys.exc_info())
 
         # --- marcador da seleção (as cartas impressas o omitem) ---
         if not offscreen or self._offscreen_marker:
@@ -917,7 +924,10 @@ class SkyWidget(QOpenGLWidget):
 
         # --- rótulos (QPainter em pixels lógicos) ---
         self._draw_labels(painter, dpr, star_px, bodies_px, dso_px, ground_on)
-        self._draw_fov_labels(painter, dpr)
+        try:
+            self._draw_fov_labels(painter, dpr)
+        except Exception:                  # noqa: BLE001
+            sys.excepthook(*sys.exc_info())
         if not offscreen:
             self._draw_tools_overlay(painter, dpr)
             self._draw_notice(painter)
@@ -1474,7 +1484,7 @@ class SkyWidget(QOpenGLWidget):
     def _fov_center_vec(self, m: np.ndarray):
         """Centro dos campos: o objeto selecionado ou o centro da vista."""
         if self.fov_follow_selection and self.selection is not None:
-            t = self._frame_t or self.engine.time.current()
+            t = self._frame_t if self._frame_t is not None else self.engine.time.current()
             vec = self._selection_vec(self.selection, m, t)
             if vec is not None:
                 return self._refract(np.asarray(vec)[np.newaxis, :])[0]
@@ -3295,6 +3305,9 @@ class SkyWidget(QOpenGLWidget):
             if self._altitude_deg(target) < 0.0:
                 acts["rise"] = menu.addAction(self.tr("Ir para quando nasce"))
             acts["fov"] = menu.addAction(self.tr("Enquadrar com equipamento…"))
+            if target[0] in ("dso", "star"):
+                acts["session"] = menu.addAction(
+                    self.tr("📷 Adicionar à sessão de astrofotografia"))
             menu.addSeparator()
             acts["list"] = menu.addAction(self.tr("★ Acrescentar à minha lista"))
             acts["observed"] = menu.addAction(self.tr("✓ Marcar como observado…"))
@@ -3355,7 +3368,7 @@ class SkyWidget(QOpenGLWidget):
         elif key == "best":
             # a janela principal resolve com a janela útil e o horizonte
             self.contextAction.emit("goto_best", target)
-        elif key in ("list", "observed", "moon", "planet"):
+        elif key in ("list", "observed", "moon", "planet", "session"):
             self.contextAction.emit(key, target)
         elif key == "rise":
             self.goto_when_rises(target)

@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.19.0 — produto em desenvolvimento.
+> Carina 0.19.1 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa: o
 equipamento e o campo, a sessão da noite, a exposição, as horas de
@@ -27,7 +27,7 @@ São 67 equipamentos prontos:
 | **Câmeras** | ZWO ASI224, 120, 174, 183, 224, 294, 462, 533, 585, 662, 2600, 6200; DSLR APS-C e full-frame; Micro 4/3 |
 | **Oculares** | Plössl 32/25/10 mm, grande campo 14 mm (82°) e 9 mm (66°), ortoscópica 6 mm |
 | **Acessórios** | Barlows 1,5× a 4×, redutores 0,5× a 0,8×, flattener, **rotacionador de campo** |
-| **Montagens** | EQ3, EQ5/HEQ5, EQ6-R, ZWO AM5, iOptron CEM40, Star Adventurer, AZ-GTi, Dobson |
+| **Montagens** | EQ3, EQ5/HEQ5, EQ6-R, ZWO AM5, iOptron CEM40, Star Adventurer, AZ-GTi, Dobson, telescópio inteligente (Alt-Az ou EQ) |
 
 Acrescente os seus na aba **Equipamentos**; ao atualizar o programa, os
 itens novos do acervo de fábrica entram **sem apagar nem duplicar** os seus.
@@ -37,7 +37,15 @@ itens novos do acervo de fábrica entram **sem apagar nem duplicar** os seus.
 Monte o conjunto e clique em **Salvar como…**: "Seestar no quintal",
 "80ED + 533 no sítio". O setup escolhido vira o **setup ativo** — é ele que
 a ficha usa para dizer se o objeto cabe no campo e que a sessão de
-astrofoto usa para a exposição.
+astrofoto usa para a exposição. **Salvar** grava por cima do setup
+escolhido, sem perguntar o nome. Mesmo sem salvar, a janela volta ao último
+conjunto usado da próxima vez.
+
+**Telescópios inteligentes** (Seestar e parecidos) têm duas montagens no
+acervo: **modo Alt-Az**, o normal, com subs curtas e a zona do zênite a
+evitar; e **modo EQ**, com o aparelho inclinado numa cunha apontada para o
+polo — sem rotação de campo e sem virar no meridiano. Um setup de Seestar
+sem montagem escolhida é tratado como Alt-Az.
 
 ### Mosaico
 
@@ -93,9 +101,10 @@ para enquadrar um alvo alongado — uma galáxia de perfil, o Véu, a Chama.
 </div>
 
 Diferente do roteiro visual (minutos por objeto), aqui cada alvo recebe
-**horas de integração** na noite escura. Acrescente os alvos (o objeto
-selecionado no mapa ou uma das suas listas), escolha o **setup** e o Carina
-divide a noite:
+**horas de integração** na noite escura. Acrescente os alvos — o objeto
+selecionado no mapa, uma das suas listas, as **sugestões** ou, no mapa, o
+**botão direito → 📷 Adicionar à sessão de astrofotografia** —, escolha o
+**setup** e o Carina divide a noite:
 
 - cada alvo fica com uma **cota** (partes iguais, ou as horas que você
   pedir) e a **prioridade** desempata;
@@ -108,7 +117,12 @@ E respeita o que a montagem permite:
 | Montagem | Regra |
 |---|---|
 | **Equatorial alemã** | Nenhum bloco atravessa o **meridiano**. O bloco termina antes, e a agenda marca **↺ virar a montagem** (*meridian flip*), com uma folga configurável |
-| **Altazimutal** (Seestar, Dobson motorizado) | A agenda evita a **zona do zênite** (acima de 80°, ajustável), onde a rotação de campo dispara |
+| **Altazimutal** (Dobson motorizado, AZ-GTi) e **telescópio inteligente em Alt-Az** | A agenda evita a **zona do zênite** (acima de 80°, ajustável), onde a rotação de campo dispara |
+| **Telescópio inteligente em modo EQ** (na cunha) | Acompanha como uma equatorial de garfo: sem flip e sem zona do zênite |
+
+A montagem vem do setup; dá para trocar na lista **Montagem** para comparar.
+A lista de setups acompanha o que você salva no Campo de visão, e o botão
+**Campo de visão…** ao lado abre o simulador para criar ou editar um.
 
 A linha do tempo mostra a altura de cada alvo, os blocos em cores, o
 meridiano de cada um e a zona do zênite. **Copiar agenda** leva a agenda
@@ -120,25 +134,63 @@ Com um setup que tenha câmera, a sessão sugere a **duração das subs**: longa
 o bastante para o ruído do fundo de céu cobrir o ruído de leitura da câmera,
 calculado com a abertura, a escala de placa, a eficiência da câmera e o
 **brilho do céu do seu Bortle**. Em montagem altazimutal o limite é de 30 s
-(rotação de campo); em focal longa, 5 min (guiagem). Bortle 8 pede subs
-bem mais curtas que Bortle 3 — e, abaixo de 5 s, o programa sugere um filtro.
+(rotação de campo); num telescópio inteligente em modo EQ, 60 s; em focal
+longa, 5 min (guiagem). Bortle 8 pede subs bem mais curtas que Bortle 3 — e,
+abaixo de 5 s, o programa sugere um filtro.
 
 > É uma ordem de grandeza para começar: faça uma sub de teste e confira o
 > histograma — o pico do fundo deve sair da borda esquerda.
 
+### Quantas subs?
+
+Em **Sub-exposição**, escolha a duração das subs (ou **Sugerida**, a da
+seção anterior). O painel da direita mostra:
+
+- **nesta noite**: quantas subs cabem no bloco de cada alvo e quantas devem
+  sobrar boas;
+- **para a meta** (10 h, por exemplo): quantas subs aproveitáveis são
+  necessárias e quantas fotografar, com a **margem de perda**.
+
+A margem cobre as subs estragadas por vento, nuvens, satélites ou guiagem,
+e cresce com a duração da sub — uma rajada estraga a sub inteira. O padrão:
+
+| Sub | Margem |
+|---|---|
+| até 60 s | 10% |
+| 61 a 120 s | 15% |
+| 121 a 180 s | 20% |
+| 181 a 300 s | 25% |
+| acima de 300 s | 30% |
+
+**Margens…** abre a tabela para mudar os valores e acrescentar faixas
+(**+ Faixa**); a última vale para tudo acima. **Padrão** volta à tabela de
+fábrica.
+
 ### Quantas noites?
 
 Defina a **meta de integração** por alvo (10 h, por exemplo): para cada um,
-o Carina soma as horas úteis das próximas noites — já descontando a Lua e
-dividindo a noite entre os alvos — e diz quantas noites corridas são
-necessárias.
+o Carina soma as horas úteis das próximas noites — já descontando a Lua,
+dividindo a noite entre os alvos e tirando a margem de perda — e diz quantas
+noites corridas são necessárias.
+
+### Sugestões de alvos
+
+**✨ Sugestões de alvos…** abre as fotos dos objetos mais bem posicionados na
+noite da sessão: os que ficam mais horas acima da altura mínima, no escuro,
+longe da Lua e fora do horizonte do quintal, com peso para os maiores e mais
+brilhantes. Cada foto diz as horas boas, a altura máxima e, com um setup de
+câmera, se o objeto **cabe no campo** ou pede mosaico. Filtre por tipo ou
+pelos que cabem no campo, clique nas fotos que quiser e **Adicionar à
+sessão**.
 
 ### Calendário de imageabilidade
 
 Embaixo da linha do tempo, o gráfico do alvo selecionado: **horas úteis por
 noite ao longo do ano** (acima da altura mínima, no escuro, longe da Lua
 cheia e fora do horizonte do quintal). Os três melhores meses vêm no título.
-M 42, do Rio, rende muito mais em dezembro do que em junho.
+As linhas horizontais marcam cada hora; passe o mouse sobre uma barra para
+ver a data e as horas úteis daquela noite. M 42, do Rio, rende muito mais em
+dezembro do que em junho.
 
 ---
 

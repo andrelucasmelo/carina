@@ -54,7 +54,9 @@ SECTION_FIELDS = {
     ],
     "mounts": [
         ("name", "Nome", "text", 0, 0, 0),
-        ("kind", "Tipo", "choice:equatorial,altazimute", 0, 0, 0),
+        ("kind", "Tipo", "choice:equatorial=Equatorial alemã (vira no meridiano),"
+         "altazimute=Altazimutal,smart-altaz=Telescópio inteligente — modo Alt-Az,"
+         "smart-eq=Telescópio inteligente — modo EQ (cunha)", 0, 0, 0),
         ("payload_kg", "Capacidade (kg)", "float", 0.0, 200.0, 1),
     ],
 }
@@ -82,9 +84,10 @@ class ItemDialog(QDialog):
             elif kind.startswith("choice:"):
                 w = QComboBox()
                 for opt in kind.split(":", 1)[1].split(","):
-                    w.addItem(opt)
+                    key, _, label = opt.partition("=")
+                    w.addItem(label or key, key)
                 if value:
-                    idx = w.findText(str(value))
+                    idx = w.findData(str(value))
                     if idx >= 0:
                         w.setCurrentIndex(idx)
             elif kind == "int":
@@ -119,7 +122,7 @@ class ItemDialog(QDialog):
             if kind == "text":
                 kwargs[attr] = w.text().strip()
             elif kind.startswith("choice:"):
-                kwargs[attr] = w.currentText()
+                kwargs[attr] = w.currentData()
             elif kind == "int":
                 kwargs[attr] = int(w.value())
             else:
@@ -136,9 +139,11 @@ class FovDialog(QDialog):
     fovChanged = Signal(list, float, bool)   # shapes, ângulo, seguir seleção
     setupChosen = Signal(str)                # setup salvo escolhido (vira o ativo)
 
-    def __init__(self, store: EquipmentStore, parent=None) -> None:
+    def __init__(self, store: EquipmentStore, parent=None, settings=None) -> None:
         super().__init__(parent)
         self.store = store
+        self.settings = settings        # guarda o último setup escolhido (mesmo sem nome)
+        self._ready = False             # só guarda depois de restaurar o último
         self.setWindowTitle(self.tr("Campo de visão dos equipamentos"))
         self.resize(700, 560)
 
@@ -193,26 +198,51 @@ class FovDialog(QDialog):
         self.cb_saved.blockSignals(False)
 
     def _save_setup(self) -> None:
+        """Salvar como…: pede o nome (sugere o do setup escolhido)."""
         from PySide6.QtWidgets import QInputDialog
-
-        from ..catalogs.equipment import save_setup
 
         name, ok = QInputDialog.getText(self, self.tr("Salvar setup"), self.tr("Nome do setup:"),
                                         text=self.cb_saved.currentData() or "")
-        if not ok or not name.strip():
+        if ok and name.strip():
+            self._store_setup(name.strip())
+
+    def _save_current(self) -> None:
+        """Salvar: grava por cima do setup escolhido (ou pede o nome)."""
+        name = self.cb_saved.currentData()
+        if name:
+            self._store_setup(name)
+        else:
+            self._save_setup()
+
+    def _store_setup(self, name: str) -> None:
+        from ..catalogs.equipment import save_setup
+
+        if not self.cb_scope.currentText():
+            QMessageBox.warning(self, "Carina", self.tr("Escolha um telescópio antes de salvar."))
             return
-        save_setup(self.current_setup(name.strip()))
+        try:
+            save_setup(self.current_setup(name))
+        except Exception as exc:          # noqa: BLE001 — o usuário precisa ver o motivo
+            QMessageBox.critical(self, "Carina",
+                                 self.tr("Não foi possível salvar o setup:\n{e}").format(e=exc))
+            return
         self._refresh_saved()
-        self.cb_saved.setCurrentIndex(self.cb_saved.findText(name.strip()))
-        self.setupChosen.emit(name.strip())
+        self.cb_saved.setCurrentIndex(max(0, self.cb_saved.findData(name)))
+        self.lbl_saved.setText(self.tr("✓ Setup “{n}” salvo — é o setup ativo e aparece "
+                                       "na Sessão de astrofotografia.").format(n=name))
+        self.setupChosen.emit(name)
 
     def _delete_setup(self) -> None:
         from ..catalogs.equipment import delete_setup
 
         name = self.cb_saved.currentData()
-        if name:
+        if name and QMessageBox.question(
+                self, "Carina", self.tr("Excluir o setup “{n}”?").format(n=name)
+        ) == QMessageBox.Yes:
             delete_setup(name)
             self._refresh_saved()
+            self.lbl_saved.setText(self.tr("Setup “{n}” excluído.").format(n=name))
+            self.setupChosen.emit("")
 
     def _load_setup(self, *_a) -> None:
         from ..catalogs.equipment import load_setup
@@ -221,7 +251,29 @@ class FovDialog(QDialog):
         if not name:
             return
         self.apply_setup(load_setup(name))
+        self.lbl_saved.setText("")
         self.setupChosen.emit(name)
+
+    def restore_last(self) -> None:
+        """Volta ao último setup escolhido (também o sem nome)."""
+        import json
+
+        from ..catalogs.equipment import Setup
+
+        raw = self.settings.value("equipment/last_setup", "", str) if self.settings else ""
+        try:
+            self.apply_setup(Setup.from_dict(json.loads(raw)) if raw else None)
+        except (ValueError, TypeError):
+            pass
+        self._ready = True
+
+    def _remember(self) -> None:
+        import json
+
+        if self._ready and self.settings is not None and self.cb_scope.currentText():
+            self.settings.set_value("equipment/last_setup",
+                                    json.dumps(self.current_setup().to_dict(),
+                                               ensure_ascii=False))
 
     def apply_setup(self, s) -> None:
         if s is None:
@@ -246,6 +298,7 @@ class FovDialog(QDialog):
         self.slider_angle.setValue(int(s.rotation_deg))
         for w in widgets:
             w.blockSignals(False)
+        self._ready = True
         self._recompute()
 
     # ------------------------------------------------------------------
@@ -254,17 +307,28 @@ class FovDialog(QDialog):
         layout = QVBoxLayout(page)
 
         saved = QGroupBox(self.tr("Setups salvos"))
-        srow = QHBoxLayout(saved)
+        srow = QHBoxLayout()
         self.cb_saved = QComboBox()
         self.cb_saved.setMinimumWidth(220)
         self.cb_saved.activated.connect(self._load_setup)
+        btn_save1 = QPushButton(self.tr("Salvar"))
+        btn_save1.setToolTip(self.tr("Grava o setup escolhido com a configuração atual "
+                                     "(sem nome, pede um)"))
+        btn_save1.clicked.connect(self._save_current)
         btn_save = QPushButton(self.tr("Salvar como…"))
         btn_save.clicked.connect(self._save_setup)
         btn_del = QPushButton(self.tr("Excluir"))
         btn_del.clicked.connect(self._delete_setup)
+        sv = QVBoxLayout(saved)
+        sv.addLayout(srow)
         srow.addWidget(self.cb_saved, 1)
+        srow.addWidget(btn_save1)
         srow.addWidget(btn_save)
         srow.addWidget(btn_del)
+        self.lbl_saved = QLabel()
+        self.lbl_saved.setStyleSheet("color:#7fd19b")
+        self.lbl_saved.setWordWrap(True)
+        sv.addWidget(self.lbl_saved)
         layout.addWidget(saved)
 
         setup = QGroupBox(self.tr("Setup"))
@@ -405,7 +469,11 @@ class FovDialog(QDialog):
             elif section == "accessories":
                 text = f"{item.name} — ×{item.factor}"
             else:
-                text = f"{item.name} — {item.kind}, {item.payload_kg} kg"
+                from ..catalogs.equipment import MOUNT_KINDS
+
+                text = f"{item.name} — {MOUNT_KINDS.get(item.kind, item.kind)}"
+                if item.payload_kg:
+                    text += f", {item.payload_kg} kg"
             self.list.addItem(text)
 
     # ------------------------------------------------------------------
@@ -488,17 +556,21 @@ class FovDialog(QDialog):
             )
         mount = self.store.find("mounts", self.cb_mount.currentText())
         if mount is not None:
+            from ..catalogs.equipment import MOUNT_KINDS, mount_is_altaz
+
+            load = f", até {mount.payload_kg:.0f} kg" if mount.payload_kg else ""
             blocks.append(
                 f"<p style='color:#8a93a5;font-size:8pt'>Montagem: "
-                f"{mount.name} ({mount.kind}, até {mount.payload_kg:.0f} kg)"
-                + ("" if mount.kind == "equatorial" else
-                   " — altazimutal: há rotação de campo em longas exposições")
+                f"{mount.name} ({MOUNT_KINDS.get(mount.kind, mount.kind)}{load})"
+                + (" — há rotação de campo em longas exposições"
+                   if mount_is_altaz(mount.kind) else "")
                 + "</p>"
             )
         self.result_label.setText(
             "".join(blocks) or self.tr("<i>Escolha um telescópio e uma "
                                        "câmera ou ocular.</i>")
         )
+        self._remember()
         self.fovChanged.emit(
             shapes, float(self.slider_angle.value()),
             self.chk_follow.isChecked(),

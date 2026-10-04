@@ -1,6 +1,24 @@
 # O que há de novo
 
-> Carina 0.19.0 — produto em desenvolvimento.
+> Carina 0.19.1 — produto em desenvolvimento.
+
+## 0.19.1 — Ajustes da astrofotografia
+
+- **Rótulos que sumiam** com um campo de visão centrado num objeto
+  selecionado: estrelas, objetos e pontos cardeais voltam a aparecer.
+- **Setups**: botão **Salvar** (grava por cima do setup escolhido), aviso de
+  que o setup foi salvo e o Campo de visão volta ao último conjunto usado,
+  mesmo sem nome.
+- **Telescópio inteligente** nas montagens: modo **Alt-Az** (evita o zênite,
+  subs de até 30 s) ou modo **EQ** na cunha (sem flip no meridiano).
+- **Sessão de astrofoto**: a lista de setups se atualiza sozinha; botão
+  **Campo de visão…** ao lado; **sub-exposição** com o número de subs para a
+  meta e uma **margem de perda** por faixa de duração, editável;
+  **✨ Sugestões de alvos** com as fotos dos mais bem posicionados da noite;
+  linhas de hora e dica ao passar o mouse no gráfico de horas úteis.
+- **Botão direito** num objeto: **📷 Adicionar à sessão de astrofotografia**.
+- Erros inesperados agora ficam registrados em `erros.log`, na pasta do
+  usuário, e aparecem numa mensagem.
 
 ## 0.19 — Astrofotografia e companheiro
 

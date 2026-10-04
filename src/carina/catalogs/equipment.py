@@ -74,8 +74,26 @@ class Mount:
     """Montagem — não entra no cálculo de campo, mas compõe o setup."""
 
     name: str
-    kind: str = "equatorial"   # equatorial | altazimute
+    kind: str = "equatorial"   # ver MOUNT_KINDS
     payload_kg: float = 0.0
+
+
+# tipos de montagem: chave gravada no JSON → rótulo
+MOUNT_KINDS = {
+    "equatorial": "Equatorial alemã (vira no meridiano)",
+    "altazimute": "Altazimutal",
+    "smart-altaz": "Telescópio inteligente — modo Alt-Az",
+    "smart-eq": "Telescópio inteligente — modo EQ (cunha)",
+}
+
+
+def mount_is_altaz(kind: str) -> bool:
+    return kind in ("altazimute", "smart-altaz")
+
+
+def mount_flips(kind: str) -> bool:
+    """Só a equatorial alemã precisa virar no meridiano."""
+    return kind == "equatorial"
 
 
 @dataclass
@@ -206,6 +224,10 @@ DEFAULT_DATA = {
         {"name": "AZ-GTi", "kind": "altazimute", "payload_kg": 5.0},
         {"name": "Altazimutal Dobson", "kind": "altazimute", "payload_kg": 15.0},
         {"name": "Tripé fotográfico", "kind": "altazimute", "payload_kg": 3.0},
+        {"name": "Telescópio inteligente (Alt-Az)", "kind": "smart-altaz",
+         "payload_kg": 0.0},
+        {"name": "Telescópio inteligente (EQ, cunha)", "kind": "smart-eq",
+         "payload_kg": 0.0},
     ],
 }
 
@@ -213,7 +235,7 @@ DEFAULT_DATA = {
 # mesclados no JSON de quem já usava o aplicativo (sem duplicar por nome e
 # sem ressuscitar itens que o usuário apagou de versões anteriores — a
 # mescla acontece uma única vez por versão).
-DATA_VERSION = 2
+DATA_VERSION = 3
 
 _SECTIONS = {
     "telescopes": Telescope, "cameras": Camera, "eyepieces": Eyepiece,
@@ -405,11 +427,16 @@ class Setup:
         fields_ = {f for f in cls.__dataclass_fields__}
         return cls(**{k: v for k, v in (d or {}).items() if k in fields_})
 
-    def is_altaz(self, store: "EquipmentStore") -> bool:
+    def mount_kind(self, store: "EquipmentStore") -> str:
+        """Tipo da montagem (MOUNT_KINDS); sem montagem, o Seestar é
+        inteligente em Alt-Az e o resto, equatorial alemã."""
         m = store.find("mounts", self.mount) if self.mount else None
         if m is not None:
-            return m.kind != "equatorial"
-        return "seestar" in self.telescope.lower()      # Seestar é alt-az
+            return m.kind if m.kind in MOUNT_KINDS else "equatorial"
+        return "smart-altaz" if "seestar" in self.telescope.lower() else "equatorial"
+
+    def is_altaz(self, store: "EquipmentStore") -> bool:
+        return mount_is_altaz(self.mount_kind(store))
 
     def camera_shape(self, store: "EquipmentStore") -> FovShape | None:
         scope = store.find("telescopes", self.telescope)

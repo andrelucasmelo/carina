@@ -207,6 +207,46 @@ def _run_bench(win, app) -> None:
     app.quit()
 
 
+def _install_error_log() -> None:
+    """Erros não tratados vão para ``erros.log`` (pasta do usuário) e são
+    mostrados uma vez. No executável não há console: sem isso, uma exceção
+    num slot do Qt ou no desenho do céu passa em silêncio e o usuário só vê
+    "não funciona"."""
+    import traceback
+
+    from PySide6.QtCore import QTimer
+    from PySide6.QtWidgets import QMessageBox
+
+    from . import __version__
+    from .config import user_data_path
+
+    log = user_data_path() / "erros.log"
+    shown: set = set()
+
+    def hook(etype, value, tb) -> None:
+        text = "".join(traceback.format_exception(etype, value, tb))
+        try:
+            if log.exists() and log.stat().st_size > 512_000:
+                log.write_text("", encoding="utf-8")
+            with log.open("a", encoding="utf-8") as fh:
+                fh.write(f"--- {dt.datetime.now():%Y-%m-%d %H:%M:%S} · Carina "
+                         f"{__version__}\n{text}\n")
+        except OSError:
+            pass
+        if sys.stderr is not None:
+            sys.__excepthook__(etype, value, tb)
+        key = (etype.__name__, str(value)[:200])
+        if key in shown:
+            return
+        shown.add(key)
+        msg = (f"Ocorreu um erro inesperado. Ele foi registrado em\n{log}\n\n"
+               f"{etype.__name__}: {value}")
+        # fora do evento atual: a exceção pode ter saído de dentro do desenho
+        QTimer.singleShot(0, lambda: QMessageBox.warning(None, "Carina", msg))
+
+    sys.excepthook = hook
+
+
 def main(argv=None) -> int:
     """Ponto de entrada: configura o formato OpenGL (3.3 core, MSAA 4×,
     stencil de 8 bits — o stencil é essencial para o preenchimento de
@@ -249,6 +289,9 @@ def main(argv=None) -> int:
         app.setWindowIcon(QIcon(str(icon_file)))
 
     from .ui.mainwindow import MainWindow
+
+    if not (args.screenshot or args.bench):
+        _install_error_log()
 
     win = MainWindow()
 

@@ -897,9 +897,13 @@ class MainWindow(QMainWindow):
         except RuntimeError:
             pass
 
-    def _open_session(self) -> None:
-        """Planejar ▸ Sessão de astrofoto (v0.19)."""
+    def _open_session(self, selection=None) -> None:
+        """Planejar ▸ Sessão de astrofoto (v0.19). Com ``selection`` (menu do
+        botão direito), acrescenta aquele objeto à sessão aberta ou nova."""
         from .session_window import SessionWindow
+
+        if isinstance(selection, bool):          # sinal triggered(bool) do menu
+            selection = None
 
         win = getattr(self, "_session_window", None)
         try:
@@ -912,17 +916,71 @@ class MainWindow(QMainWindow):
                 equipment=self.equipment(), userdata=self.userdata,
                 bortle=lambda: self.sky.bortle, horizon=lambda: self.horizon_profile,
                 current_target=self._session_target,
-                active_setup=self.settings.value("equipment/active_setup", "", str))
+                active_setup=self.settings.value("equipment/active_setup", "", str),
+                settings=self.settings, candidates=self._session_candidates,
+                resolve=self._session_resolve)
             win.setAttribute(Qt.WA_DeleteOnClose, True)
             win.gotoTarget.connect(self._goto_ident)
+            win.fovRequested.connect(self._open_fov_from_session)
             self._session_window = win
-            win.add_current()
+            if selection is None:
+                win.add_current()
+        if selection is not None:
+            got = self._session_target(selection)
+            if got is not None:
+                win.add_target(*got)
         win.show()
         win.raise_()
 
-    def _session_target(self):
-        """(nome, icrs, ident, kind, tamanho′) do objeto selecionado."""
-        sel = self.sky.selection
+    def _open_fov_from_session(self) -> None:
+        """Botão "Campo de visão…" da sessão: cria/edita setups e volta."""
+        self._open_fov()
+        win = getattr(self, "_session_window", None)
+        if win is not None:
+            try:
+                win.refresh_setups(self.settings.value("equipment/active_setup", "", str))
+            except RuntimeError:
+                pass
+
+    def _session_resolve(self, kind: str, ident: str):
+        """(nome, icrs, ident, kind, tamanho′) a partir do identificador."""
+        ref = ObjectRef.from_ident(kind, ident, self.star_catalog, self.dso_catalog)
+        return self._session_target(ref.selection) if ref is not None else None
+
+    def _session_candidates(self) -> list[dict]:
+        """Candidatos às sugestões da sessão: objetos de céu profundo com
+        designação conhecida e foto embarcada (as mesmas da ficha)."""
+        import numpy as np
+
+        from ..catalogs import names
+        from ..catalogs.dso import type_label
+        from ..catalogs.images import image_path_for
+
+        rows = self.dso_catalog.cx.execute(
+            "SELECT name, common, klass, type, ra, dec, mag, maj, min FROM objects"
+            " WHERE enabled = 1 AND klass != 'OTHER'"
+            "   AND (name LIKE 'M %' OR name LIKE 'NGC%' OR name LIKE 'IC %'"
+            "        OR name LIKE 'Sh2%' OR common != '')"
+            "   AND (mag <= 12.5 OR maj >= 8.0)").fetchall()
+        out = []
+        for r in rows:
+            if image_path_for(r["name"]) is None:
+                continue
+            ra, dec = float(r["ra"]), float(r["dec"])
+            common = names.common_label(r["common"]) if r["common"] else ""
+            out.append({
+                "kind": "dso", "ident": r["name"], "name": r["name"],
+                "label": f"{r['name']} — {common}" if common else r["name"],
+                "common": common, "klass": r["klass"], "type_label": type_label(r["type"]),
+                "mag": r["mag"], "maj": r["maj"], "min": r["min"],
+                "icrs": np.array([np.cos(dec) * np.cos(ra), np.cos(dec) * np.sin(ra),
+                                  np.sin(dec)]),
+            })
+        return out
+
+    def _session_target(self, sel=None):
+        """(nome, icrs, ident, kind, tamanho′) do objeto (padrão: o selecionado)."""
+        sel = self.sky.selection if sel is None else sel
         if sel is None:
             return None
         ref = ObjectRef.resolve(sel, self.star_catalog, self.dso_catalog)
@@ -1285,6 +1343,8 @@ class MainWindow(QMainWindow):
             self._add_to_list(selection)
         elif key == "observed":
             self._mark_observed(selection)
+        elif key == "session":
+            self._open_session(selection)
         elif key == "moon":
             self._open_moon_window()
         elif key == "planet":
@@ -2064,15 +2124,16 @@ class MainWindow(QMainWindow):
             self._equipment = EquipmentStore(
                 user_data_path() / "equipamentos.json"
             )
-        dlg = FovDialog(self._equipment, self)
+        dlg = FovDialog(self._equipment, self, settings=self.settings)
         dlg.fovChanged.connect(self.sky.set_fov_shapes)
         dlg.setupChosen.connect(self._set_active_setup)
         active = self.active_setup()
-        if active is not None:
-            i = dlg.cb_saved.findText(active.name)
-            if i >= 0:
-                dlg.cb_saved.setCurrentIndex(i)
-                dlg.apply_setup(active)
+        i = dlg.cb_saved.findText(active.name) if active is not None else -1
+        if i >= 0:
+            dlg.cb_saved.setCurrentIndex(i)
+            dlg.apply_setup(active)
+        else:
+            dlg.restore_last()
         dlg.exec()
 
     # -- setup ativo (v0.19) ------------------------------------------------
@@ -2092,6 +2153,12 @@ class MainWindow(QMainWindow):
     def _set_active_setup(self, name: str) -> None:
         self.settings.set_value("equipment/active_setup", name)
         self._refresh_cards(reselect=True)
+        win = getattr(self, "_session_window", None)
+        if win is not None:
+            try:
+                win.refresh_setups(name or None)
+            except RuntimeError:          # janela já fechada
+                pass
 
     def _active_setup_shape(self):
         """(nome, campo da câmera) do setup ativo, para a ficha."""

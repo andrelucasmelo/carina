@@ -11,7 +11,7 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.19.0-blue)](#estado-do-projeto)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.19.1-blue)](#estado-do-projeto)
 [![testes](https://img.shields.io/badge/testes-306%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.19.0 — **em desenvolvimento**
+> ### Versão 0.19.1 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -154,7 +154,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **380 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **392 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
   renderização;
 - **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield
