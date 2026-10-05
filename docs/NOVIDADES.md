@@ -1,6 +1,29 @@
 # O que há de novo
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
+
+## 0.20 — Tours guiados
+
+**Tours** (menu *Tours*, `Ctrl+Shift+T`). O céu passo a passo: o relógio vai
+à hora certa, a vista voa até o alvo, a figura se acende e um texto curto
+explica. Ao sair, o céu volta exatamente como estava. Nesta versão:
+
+- **Iniciantes**: Como se orientar no céu, As estrelas mais brilhantes de
+  hoje, Constelações que todo mundo reconhece, Os famosos do céu profundo,
+  A Lua e os planetas desta noite e Conhecendo o Carina;
+- **Intermediário**: O céu de primavera e **O céu deste mês**, montado
+  para o mês e o seu local;
+- **Astrofotografia**: **Objetos do mês para fotografar** — os alvos com
+  pelo menos 4 h úteis por noite, em aglomerados, nebulosas e galáxias, na
+  ordem em que ficam bons, com o gráfico da noite, as horas de cada noite
+  do mês e "+ Sessão".
+
+**Asterismos** (`Shift+A`): Três Marias, Bule de Sagitário, Falsa Cruz,
+Hexágono de Verão e outros 14, no céu e na busca.
+
+**Histórias das constelações**: a origem, o mito, como achar do Brasil e
+uma curiosidade das 88 constelações, na ficha ao perguntar "Qual
+constelação é esta?". Veja [Tours guiados](TOURS.md).
 
 ## 0.19.1 — Ajustes da astrofotografia
 

@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -60,6 +60,7 @@ e diz a hora em que ele nasce.
 - **Enquadrar com equipamento…** — abre o simulador de campo centrado nele
 - **📷 Adicionar à sessão de astrofotografia** — objetos de céu profundo e
   estrelas; abre a sessão, se preciso, com o objeto já na lista
+- **🧭 Tours com este objeto…** — aparece quando algum tour passa pelo objeto
 - **★ Acrescentar à minha lista** · **✓ Marcar como observado…**
 - **Copiar nome** · **Copiar coordenadas** (AR/Dec J2000 e Az/Alt atuais)
 
@@ -239,6 +240,15 @@ na barra lateral** e a exibição dos painéis.
 | Roteiros ▸ | | Maratonas, melhores objetos, roteiro da minha lista, destaques ([PLANEJAMENTO.md](PLANEJAMENTO.md)) |
 | Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento, setups salvos e mosaico |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |
+
+### Tours
+
+| Item | Atalho | O que faz |
+|---|---|---|
+| Galeria de tours… | `Ctrl+Shift+T` | Os tours por categoria, com a data do céu ([TOURS.md](TOURS.md)) |
+| Iniciantes ▸ · Intermediário ▸ · Astrofotografia ▸ | | Começa um tour direto |
+| Asterismos | `Shift+A` | Mostra os asterismos no céu (o mesmo item de *Exibir ▸ Linhas e grades*) |
+| Como funcionam os tours | | Abre a ajuda dos tours |
 
 ### Ajuda
 

@@ -1,6 +1,6 @@
 # Os planetas
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 Cada planeta tem a sua história do ano: quando aparece, quando fica maior
 e mais brilhante, o que se vê ao telescópio. O Carina reúne isso numa janela

@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa: o
 equipamento e o campo, a sessão da noite, a exposição, as horas de
@@ -172,6 +172,14 @@ Defina a **meta de integração** por alvo (10 h, por exemplo): para cada um,
 o Carina soma as horas úteis das próximas noites — já descontando a Lua,
 dividindo a noite entre os alvos e tirando a margem de perda — e diz quantas
 noites corridas são necessárias.
+
+### Objetos do mês
+
+Para um panorama do mês inteiro, *Tours ▸ Astrofotografia ▸ Objetos do mês
+para fotografar* lista os alvos com pelo menos 4 h úteis por noite
+(mediana do mês), em aglomerados, nebulosas e galáxias, cada um com o
+gráfico da noite e as horas de cada noite; **+ Sessão** manda o alvo para
+cá. Ver [Tours guiados](TOURS.md#objetos-do-mês-para-fotografar).
 
 ### Sugestões de alvos
 

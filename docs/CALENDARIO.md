@@ -1,6 +1,6 @@
 # Calendário do céu
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 Tudo o que vale anotar na agenda de quem observa, calculado para o **seu
 local**: fases e eventos da Lua, eclipses, planetas, encontros, ocultações,

@@ -30,6 +30,7 @@ INDEX = [
     ("README.md", "Início"),
     ("NOVIDADES.md", "O que há de novo"),
     ("PRIMEIROS_PASSOS.md", "Primeiros passos"),
+    ("TOURS.md", "Tours guiados"),
     ("INTERFACE.md", "Interface"),
     ("ATALHOS.md", "Atalhos"),
     ("FUNCIONALIDADES.md", "Funcionalidades"),

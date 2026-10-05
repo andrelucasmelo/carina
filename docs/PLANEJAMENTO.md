@@ -1,6 +1,6 @@
 # Planejamento de observação
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
 que horas?"** em todo lugar, e transforma a resposta num roteiro da noite
@@ -326,6 +326,16 @@ alcance e diz o que ficou de fora.
 
 **Ajuste o tempo por objeto ao seu ritmo real.** Se você desenha ou
 fotografa, ponha 10 minutos e aceite ver menos objetos.
+
+---
+
+## Tours do mês
+
+*Tours ▸ Intermediário ▸ O céu deste mês* percorre, passo a passo, as
+constelações e os objetos do início da noite do mês no seu local — um bom
+começo antes de montar o roteiro. No fim, **★ Guardar os objetos deste
+tour numa lista** e use **Roteiro da minha lista**. Ver
+[Tours guiados](TOURS.md).
 
 ---
 

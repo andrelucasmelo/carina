@@ -40,6 +40,18 @@ recebem visitas.
 
 ---
 
+**Asterismo**
+Uma figura de estrelas conhecida que não é uma das 88 constelações
+oficiais: as Três Marias (parte de Órion), o Bule de Sagitário, a Falsa
+Cruz. Pode estar dentro de uma constelação ou juntar estrelas de várias.
+
+**Constelação**
+Uma das 88 regiões em que a União Astronômica Internacional divide o céu
+desde 1930, com fronteiras oficiais. As figuras vêm de tradições
+diferentes: 48 do Almagesto de Ptolomeu (século II), as do céu austral
+dos navegadores holandeses (1597) e de Lacaille (1752), e as de Hevelius
+(1690).
+
 ## Brilho e tamanho
 
 **Magnitude**

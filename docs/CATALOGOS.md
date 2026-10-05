@@ -1,6 +1,6 @@
 # Catálogos e dados
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 De onde vêm os dados, o que está embarcado, e como criar e editar os
 seus próprios objetos.
@@ -34,6 +34,9 @@ não vieram no pacote, e mesmo esses viram **cache permanente**.
 | `const_bounds.npz` | 86 KB | Limites oficiais IAU |
 | `outlines.json` | 39 KB | Contornos reais de 22 nebulosas |
 | `cities.json` | 82 KB | 745 cidades com fuso horário |
+| `asterisms.json` | 7 KB | 18 asterismos (estrelas por número HIP) |
+| `constellation_lore_pt.json` | 42 KB | Histórias das 88 constelações |
+| `tours/` | 44 KB | Tours autorais e os textos dos tours gerados |
 | `de440s.bsp` | 32 MB | Efemérides JPL, 1849–2150 |
 
 ---

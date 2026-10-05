@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -273,6 +273,22 @@ Detalhes em [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
 
 ---
 
+## Tours e histórias do céu
+
+- **Tours guiados** (*Tours*, `Ctrl+Shift+T`): o céu passo a passo, com o
+  relógio na hora certa, voo até o alvo, destaque da figura e texto; o céu
+  volta ao que era ao sair. Iniciantes, intermediário e astrofotografia;
+  alguns são **montados para a data e o local** (o céu deste mês, os
+  objetos do mês para fotografar, as estrelas e planetas de hoje). Ver
+  [TOURS.md](TOURS.md).
+- **Asterismos** (`Shift+A`): 18 figuras conhecidas — Três Marias, Bule de
+  Sagitário, Falsa Cruz, Hexágono de Verão, Grande Quadrado… — no céu, na
+  busca e nos tours.
+- **Histórias das 88 constelações**: origem, mito, como achar e uma
+  curiosidade, na ficha ("Qual constelação é esta?" e Buscar).
+
+---
+
 ## Impressão e exportação
 
 Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
@@ -339,7 +355,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.19.1 **não há**:
+Para não criar expectativa errada, na versão 0.20.0 **não há**:
 
 - cometas e asteroides;
 - atualização automática dos elementos orbitais de satélites e previsão do

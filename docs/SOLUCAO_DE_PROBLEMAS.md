@@ -1,6 +1,6 @@
 # Solução de problemas
 
-> Carina 0.19.1 — produto em desenvolvimento. Se o seu problema não
+> Carina 0.20.0 — produto em desenvolvimento. Se o seu problema não
 > estiver aqui, ele pode ser um defeito ainda desconhecido: reporte com o
 > máximo de detalhes.
 
@@ -151,6 +151,19 @@ o fuso em `Ctrl+L`.
 Se a curva de altitude máxima tiver quedas bruscas no meio de uma rampa,
 é defeito — foi corrigido na versão 0.13.2. Confirme sua versão em
 *Ajuda → Sobre o Carina*.
+
+### O tour pulou passos
+
+Os passos cujo alvo está abaixo do horizonte (ou baixo demais) na data e
+no local escolhidos são pulados — o primeiro passo diz quais e por quê.
+As constelações de uma estação não aparecem nas noites de outra. Troque a
+data em *Tours ▸ Galeria ▸ Céu da noite de*.
+
+### O céu ficou numa data estranha depois de um tour
+
+O tour devolve o relógio ao sair (**Sair** ou `Esc`). Se você fechou o
+painel de outro jeito e o relógio ficou parado, clique em **Agora** na
+barra lateral.
 
 ### Apareceu "Ocorreu um erro inesperado"
 

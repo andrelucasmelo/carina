@@ -25,10 +25,10 @@ def _menus(win):
     return [a.text().replace("&", "") for a in win.menuBar().actions() if a.menu()]
 
 
-def test_eight_menus_grouped_by_task(window):
+def test_menus_grouped_by_task(window):
     assert _menus(window) == [
         "Arquivo", "Exibir", "Tempo", "Local", "Objetos", "Sistema Solar",
-        "Planejar", "Ajuda",
+        "Planejar", "Tours", "Ajuda",
     ]
 
 

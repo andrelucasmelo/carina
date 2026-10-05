@@ -1,6 +1,6 @@
 # Primeiros passos
 
-> Carina 0.19.1 — produto em desenvolvimento.
+> Carina 0.20.0 — produto em desenvolvimento.
 
 Um passeio guiado, do primeiro clique até um plano de observação impresso
 na mão. Reserve uns quinze minutos e faça junto com o programa aberto.
@@ -37,6 +37,11 @@ Três coisas para reparar:
 
 Dúvida em qualquer ponto? **`F1`** abre esta documentação dentro do
 programa.
+
+> **Prefere aprender olhando?** Depois de escolher a sua cidade (passo
+> 2), abra *Tours ▸ Galeria* (`Ctrl+Shift+T`) e faça **Como se orientar no
+> céu**: em oito passos o programa mostra os pontos cardeais, o polo
+> celeste e o giro do céu. Veja [Tours guiados](TOURS.md).
 
 ---
 
@@ -214,6 +219,7 @@ Imprima, leve, marque as caixas. É para isso que o programa existe.
 | Conhecer todos os recursos | [Funcionalidades](FUNCIONALIDADES.md) |
 | Saber o que cada botão faz | [Interface](INTERFACE.md) |
 | Dominar os roteiros | [Planejamento](PLANEJAMENTO.md) |
+| Aprender o céu passo a passo | [Tours guiados](TOURS.md) |
 | Fotografar o céu | [Astrofotografia](ASTROFOTOGRAFIA.md) |
 | Decorar os atalhos | [Atalhos](ATALHOS.md) |
 | Entender um termo | [Glossário](GLOSSARIO.md) |

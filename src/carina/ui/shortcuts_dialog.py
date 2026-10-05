@@ -26,14 +26,19 @@ MOUSE_AND_KEYS = [
     ("Pairar o mouse", "Tooltip com nome, magnitude e altitude"),
     ("Setas ← → ↑ ↓", "Desloca a vista"),
     ("+ / − (ou PgUp / PgDn)", "Aproxima / afasta"),
-    ("Esc", "Limpa a seleção"),
+    ("Esc", "Limpa a seleção (durante um tour: sai do tour)"),
+    ("→ / ←", "Durante um tour: próximo passo / passo anterior"),
+    ("Espaço", "Durante um tour: avança sozinho (liga e desliga)"),
 ]
 
 
 def collect_menu_shortcuts(menubar) -> list[tuple[str, str, str]]:
     """(menu, ação, atalho) para toda ação com atalho na barra de menus,
-    percorrendo submenus em profundidade."""
+    percorrendo submenus em profundidade. Uma ação que aparece em dois menus
+    (os asterismos em Exibir e em Tours) entra uma vez só, onde aparece
+    primeiro."""
     rows: list[tuple[str, str, str]] = []
+    seen: set[int] = set()
 
     def clean(text: str) -> str:
         return text.replace("&", "").replace("…", "").strip()
@@ -47,7 +52,8 @@ def collect_menu_shortcuts(menubar) -> list[tuple[str, str, str]]:
                 continue
             keys = [k.toString(QKeySequence.SequenceFormat.PortableText) for k in act.shortcuts()
                     if not k.isEmpty()]
-            if keys:
+            if keys and id(act) not in seen:
+                seen.add(id(act))
                 rows.append((path, clean(act.text()), " ou ".join(keys)))
 
     for top in menubar.actions():

@@ -16,6 +16,7 @@ valem com a janela principal ativa.
 | Exibir ▸ Objetos | Via Láctea | `M` |
 | Exibir ▸ Linhas e grades | Linhas das constelações | `C` |
 | Exibir ▸ Linhas e grades | Fronteiras das constelações | `B` |
+| Exibir ▸ Linhas e grades | Asterismos (Três Marias, Bule, Falsa Cruz) | `Shift+A` |
 | Exibir ▸ Linhas e grades | Grade horizontal (Alt-Az) | `Z` |
 | Exibir ▸ Linhas e grades | Grade equatorial | `E` |
 | Exibir ▸ Linhas e grades | Linha do horizonte | `H` |
@@ -61,6 +62,7 @@ valem com a janela principal ativa.
 | Planejar ▸ Lua | A Lua em detalhe | `Ctrl+Shift+M` |
 | Planejar | Campo de visão (equipamentos) | `Ctrl+K` |
 | Planejar | Configurar planejamento | `Ctrl+Shift+O` |
+| Tours | Galeria de tours | `Ctrl+Shift+T` |
 | Ajuda | Ajuda do Carina | `F1` |
 | Ajuda | Atalhos do teclado e do mouse | `Ctrl+Shift+K` |
 
@@ -74,4 +76,6 @@ valem com a janela principal ativa.
 | Pairar o mouse | Tooltip com nome, magnitude e altitude |
 | Setas ← → ↑ ↓ | Desloca a vista |
 | + / − (ou PgUp / PgDn) | Aproxima / afasta |
-| Esc | Limpa a seleção |
+| Esc | Limpa a seleção (durante um tour: sai do tour) |
+| → / ← | Durante um tour: próximo passo / passo anterior |
+| Espaço | Durante um tour: avança sozinho (liga e desliga) |
