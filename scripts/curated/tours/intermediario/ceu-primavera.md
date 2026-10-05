@@ -1,0 +1,138 @@
+---
+key: ceu-primavera
+title: O céu de primavera
+subtitle: As noites de outubro no Brasil — o céu das águas, as aves do sul e o Grande Quadrado
+category: intermediario
+level: 2
+minutes: 18
+when: data:10-15 hora:21:00
+lat_range: -35, 5
+tags: estação, primavera, constelações, asterismos, histórias
+author: Carina / Astronomia no Quintal
+---
+
+## O céu de primavera
+@kind: intro
+@target: altaz:0,75
+@fov: 130
+@layers: const_lines=1, const_names=1, asterisms=1, dso=0, grid_altaz=0
+
+Este é o céu de **15 de outubro às 21h**, o meio da primavera no Brasil. É uma época de poucas estrelas brilhantes: o Escorpião e Sagitário se despedem a oeste, e o alto do céu é ocupado por constelações apagadas ligadas à água — Aquário, Capricórnio, Peixes, a Baleia, o Peixe Austral.
+
+Os babilônios chamavam essa região de **"o mar celeste"**: o Sol passava por ela na estação das chuvas. O tour vai do oeste ao norte, depois ao sul e, no fim, ao leste, onde já nasce o céu de verão.
+
+## A despedida do inverno
+@target: const:Sgr
+@fov: 60
+@highlight: asterism:bule, asterism:ferrao
+
+A oeste, ainda acima do horizonte, o **Bule de Sagitário** e a cauda do Escorpião: as figuras do inverno descendo. Daqui a algumas semanas elas se põem logo depois do Sol.
+
+Com elas vai embora o trecho mais brilhante da Via Láctea, o do centro da Galáxia. Se você quer fotografar ou varrer essa região, as primeiras horas das noites de outubro são a última chance do ano.
+
+## Capricórnio
+@target: const:Cap
+@fov: 45
+
+{lore:Cap}
+
+## Aquário e o Jarro
+@target: const:Aqr
+@fov: 50
+
+Quase no alto do céu. A figura é difícil, mas o **Jarro** — quatro estrelas num Y pequeno — ajuda a achar Aquário; dele a "água" escorre para o sul, até Fomalhaut.
+
+{lore:short:Aqr}
+
+## Fomalhaut, a solitária
+@target: star:Fomalhaut
+@fov: 40
+@highlight: const:PsA
+
+A única estrela de primeira grandeza nessa parte do céu, alta e isolada: **Fomalhaut**, a "boca do peixe" do Peixe Austral. Quando você vê uma estrela brilhante sozinha no alto numa noite de primavera, é ela.
+
+{lore:short:PsA}
+
+## As aves do sul
+@target: const:Gru
+@fov: 60
+@highlight: const:Gru, const:Phe, const:Tuc
+
+Ao sul de Fomalhaut começam as constelações criadas pelos navegadores holandeses no fim do século XVI: o **Grou**, a **Fênix** e o **Tucano** — uma ave das Américas, inclusive do Brasil.
+
+{lore:short:Gru}
+
+## A Pequena Nuvem e 47 Tucanae
+@target: dso:NGC 292
+@fov: 15
+@highlight: const:Tuc
+
+No Tucano está a **Pequena Nuvem de Magalhães**, uma galáxia anã satélite da Via Láctea, visível a olho nu em céu escuro. Logo ao lado, o globular **47 Tucanae** parece uma estrela borrada — ao binóculo, uma bola de luz; num telescópio, milhares de estrelas.
+
+{lore:short:Tuc}
+
+## O Escultor e a galáxia de perfil
+@target: dso:NGC 253
+@fov: 8
+@highlight: const:Scl
+
+Entre Fomalhaut e a Baleia fica o **Escultor**, criação de Lacaille. Olhando para ele, olhamos para o polo sul da Galáxia, longe da poeira da Via Láctea — por isso há tantas galáxias ali.
+
+A mais brilhante é **NGC 253**, uma espiral vista quase de perfil, a 11 milhões de anos-luz. Passa praticamente sobre a cabeça em outubro; num binóculo é um charuto de luz.
+
+## O Grande Quadrado de Pégaso
+@target: asterism:quadrado-pegaso
+@time: +1h
+@fov: 50
+@highlight: asterism:quadrado-pegaso, const:Peg
+
+Ao norte, baixo, quatro estrelas de brilho parecido formam um quadrado enorme: o **Grande Quadrado de Pégaso**. Do Brasil ele aparece "de pé", com o cavalo alado de cabeça para baixo.
+
+{lore:short:Peg}
+
+## Andrômeda e a galáxia vizinha
+@target: dso:M 31
+@time: +2h
+@fov: 12
+@highlight: const:And
+
+De Alpheratz, o canto do Quadrado, duas fileiras de estrelas se abrem para o leste: **Andrômeda**. Suba duas estrelas pela fileira de cima e desvie para o lado — ali está **M 31**, a Galáxia de Andrômeda. Do Brasil ela fica baixa, então escolha uma noite limpa e um horizonte norte sem prédios.
+
+{lore:short:And}
+
+## O Triângulo de Inverno se põe
+@target: asterism:triangulo-inverno
+@fov: 60
+@highlight: asterism:triangulo-inverno
+
+Baixo no noroeste, três estrelas brilhantes descem para o horizonte: **Vega**, **Deneb** e **Altair** — o "Triângulo de Verão" de quem mora no hemisfério norte. A Via Láctea passa pelo meio dele, entre o Cisne e a Águia.
+
+No Sul do Brasil, Deneb mal nasce; no Norte, as três ficam bem visíveis.
+
+## Achernar e o rio
+@target: star:Achernar
+@fov: 50
+@highlight: const:Eri
+
+A sudeste, a estrela azulada e brilhante é **Achernar**, "o fim do rio": a ponta sul do Erídano, que serpenteia dali até perto de Órion.
+
+{lore:short:Eri}
+
+## O verão nasce no leste
+@target: dso:M 45
+@time: +3h
+@fov: 30
+@highlight: asterism:hiades
+
+Três horas depois, no leste, aparecem as **Plêiades** e o V das **Híades**, com Aldebaran: o anúncio do céu de verão. Mais tarde nascem Órion, Sirius e Canopus — o céu volta a ficar cheio de estrelas brilhantes.
+
+Para muitos povos, o nascer das Plêiades ao anoitecer marcava o começo de um novo ciclo de plantio.
+
+## Boas noites de primavera
+@kind: fim
+@target: altaz:0,75
+@fov: 130
+
+Resumo da estação: Fomalhaut no alto, o Grande Quadrado ao norte, as aves e as Nuvens de Magalhães ao sul, o Escorpião se despedindo a oeste e as Plêiades nascendo a leste.
+
+Para ver o céu desta noite (e não o de 15 de outubro), use **O céu deste mês** na galeria; os objetos citados estão no botão **★ Guardar os objetos deste tour numa lista**.

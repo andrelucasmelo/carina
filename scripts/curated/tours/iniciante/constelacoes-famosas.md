@@ -15,7 +15,7 @@ author: Carina / Astronomia no Quintal
 @kind: intro
 @target: altaz:180,35
 @fov: 100
-@layers: const_lines=1, const_names=1, asterisms=1, grid_altaz=0
+@layers: const_lines=1, const_names=1, asterisms=1, grid_altaz=0, dso=0
 
 Quem aprende meia dúzia de constelações nunca mais se perde no céu: cada uma vira ponto de partida para as vizinhas. Neste tour o relógio vai, para cada figura, à **melhor hora desta noite** — quando ela está mais alta no seu céu. As que não aparecem nesta época do ano são puladas, e o tour avisa.
 

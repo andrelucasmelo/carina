@@ -3349,6 +3349,9 @@ class SkyWidget(QOpenGLWidget):
             if target[0] in ("dso", "star"):
                 acts["session"] = menu.addAction(
                     self.tr("📷 Adicionar à sessão de astrofotografia"))
+            tours_for = getattr(self, "tours_for_selection", None)
+            if tours_for is not None and tours_for(target):
+                acts["tours"] = menu.addAction(self.tr("🧭 Tours com este objeto…"))
             menu.addSeparator()
             acts["list"] = menu.addAction(self.tr("★ Acrescentar à minha lista"))
             acts["observed"] = menu.addAction(self.tr("✓ Marcar como observado…"))
@@ -3409,7 +3412,7 @@ class SkyWidget(QOpenGLWidget):
         elif key == "best":
             # a janela principal resolve com a janela útil e o horizonte
             self.contextAction.emit("goto_best", target)
-        elif key in ("list", "observed", "moon", "planet", "session"):
+        elif key in ("list", "observed", "moon", "planet", "session", "tours"):
             self.contextAction.emit(key, target)
         elif key == "rise":
             self.goto_when_rises(target)

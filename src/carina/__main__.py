@@ -42,7 +42,7 @@ def _parse_args(argv):
                  "catalogs", "print", "night", "location", "horizon",
                  "lists", "tonight", "calendar", "chart", "help", "firstrun",
                  "moon", "moonplan", "lunar100", "skycal", "today", "planets",
-                 "session"],
+                 "session", "tours", "toursgallery"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -524,6 +524,21 @@ def main(argv=None) -> int:
             if row:
                 win.sky.selection = ("dso", int(row["id"]))
                 dialog.add_current()
+    elif args.dialog == "tours":
+        # --dialog-text "chave[:passo]": abre o tour já no passo pedido
+        key, _, step = (args.dialog_text or "constelacoes-famosas").partition(":")
+        win.start_tour(key, win.engine.time.current_datetime())
+        player = win.tour_player()
+        if step.isdigit():
+            player.go(int(step) - 1)
+        player.finish_animation()
+    elif args.dialog == "toursgallery":
+        from .ui.tours_gallery import ToursGallery
+
+        dialog = ToursGallery(win)
+        if args.dialog_text:
+            dialog.select(args.dialog_text)
+        dialog.show()
     elif args.dialog == "planets":
         name, _, tab = (args.dialog_text or "Júpiter").partition(":")
         win._open_planets(name)

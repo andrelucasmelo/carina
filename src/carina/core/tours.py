@@ -48,6 +48,11 @@ CATEGORIES = {
     "extra": "Extras",
 }
 STEP_KINDS = ("intro", "goto", "highlight", "object", "pause", "fim", "ui")
+# ordem sugerida: o "próximo tour" ao concluir um e a ordem na galeria
+SUGGESTED_ORDER = [
+    "como-se-orientar", "estrelas-brilhantes", "constelacoes-famosas", "famosos-ceu-profundo",
+    "lua-e-planetas", "conhecendo-o-carina", "ceu-primavera", "ceu-do-mes", "objetos-do-mes",
+]
 TARGET_KINDS = ("star", "dso", "body", "const", "asterism", "altaz")
 # graus: abaixo disso o alvo "não está no céu" para o passo (por tipo de alvo);
 # uma constelação a 3° do horizonte não serve para aprender a figura

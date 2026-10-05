@@ -115,6 +115,17 @@ def parse_markdown(text: str) -> dict:
     return tour
 
 
+def parse_texts(path: Path) -> dict[str, str]:
+    """``_textos.md``: seções ``## chave`` com um parágrafo de texto cada."""
+    if not path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for block in re.split(r"^## ", path.read_text(encoding="utf-8"), flags=re.M)[1:]:
+        lines = block.splitlines()
+        out[lines[0].strip()] = "\n".join(lines[1:]).strip()
+    return out
+
+
 def build(check_only: bool = False) -> list[dict]:
     from carina.catalogs import skygeometry
     from carina.catalogs.stars import StarCatalog
@@ -127,7 +138,13 @@ def build(check_only: bool = False) -> list[dict]:
                    skygeometry.load_constellation_info(DATA), asterisms)
     out, errs = [], []
     keys: set[str] = set()
+    texts = parse_texts(SRC / "_textos.md")
+    for key in texts:
+        if key.startswith("estrela:") and res.star_index(key[8:]) is None:
+            errs.append(f"_textos.md: estrela desconhecida {key[8:]}")
     for f in sorted(SRC.rglob("*.md")):
+        if f.name.startswith("_"):
+            continue
         try:
             d = parse_markdown(f.read_text(encoding="utf-8"))
         except ValueError as exc:
@@ -154,6 +171,8 @@ def build(check_only: bool = False) -> list[dict]:
         for d in out:
             (OUT / f"{d['key']}.json").write_text(
                 json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+        (OUT / "_textos.json").write_text(json.dumps(texts, ensure_ascii=False, indent=1),
+                                          encoding="utf-8")
     return out
 
 

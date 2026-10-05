@@ -9,7 +9,8 @@
     "const_lines": true,
     "const_names": true,
     "asterisms": true,
-    "grid_altaz": false
+    "grid_altaz": false,
+    "dso": false
    },
    "text": "Quem aprende meia dúzia de constelações nunca mais se perde no céu: cada uma vira ponto de partida para as vizinhas. Neste tour o relógio vai, para cada figura, à **melhor hora desta noite** — quando ela está mais alta no seu céu. As que não aparecem nesta época do ano são puladas, e o tour avisa.\n\nAs linhas das constelações e os nomes ficam ligados durante o passeio; ao sair, o céu volta como estava."
   },

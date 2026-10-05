@@ -300,3 +300,36 @@ def _neighbor(runs, edge: int, direction: int):
         if direction > 0 and k0 == edge:
             return val
     return None
+
+
+def photo_candidates(dso) -> list[dict]:
+    """Candidatos a alvo de astrofoto: objetos de céu profundo com designação
+    conhecida e foto embarcada (as mesmas da ficha). Usado pelas sugestões da
+    sessão e pelo tour "Objetos do mês"."""
+    from ..catalogs import names
+    from ..catalogs.dso import type_label
+    from ..catalogs.images import image_path_for
+
+    rows = dso.cx.execute(
+        "SELECT id, name, common, klass, type, ra, dec, mag, maj, min, con FROM objects"
+        " WHERE enabled = 1 AND klass != 'OTHER'"
+        "   AND (name LIKE 'M %' OR name LIKE 'NGC%' OR name LIKE 'IC %'"
+        "        OR name LIKE 'Sh2%' OR common != '')"
+        "   AND (mag <= 12.5 OR maj >= 8.0)").fetchall()
+    out = []
+    for r in rows:
+        if image_path_for(r["name"]) is None:
+            continue
+        ra, dec = float(r["ra"]), float(r["dec"])
+        common = names.common_label(r["common"]) if r["common"] else ""
+        out.append({
+            "kind": "dso", "id": int(r["id"]), "ident": r["name"], "name": r["name"],
+            "label": f"{r['name']} — {common}" if common else r["name"],
+            "common": common, "common_raw": r["common"] or "",
+            "klass": r["klass"], "type_label": type_label(r["type"]),
+            "mag": r["mag"], "maj": r["maj"], "min": r["min"], "con": r["con"],
+            "ra": ra, "dec": dec,
+            "icrs": np.array([np.cos(dec) * np.cos(ra), np.cos(dec) * np.sin(ra),
+                              np.sin(dec)]),
+        })
+    return out

@@ -131,6 +131,7 @@ class MainWindow(QMainWindow):
         self.sky.contextFovRequested.connect(self._open_fov_for)
         self.sky.contextAction.connect(self._on_card_action)
         self.sky.constellationShown.connect(self._show_constellation_card)
+        self.sky.tours_for_selection = self.tours_with
         self.sky.layerToggleRequested.connect(self._on_layer_toggled)
         self.sky.followChanged.connect(self._on_follow_changed)
         self.sky.statusParts.connect(self._on_status_parts)
@@ -473,6 +474,25 @@ class MainWindow(QMainWindow):
         m_plan.addSeparator()
         self._add(m_plan, self.tr("Configurar planejamento…"),
                   self._open_plan_settings, "Ctrl+Shift+O")
+
+        # --- Tours (v0.20) ----------------------------------------------
+        m_tours = bar.addMenu(self.tr("&Tours"))
+        self._add(m_tours, self.tr("Galeria de tours…"), self._open_tours_gallery,
+                  "Ctrl+Shift+T")
+        m_tours.addSeparator()
+        self._tours_menus = {}
+        from ..core.tours import CATEGORIES
+
+        for cat, label in CATEGORIES.items():
+            if cat in ("aplicativo", "extra"):
+                continue
+            sub = m_tours.addMenu(label.split(" — ")[0])
+            sub.aboutToShow.connect(lambda c=cat, m=sub: self._fill_tours_menu(c, m))
+            self._tours_menus[cat] = sub
+        m_tours.addSeparator()
+        m_tours.addAction(layer["asterisms"])
+        self._add(m_tours, self.tr("Como funcionam os tours"),
+                  lambda: self._open_help("TOURS.md"))
 
         # --- Ajuda -----------------------------------------------------
         m_help = bar.addMenu(self.tr("A&juda"))
@@ -899,9 +919,11 @@ class MainWindow(QMainWindow):
         except RuntimeError:
             pass
 
-    def _open_session(self, selection=None) -> None:
+    def _open_session(self, selection=None, focus: bool = True) -> None:
         """Planejar ▸ Sessão de astrofoto (v0.19). Com ``selection`` (menu do
-        botão direito), acrescenta aquele objeto à sessão aberta ou nova."""
+        botão direito), acrescenta aquele objeto à sessão aberta ou nova.
+        ``focus=False`` (cartão de um tour) prepara a sessão sem trazê-la para
+        a frente; ela continua a mesma quando o usuário a abrir."""
         from .session_window import SessionWindow
 
         if isinstance(selection, bool):          # sinal triggered(bool) do menu
@@ -909,8 +931,9 @@ class MainWindow(QMainWindow):
 
         win = getattr(self, "_session_window", None)
         try:
-            alive = win is not None and win.isVisible()
-        except RuntimeError:
+            alive = win is not None and (win.isVisible() or not win.testAttribute(
+                Qt.WA_WState_ExplicitShowHide))      # criada e ainda não mostrada
+        except RuntimeError:                         # fechada (e apagada)
             alive = False
         if not alive:
             win = SessionWindow(
@@ -925,14 +948,178 @@ class MainWindow(QMainWindow):
             win.gotoTarget.connect(self._goto_ident)
             win.fovRequested.connect(self._open_fov_from_session)
             self._session_window = win
-            if selection is None:
+            if selection is None and focus:
                 win.add_current()
         if selection is not None:
             got = self._session_target(selection)
             if got is not None:
                 win.add_target(*got)
-        win.show()
-        win.raise_()
+        if focus:
+            win.show()
+            win.raise_()
+
+    # -- tours (v0.20) --------------------------------------------------------
+    def tour_resolver(self):
+        from ..core.tours import Resolver
+
+        if getattr(self, "_tour_resolver_obj", None) is None:
+            self._tour_resolver_obj = Resolver(self.star_catalog, self.dso_catalog,
+                                               self.sky.const_info, self.sky.asterism_info)
+        return self._tour_resolver_obj
+
+    def authored_tours(self) -> dict:
+        from ..core.tours import builtin_dir, load_dir
+
+        if getattr(self, "_authored_tours", None) is None:
+            self._authored_tours = {t.key: t for t in load_dir(builtin_dir())}
+        return self._authored_tours
+
+    def tour_entries(self) -> list[dict]:
+        """Autorais + gerados, na ordem sugerida (o resto no fim, por título)."""
+        from ..core.tours import SUGGESTED_ORDER
+        from ..core.tours_generated import GENERATORS
+
+        out = [{"key": t.key, "title": t.title, "subtitle": t.subtitle,
+                "category": t.category, "level": t.level, "minutes": t.minutes,
+                "generated": False} for t in self.authored_tours().values()]
+        out += [{"key": g.key, "title": g.title, "subtitle": g.subtitle,
+                 "category": g.category, "level": g.level, "minutes": g.minutes,
+                 "generated": True} for g in GENERATORS.values()]
+        order = {k: i for i, k in enumerate(SUGGESTED_ORDER)}
+        out.sort(key=lambda e: (order.get(e["key"], 999), e["title"]))
+        return out
+
+    def tour_title(self, key: str) -> str:
+        return next((e["title"] for e in self.tour_entries() if e["key"] == key), "")
+
+    def tour_gen_context(self, now_utc):
+        from ..core.tours_generated import GenContext
+
+        setup = self.active_setup()
+        eq = self.equipment()
+        mount = setup.mount_kind(eq) if setup is not None else "equatorial"
+        shape = setup.camera_shape(eq) if setup is not None else None
+        return GenContext(
+            self.engine, self.star_catalog, self.dso_catalog, now_utc,
+            latitude=self.settings.location().latitude, bortle=int(self.sky.bortle),
+            horizon=self.horizon_profile, mount_kind=mount,
+            setup_name=setup.name if setup is not None else "", setup_shape=shape)
+
+    def get_tour(self, key: str, now_utc=None):
+        """O tour pela chave: autoral (JSON) ou gerado para a data."""
+        from ..core.tours_generated import GENERATORS, generate
+
+        if key in GENERATORS:
+            now = now_utc or self.engine.time.current_datetime()
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            try:
+                return generate(key, self.tour_gen_context(now))
+            finally:
+                QApplication.restoreOverrideCursor()
+        return self.authored_tours().get(key)
+
+    def tour_player(self):
+        if getattr(self, "_tour_player", None) is None:
+            from . import tour_object_card  # noqa: F401  (registra o cartão do objeto)
+            from .tour_player import TourPlayer
+
+            self._tour_player = TourPlayer(self)
+            self.addDockWidget(Qt.RightDockWidgetArea, self._tour_player)
+            self._tour_player.helpRequested.connect(lambda: self._open_help("TOURS.md"))
+            self._tour_player.finished.connect(self._tour_finished)
+        return self._tour_player
+
+    def start_tour(self, key_or_tour, now_utc=None) -> None:
+        tour = key_or_tour if not isinstance(key_or_tour, str) else self.get_tour(
+            key_or_tour, now_utc)
+        if tour is None:
+            self.statusBar().showMessage(self.tr("Tour não encontrado"), 4000)
+            return
+        self.tour_player().start(tour, now_utc)
+
+    def suggest_next_tour(self, key: str) -> str:
+        """O próximo da ordem sugerida que ainda não foi feito."""
+        from ..core.tours import SUGGESTED_ORDER, done_keys
+
+        keys = [e["key"] for e in self.tour_entries()]
+        order = [k for k in SUGGESTED_ORDER if k in keys] + \
+            [k for k in keys if k not in SUGGESTED_ORDER]
+        done = done_keys(self.userdata) | {key}
+        if key in order:
+            i = order.index(key)
+            order = order[i + 1:] + order[:i]
+        return next((k for k in order if k not in done), "")
+
+    def suggested_tour_tonight(self) -> str:
+        """Primeiro tour da ordem sugerida ainda não feito e que cabe na noite
+        de hoje (os gerados sempre cabem); vazio se todos foram feitos."""
+        from ..core.tours import SUGGESTED_ORDER, TourRun, done_keys
+        from ..core.tours_generated import GENERATORS
+
+        done = done_keys(self.userdata)
+        now = self.engine.time.current_datetime()
+        for key in SUGGESTED_ORDER:
+            if key in done:
+                continue
+            if key in GENERATORS:
+                return key
+            tour = self.authored_tours().get(key)
+            if tour is None:
+                continue
+            run = TourRun(tour, self.engine, self.tour_resolver(), now,
+                          self.settings.location().latitude).prepare()
+            if run.viable_tonight:
+                return key
+        return ""
+
+    def _tour_finished(self, key: str, completed: bool) -> None:
+        if completed:
+            self.statusBar().showMessage(
+                self.tr("Tour concluído: {t} ✓").format(t=self.tour_title(key)), 6000)
+
+    def _open_tours_gallery(self, only_keys=None, title: str = "", select: str = "") -> None:
+        from .tours_gallery import ToursGallery
+
+        dlg = ToursGallery(self, self, only_keys=only_keys if isinstance(only_keys, list)
+                           else None, title=title)
+        dlg.startRequested.connect(lambda k, ref: self.start_tour(k, ref))
+        if select:
+            dlg.select(select)
+        dlg.exec()
+
+    def _fill_tours_menu(self, cat: str, menu) -> None:
+        from ..core.tours import done_keys
+
+        menu.clear()
+        done = done_keys(self.userdata)
+        for e in self.tour_entries():
+            if e["category"] != cat:
+                continue
+            text = e["title"] + ("  ✓" if e["key"] in done else "")
+            act = menu.addAction(text)
+            act.triggered.connect(lambda _c=False, k=e["key"]: self.start_tour(k))
+
+    def tours_with(self, selection) -> list[str]:
+        """Tours autorais que passam pelo objeto (botão direito)."""
+        if selection is None or selection[0] not in ("star", "dso"):
+            return []
+        res = self.tour_resolver()
+        out = []
+        for t in self.authored_tours().values():
+            for spec in t.targets():
+                r = res.resolve(spec)
+                if r is not None and r.selection == tuple(selection):
+                    out.append(t.key)
+                    break
+        return out
+
+    def _open_tours_for(self, selection) -> None:
+        keys = self.tours_with(selection)
+        if len(keys) == 1:
+            self.start_tour(keys[0])
+        elif keys:
+            name = self.sky.describe_selection(selection)
+            self._open_tours_gallery(keys, self.tr("Tours com {n}").format(n=name))
 
     def _open_fov_from_session(self) -> None:
         """Botão "Campo de visão…" da sessão: cria/edita setups e volta."""
@@ -950,35 +1137,10 @@ class MainWindow(QMainWindow):
         return self._session_target(ref.selection) if ref is not None else None
 
     def _session_candidates(self) -> list[dict]:
-        """Candidatos às sugestões da sessão: objetos de céu profundo com
-        designação conhecida e foto embarcada (as mesmas da ficha)."""
-        import numpy as np
+        """Candidatos às sugestões da sessão (objetos com foto embarcada)."""
+        from ..core.session import photo_candidates
 
-        from ..catalogs import names
-        from ..catalogs.dso import type_label
-        from ..catalogs.images import image_path_for
-
-        rows = self.dso_catalog.cx.execute(
-            "SELECT name, common, klass, type, ra, dec, mag, maj, min FROM objects"
-            " WHERE enabled = 1 AND klass != 'OTHER'"
-            "   AND (name LIKE 'M %' OR name LIKE 'NGC%' OR name LIKE 'IC %'"
-            "        OR name LIKE 'Sh2%' OR common != '')"
-            "   AND (mag <= 12.5 OR maj >= 8.0)").fetchall()
-        out = []
-        for r in rows:
-            if image_path_for(r["name"]) is None:
-                continue
-            ra, dec = float(r["ra"]), float(r["dec"])
-            common = names.common_label(r["common"]) if r["common"] else ""
-            out.append({
-                "kind": "dso", "ident": r["name"], "name": r["name"],
-                "label": f"{r['name']} — {common}" if common else r["name"],
-                "common": common, "klass": r["klass"], "type_label": type_label(r["type"]),
-                "mag": r["mag"], "maj": r["maj"], "min": r["min"],
-                "icrs": np.array([np.cos(dec) * np.cos(ra), np.cos(dec) * np.sin(ra),
-                                  np.sin(dec)]),
-            })
-        return out
+        return photo_candidates(self.dso_catalog)
 
     def _session_target(self, sel=None):
         """(nome, icrs, ident, kind, tamanho′) do objeto (padrão: o selecionado)."""
@@ -1108,9 +1270,15 @@ class MainWindow(QMainWindow):
             return
         if not due and not todays:
             return
-        dlg = TodayDialog(todays, due, self, settings=self.settings)
+        try:
+            key = self.suggested_tour_tonight()
+        except Exception:                        # noqa: BLE001 — a sugestão é opcional
+            key = ""
+        dlg = TodayDialog(todays, due, self, settings=self.settings,
+                          tour=(key, self.tour_title(key)) if key else None)
         dlg.setAttribute(Qt.WA_DeleteOnClose, True)
         dlg.openCalendar.connect(self._open_sky_calendar)
+        dlg.startTour.connect(self.start_tour)
         self._today_dialog = dlg
         dlg.show()
 
@@ -1354,6 +1522,8 @@ class MainWindow(QMainWindow):
             self._mark_observed(selection)
         elif key == "session":
             self._open_session(selection)
+        elif key == "tours":
+            self._open_tours_for(selection)
         elif key == "moon":
             self._open_moon_window()
         elif key == "planet":
@@ -2281,6 +2451,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         """Salva o estado ao fechar (os testes automatizados não salvam,
         para não trocar a vista do usuário por uma cena de teste)."""
+        player = getattr(self, "_tour_player", None)
+        if player is not None and player.active:
+            player.stop(False)                 # o céu volta ao que era antes de salvar
         if not getattr(self, "skip_state_save", False):
             self._save_view_state()
         super().closeEvent(event)

@@ -397,8 +397,10 @@ class TodayDialog(QDialog):
     """O cartão "Hoje no céu" mostrado ao abrir o programa."""
 
     openCalendar = Signal()
+    startTour = Signal(str)                # v0.20: tour sugerido para hoje
 
-    def __init__(self, today_events: list, reminders: list, parent=None, settings=None) -> None:
+    def __init__(self, today_events: list, reminders: list, parent=None, settings=None,
+                 tour: tuple[str, str] | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Hoje no céu"))
         self.settings = settings
@@ -421,6 +423,9 @@ class TodayDialog(QDialog):
             html.append("</ul>")
         else:
             html.append("<p>Nenhum evento especial hoje.</p>")
+        if tour:
+            html.append(f"<h3>🧭 Tour sugerido para hoje</h3><p><b>{tour[1]}</b> — o céu "
+                        "desta noite, passo a passo.</p>")
         text.setHtml("".join(html))
         self.chk = QCheckBox(self.tr("Mostrar ao abrir o programa"))
         self.chk.setChecked(True if settings is None else
@@ -433,6 +438,10 @@ class TodayDialog(QDialog):
         row = QHBoxLayout()
         row.addWidget(self.chk)
         row.addStretch(1)
+        if tour:
+            btn_tour = QPushButton(self.tr("Fazer o tour"))
+            btn_tour.clicked.connect(lambda: (self.startTour.emit(tour[0]), self.accept()))
+            row.addWidget(btn_tour)
         row.addWidget(open_cal)
         row.addWidget(close)
         lay = QVBoxLayout(self)
