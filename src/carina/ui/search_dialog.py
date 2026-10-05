@@ -82,7 +82,7 @@ class SearchDialog(QDialog):
     def add_current_to_list(self) -> None:
         self._flush()
         sel = self._current_selection()
-        if sel is not None and sel[0] != "const":
+        if sel is not None and sel[0] not in ("const", "asterism"):
             self.addToListRequested.emit(sel)
             self.hint.setText(self.tr("Acrescentado à minha lista ✓"))
 
@@ -111,7 +111,7 @@ class SearchDialog(QDialog):
         from ..core.visibility import Target, compute_visibility, night_grid
 
         c = self.ctx
-        if res.kind == "const":
+        if res.kind in ("const", "asterism"):
             return
         try:
             ref = ObjectRef.resolve(res.selection, c.stars, c.dso)

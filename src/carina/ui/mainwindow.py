@@ -46,6 +46,7 @@ _LAYER_ACTIONS = [
     ("ground", "Solo opaco (desmarque para ver abaixo do horizonte)",
      "G", True),
     ("cardinals", "Pontos cardeais", "Q", True),
+    ("asterisms", "Asterismos (Três Marias, Bule, Falsa Cruz…)", "Shift+A", False),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
     ("moon_labels", "Nomes das formações da Lua", None, True),
@@ -129,6 +130,7 @@ class MainWindow(QMainWindow):
         self.sky.contextTrackRequested.connect(lambda _s: self._open_track())
         self.sky.contextFovRequested.connect(self._open_fov_for)
         self.sky.contextAction.connect(self._on_card_action)
+        self.sky.constellationShown.connect(self._show_constellation_card)
         self.sky.layerToggleRequested.connect(self._on_layer_toggled)
         self.sky.followChanged.connect(self._on_follow_changed)
         self.sky.statusParts.connect(self._on_status_parts)
@@ -217,7 +219,7 @@ class MainWindow(QMainWindow):
         self._cat_menu = m_obj.addMenu(self.tr("Catálogos do céu profundo"))
         self._cat_menu.aboutToShow.connect(self._fill_catalog_menu)
         m_lines = m_view.addMenu(self.tr("Linhas e grades"))
-        for key in ("const_lines", "const_bounds", "grid_altaz", "grid_eq",
+        for key in ("const_lines", "const_bounds", "asterisms", "grid_altaz", "grid_eq",
                     "meridian", "ecliptic", "equator", "horizon", "cardinals"):
             m_lines.addAction(layer[key])
 
@@ -1281,7 +1283,14 @@ class MainWindow(QMainWindow):
         self.info_dock.show()
         self.card.set_selection(selection)
 
+    def _show_constellation_card(self, cid: str) -> None:
+        """'Qual constelação é esta?' e Buscar ▸ constelação: a história."""
+        self.info_dock.show()
+        self.card.show_constellation(cid)
+
     def _refresh_info(self) -> None:
+        if self.card.selection and self.card.selection[0] == "const":
+            return                      # ficha de constelação: fica até outra seleção
         if self.info_dock.isVisible() and self.sky.selection is not None:
             if self.card.selection != self.sky.selection:
                 self.card.set_selection(self.sky.selection)
@@ -1386,6 +1395,8 @@ class MainWindow(QMainWindow):
         """Resultado da busca: constelação vai ao centro com destaque."""
         if selection[0] == "const":
             self.sky.goto_constellation(selection[1])
+        elif selection[0] == "asterism":
+            self.sky.goto_asterism(selection[1])
         else:
             self.sky.goto_object(selection)
 

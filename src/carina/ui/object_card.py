@@ -255,6 +255,25 @@ class ObjectCard(QScrollArea):
         for b in self.buttons.values():
             b.setEnabled(False)
 
+    def show_constellation(self, cid: str) -> None:
+        """Ficha de uma constelação (v0.20): nome, origem e história."""
+        from ..catalogs.constnames import CONSTELLATIONS
+        from ..core import lore
+
+        latin, pt = CONSTELLATIONS.get(cid, (cid, cid))
+        self.selection = ("const", cid)
+        self.ref = None
+        self._tonight = None
+        self._placeholder()
+        self.title.setText(pt)
+        self.subtitle.setText(self.tr("Constelação · {la} · {c}").format(la=latin, c=cid))
+        text = lore.as_html(cid)
+        if text:
+            self.sec_desc.setText(f"<b>{self.tr('A história')}</b>")
+            self.sec_desc.show()
+            self.description.setText(text)
+            self.description.show()
+
     # -- entrada ---------------------------------------------------------
     def set_selection(self, selection) -> None:
         from ..core.objects import ObjectRef
@@ -269,6 +288,7 @@ class ObjectCard(QScrollArea):
         for w in (self.badge, self.explain, self.today, self.chart, self.position,
                   self.description, self.sec_today, self.sec_desc):
             w.show()
+        self.sec_desc.setText(f"<b>{self.tr('O que esperar')}</b>")
         for b in self.buttons.values():
             b.setEnabled(True)
         # corpos: "Detalhes" abre a janela da Lua ou a de planetas (v0.18)

@@ -200,6 +200,13 @@ def search(text: str, stars, dso, limit: int = 40) -> list[Result]:
         latin, pt = CONSTELLATIONS[abbr]
         add("const", abbr, f"{pt} ({latin})", "constelação", (0, 0.0))
 
+    # 3b) asterismos (v0.20): "três marias", "bule", "falsa cruz"…
+    if len(tl) >= 3:
+        for a in _asterisms():
+            if tl in fold(a["name"]) or tl in fold(a["key"].replace("-", " ")):
+                add("asterism", a["key"], a["name"], "asterismo",
+                    (0 if fold(a["name"]) == tl else 6, 0.0))
+
     # 4) corpos do Sistema Solar
     for name, _key, _color in _BODIES:
         if tl in fold(name):
@@ -231,3 +238,22 @@ def search(text: str, stars, dso, limit: int = 40) -> list[Result]:
 
     out.sort(key=lambda r: r.sort)
     return out[:limit]
+
+
+_ASTERISMS: list | None = None
+
+
+def _asterisms() -> list[dict]:
+    """Asterismos embarcados (``asterisms.json``), lidos uma vez."""
+    global _ASTERISMS
+    if _ASTERISMS is None:
+        import json
+
+        from ..config import package_data_dir
+
+        path = package_data_dir() / "asterisms.json"
+        try:
+            _ASTERISMS = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        except ValueError:
+            _ASTERISMS = []
+    return _ASTERISMS

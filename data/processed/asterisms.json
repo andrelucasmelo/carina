@@ -1,0 +1,350 @@
+[
+ {
+  "key": "tres-marias",
+  "name": "Três Marias",
+  "const": [
+   "Ori"
+  ],
+  "lines": [
+   [
+    26727,
+    26311,
+    25930
+   ]
+  ],
+  "text": "As três estrelas alinhadas no meio de Órion — o Cinturão do caçador para os gregos, os Três Reis Magos na tradição cristã. É o ponto de partida mais fácil do céu de verão no Brasil: prolongue a linha para um lado e chega a Sirius; para o outro, a Aldebaran e às Plêiades."
+ },
+ {
+  "key": "cruzeiro",
+  "name": "Cruzeiro do Sul",
+  "const": [
+   "Cru"
+  ],
+  "lines": [
+   [
+    60718,
+    61084
+   ],
+   [
+    62434,
+    59747
+   ]
+  ],
+  "text": "A cruz de quatro estrelas que aparece na bandeira do Brasil. O braço maior, de Gacrux para Acrux, aponta para o polo sul celeste: prolongue-o quatro vezes e meia e você está perto do ponto em torno do qual o céu gira."
+ },
+ {
+  "key": "apontadores",
+  "name": "Guardiões do Cruzeiro",
+  "const": [
+   "Cen"
+  ],
+  "lines": [
+   [
+    71683,
+    68702
+   ]
+  ],
+  "text": "Alfa e Beta do Centauro, as duas estrelas brilhantes ao lado do Cruzeiro. Elas \"apontam\" para ele e servem para distinguir o Cruzeiro verdadeiro da Falsa Cruz. Alfa Centauri é o sistema estelar mais próximo do Sol, a 4,4 anos-luz."
+ },
+ {
+  "key": "falsa-cruz",
+  "name": "Falsa Cruz",
+  "const": [
+   "Car",
+   "Vel"
+  ],
+  "lines": [
+   [
+    41037,
+    45941
+   ],
+   [
+    45556,
+    42913
+   ]
+  ],
+  "text": "Quatro estrelas de Carina e Vela que formam uma cruz maior e mais apagada que o Cruzeiro, e que confunde quem procura o sul. A Falsa Cruz não tem a quinta estrela (a Intrometida) nem os Guardiões ao lado."
+ },
+ {
+  "key": "bule",
+  "name": "Bule de Sagitário",
+  "const": [
+   "Sgr"
+  ],
+  "lines": [
+   [
+    88635,
+    89931
+   ],
+   [
+    88635,
+    90185
+   ],
+   [
+    89931,
+    90185,
+    93506,
+    92041,
+    89931
+   ],
+   [
+    89931,
+    90496,
+    92041
+   ],
+   [
+    92041,
+    92855,
+    93864,
+    93506
+   ]
+  ],
+  "text": "As estrelas principais de Sagitário desenham um bule de chá com tampa, alça e bico. O \"vapor\" que sai do bico é a parte mais densa da Via Láctea — a direção do centro da nossa galáxia, cheia de nebulosas e aglomerados."
+ },
+ {
+  "key": "ferrao",
+  "name": "Cauda do Escorpião",
+  "const": [
+   "Sco"
+  ],
+  "lines": [
+   [
+    80763,
+    81266,
+    82396,
+    82514,
+    82729,
+    84143,
+    86228,
+    87073,
+    86670,
+    85927,
+    85696
+   ]
+  ],
+  "text": "A cauda curva do Escorpião, de Antares até o ferrão (Shaula e Lesath). No inverno, a figura passa alta sobre o Brasil e é uma das mais fáceis de reconhecer: um anzol enorme de estrelas brilhantes."
+ },
+ {
+  "key": "cabeca-escorpiao",
+  "name": "Cabeça do Escorpião",
+  "const": [
+   "Sco"
+  ],
+  "lines": [
+   [
+    78820,
+    78401,
+    78265
+   ]
+  ],
+  "text": "Três estrelas numa linha quase vertical que formam a \"testa\" do Escorpião, a oeste de Antares."
+ },
+ {
+  "key": "hexagono",
+  "name": "Hexágono de Verão",
+  "const": [
+   "CMa",
+   "CMi",
+   "Gem",
+   "Aur",
+   "Tau",
+   "Ori"
+  ],
+  "lines": [
+   [
+    32349,
+    37279,
+    37826,
+    24608,
+    21421,
+    24436,
+    32349
+   ]
+  ],
+  "text": "Seis estrelas de primeira grandeza em volta de Órion: Sirius, Procyon, Pollux, Capella, Aldebaran e Rigel. No hemisfério norte é o \"Hexágono de Inverno\"; aqui ele domina as noites de verão."
+ },
+ {
+  "key": "triangulo-inverno",
+  "name": "Triângulo de Inverno",
+  "const": [
+   "Lyr",
+   "Cyg",
+   "Aql"
+  ],
+  "lines": [
+   [
+    91262,
+    102098,
+    97649,
+    91262
+   ]
+  ],
+  "text": "Vega, Deneb e Altair. No hemisfério norte é o famoso \"Triângulo de Verão\"; no Brasil ele aparece baixo no norte nas noites de inverno e primavera, com a Via Láctea passando pelo meio."
+ },
+ {
+  "key": "triangulo-outono",
+  "name": "Triângulo de Outono",
+  "const": [
+   "Boo",
+   "Vir",
+   "Leo"
+  ],
+  "lines": [
+   [
+    69673,
+    65474,
+    49669,
+    69673
+   ]
+  ],
+  "text": "Arcturus, Spica e Regulus formam um triângulo grande nas noites de outono no Brasil (o \"Triângulo de Primavera\" do hemisfério norte). Ajuda a achar o Leão e a Virgem, constelações sem estrelas muito marcantes além dessas."
+ },
+ {
+  "key": "quadrado-pegaso",
+  "name": "Grande Quadrado de Pégaso",
+  "const": [
+   "Peg",
+   "And"
+  ],
+  "lines": [
+   [
+    113963,
+    113881,
+    677,
+    1067,
+    113963
+   ]
+  ],
+  "text": "Quatro estrelas de brilho parecido que formam um quadrado enorme, baixo no norte nas noites de primavera. Alpheratz, num dos cantos, já pertence a Andrômeda — e dela se chega à Galáxia de Andrômeda."
+ },
+ {
+  "key": "foice",
+  "name": "Foice do Leão",
+  "const": [
+   "Leo"
+  ],
+  "lines": [
+   [
+    49669,
+    49583,
+    50583,
+    50335,
+    48455,
+    47908
+   ]
+  ],
+  "text": "Um ponto de interrogação invertido (ou uma foice) que forma a cabeça e a juba do Leão, com Regulus na ponta do cabo."
+ },
+ {
+  "key": "carro",
+  "name": "Grande Carro",
+  "const": [
+   "UMa"
+  ],
+  "lines": [
+   [
+    67301,
+    65378,
+    62956,
+    59774,
+    54061,
+    53910,
+    58001,
+    59774
+   ]
+  ],
+  "text": "As sete estrelas mais brilhantes da Ursa Maior. Do Brasil ele aparece baixo no norte nas noites de outono; mais ao sul, fica abaixo do horizonte. Mizar, no meio do cabo, tem uma companheira visível a olho nu: Alcor."
+ },
+ {
+  "key": "w-cassiopeia",
+  "name": "W de Cassiopeia",
+  "const": [
+   "Cas"
+  ],
+  "lines": [
+   [
+    746,
+    3179,
+    4427,
+    6686,
+    8886
+   ]
+  ],
+  "text": "Cinco estrelas em forma de W (ou M). Do norte do Brasil aparece baixa no horizonte norte na primavera; do Sul do país quase não nasce."
+ },
+ {
+  "key": "hiades",
+  "name": "V do Touro",
+  "const": [
+   "Tau"
+  ],
+  "lines": [
+   [
+    20889,
+    20455,
+    20205,
+    20894,
+    21421
+   ]
+  ],
+  "text": "O aglomerado das Híades desenha um V que forma a cara do Touro; Aldebaran, alaranjada, é o olho — mas está na frente do aglomerado, a menos da metade da distância."
+ },
+ {
+  "key": "pipa",
+  "name": "Pipa do Boieiro",
+  "const": [
+   "Boo"
+  ],
+  "lines": [
+   [
+    69673,
+    72105,
+    74666,
+    73555,
+    71075,
+    71053,
+    69673
+   ]
+  ],
+  "text": "O Boieiro parece uma pipa (ou um sorvete de casquinha) com Arcturus na rabiola. Arcturus é a estrela mais brilhante do hemisfério celeste norte."
+ },
+ {
+  "key": "diamante",
+  "name": "Diamante da Virgem",
+  "const": [
+   "Boo",
+   "Vir",
+   "Leo",
+   "CVn"
+  ],
+  "lines": [
+   [
+    69673,
+    65474,
+    57632,
+    63125,
+    69673
+   ]
+  ],
+  "text": "Um losango gigante formado por Arcturus, Spica, Denebola e Cor Caroli. Dentro dele fica o aglomerado de galáxias de Virgem, com centenas de galáxias ao alcance de telescópios pequenos."
+ },
+ {
+  "key": "pentagono-auriga",
+  "name": "Pentágono do Cocheiro",
+  "const": [
+   "Aur",
+   "Tau"
+  ],
+  "lines": [
+   [
+    24608,
+    28360,
+    28380,
+    25428,
+    23015,
+    24608
+   ]
+  ],
+  "text": "Cinco estrelas em forma de pentágono, com Capella num dos vértices; Elnath, no vértice de baixo, é emprestada do Touro. Baixo no norte nas noites de verão."
+ }
+]

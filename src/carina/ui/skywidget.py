@@ -56,7 +56,11 @@ DEFAULT_LAYERS = {
     "dso_names": True,
     "dso_images": False,
     "moon_labels": True,      # nomes das formações lunares ao aproximar
+    "asterisms": False,       # Três Marias, Bule, Falsa Cruz… (v0.20)
 }
+
+COL_ASTERISM = (0.98, 0.72, 0.38, 0.80)
+COL_ASTERISM_HL = (1.00, 0.86, 0.45, 1.00)
 
 COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
 COL_GROUND_DAY = np.array([0.165, 0.210, 0.150])
@@ -199,6 +203,7 @@ class SkyWidget(QOpenGLWidget):
     layerToggleRequested = Signal(str, bool)  # Camadas no menu de contexto
     statusParts = Signal(object)       # campos da barra de estado (dict)
     noticeShown = Signal(str)          # aviso exibido no alto do céu
+    constellationShown = Signal(str)   # constelação identificada/buscada (v0.20)
     contextAction = Signal(str, object)    # ações da ficha pelo botão direito
     _moonTexLoaded = Signal()               # texturas da Lua decodificadas (thread)
 
@@ -251,6 +256,7 @@ class SkyWidget(QOpenGLWidget):
 
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
         self.const_bounds = skygeometry.load_constellation_bounds(data_dir)
+        self.asterism_info, self.asterism_lines = self._load_asterisms(data_dir)
         self.milkyway = skygeometry.load_milkyway_points(data_dir)
         self.grid = skygeometry.build_grid()
         self.horizon = skygeometry.build_horizon()
@@ -281,7 +287,8 @@ class SkyWidget(QOpenGLWidget):
         self._history: list = []            # vistas anteriores (Backspace)
         self._hover = None                  # objeto sob o cursor (tooltip)
         self._notice: tuple | None = None   # (texto, prazo) do aviso
-        self._highlight_const: tuple | None = None   # (sigla, prazo)
+        self._highlight_const: tuple | None = None   # (sigla, prazo) — compat.
+        self._highlights: dict = {}         # ("const"|"asterism", chave) → prazo
         self._const_subsets: dict = {}      # cache de polilinhas por sigla
 
         # malha da esfera celeste para a textura da Via Láctea (Stellarium-like)
@@ -813,7 +820,9 @@ class SkyWidget(QOpenGLWidget):
         if self.layers["const_lines"]:
             col = CHART_COLORS["const_lines"] if chart else COL_CONST_LINES
             r.draw_lines(self._segments(self.const_lines, m, col))
-        # "Qual constelação é esta?": destaque temporário de uma constelação
+        if self.layers.get("asterisms") and len(self.asterism_lines.verts):
+            r.draw_lines(self._segments(self.asterism_lines, m, COL_ASTERISM))
+        # "Qual constelação é esta?" e tours: destaques temporários
         self._draw_constellation_highlight(m)
 
         # --- imagens do levantamento nos objetos (antes dos símbolos) ---
@@ -2480,6 +2489,30 @@ class SkyWidget(QOpenGLWidget):
                 if placer.place(tx, ty, w_text, h_text):
                     painter.drawText(tx, ty, text)
 
+        # asterismos (v0.20): com a camada ligada ou em destaque num tour
+        hl_ast = {k for kind, k in self.active_highlights() if kind == "asterism"}
+        if self.asterism_info and (self.layers.get("asterisms") or hl_ast):
+            m_ast = self._frame_m
+            font_a = self._lf(9, QFont.Bold if hl_ast else QFont.Normal)
+            painter.setFont(font_a)
+            fm_a = QFontMetrics(font_a)
+            for a in self.asterism_info:
+                if not self.layers.get("asterisms") and a["key"] not in hl_ast:
+                    continue
+                v = (np.asarray(a["center"], np.float32) @ m_ast.T)[np.newaxis, :]
+                ax, ay, avis = self.camera.project(v, margin=20.0)
+                if not avis[0] or (ground_on and self._below_mask(v)[0]):
+                    continue
+                text = a["name"]
+                w_t, h_t = fm_a.horizontalAdvance(text), fm_a.height()
+                tx, ty = int(ax[0] / dpr) - w_t // 2, int(ay[0] / dpr) + h_t
+                if placer.place(tx, ty, w_t, h_t, force=a["key"] in hl_ast):
+                    painter.setPen(QColor(20, 16, 10))
+                    painter.drawText(tx + 1, ty + 1, text)
+                    painter.setPen(QColor(255, 205, 120) if a["key"] in hl_ast
+                                   else QColor(235, 175, 105))
+                    painter.drawText(tx, ty, text)
+
         # formações da Lua (v0.17) antes dos nomes dos corpos
         if self.layers["planets"] and not self.chart_mode:
             self._draw_moon_labels(painter, dpr, placer)
@@ -3099,22 +3132,30 @@ class SkyWidget(QOpenGLWidget):
             self.follow_selection = False
             self.followChanged.emit(False)
 
-    def _animate_to(self, az1: float, alt1: float) -> None:
-        """Gira suavemente a câmera até (az1, alt1)."""
+    def _animate_to(self, az1: float, alt1: float, fov1: float | None = None,
+                    duration: int = 650) -> None:
+        """Gira suavemente a câmera até (az1, alt1); com ``fov1`` (rad),
+        aproxima ou afasta junto — interpolado em escala logarítmica, para
+        que ir de 90° a 1° não pareça um salto no fim."""
         cam = self.camera
         if self._goto_anim is not None:
             self._goto_anim.stop()
         az0, alt0 = cam.az, cam.alt
         daz = _wrap_pi(az1 - az0)
         dalt = alt1 - alt0
+        f0 = cam.fov
+        lf0 = math.log(max(f0, 1e-6))
+        lf1 = math.log(max(fov1, 1e-6)) if fov1 is not None else lf0
         anim = QVariantAnimation(self)
-        anim.setDuration(650)
+        anim.setDuration(int(duration))
         anim.setStartValue(0.0)
         anim.setEndValue(1.0)
         anim.setEasingCurve(QEasingCurve.InOutCubic)
 
         def step(v: float) -> None:
             cam.set_direction(az0 + daz * v, alt0 + dalt * v)
+            if fov1 is not None:
+                cam.fov = math.exp(lf0 + (lf1 - lf0) * v)
             self.update()
 
         anim.valueChanged.connect(step)
@@ -3501,6 +3542,7 @@ class SkyWidget(QOpenGLWidget):
         pt = label_for(cid, "pt", latin)
         self.highlight_constellation(cid)
         self.show_notice(self.tr("Esta região é {pt} ({la})").format(pt=pt, la=latin), 8.0)
+        self.constellationShown.emit(cid)
 
     def constellation_name(self, icrs) -> str:
         """Nome em português da constelação que contém a direção ICRS."""
@@ -3534,14 +3576,105 @@ class SkyWidget(QOpenGLWidget):
         self.highlight_constellation(cid)
         if alt < 0.0:
             self.show_notice(self.tr("Esta constelação está abaixo do horizonte agora."))
+        self.constellationShown.emit(cid)
+        return True
+
+    def goto_asterism(self, key: str) -> bool:
+        """Busca ▸ asterismo: centraliza, enquadra e destaca por alguns segundos."""
+        a = next((x for x in self.asterism_info if x["key"] == key), None)
+        if a is None:
+            return False
+        sub = self._const_subset(self.asterism_lines, key)
+        center = np.asarray(a["center"], np.float64)
+        spread = 10.0
+        if len(sub.verts):
+            dots = np.clip(sub.verts.astype(np.float64) @ center, -1.0, 1.0)
+            spread = math.degrees(float(np.arccos(dots.min())))
+        m = self.engine.horizontal_matrix(self.engine.time.current())
+        self._push_view()
+        vec = m @ center
+        self.fly_to(vec, min(100.0, max(12.0, 3.0 * spread)), 700)
+        self.highlight_asterism(key, 10.0)
+        if vec[2] < 0:
+            self.show_notice(self.tr("Este asterismo está abaixo do horizonte agora."))
         return True
 
     def highlight_constellation(self, cid: str, seconds: float = 8.0) -> None:
+        self._highlight("const", cid, seconds)
+
+    def highlight_asterism(self, key: str, seconds: float = 8.0) -> None:
+        self._highlight("asterism", key, seconds)
+
+    def _highlight(self, kind: str, key: str, seconds: float) -> None:
         import time as _time
 
-        self._highlight_const = (cid, _time.monotonic() + seconds)
-        QTimer.singleShot(int(seconds * 1000) + 50, self.update)
+        deadline = _time.monotonic() + seconds
+        self._highlights[(kind, key)] = deadline
+        if kind == "const":
+            self._highlight_const = (key, deadline)
+        if seconds < 3600:
+            QTimer.singleShot(int(seconds * 1000) + 50, self.update)
         self.update()
+
+    def clear_highlights(self) -> None:
+        """Apaga todos os destaques (troca de passo de tour, saída)."""
+        self._highlights.clear()
+        self._highlight_const = None
+        self.update()
+
+    def active_highlights(self) -> list[tuple[str, str]]:
+        import time as _time
+
+        now = _time.monotonic()
+        return [k for k, d in self._highlights.items() if d >= now]
+
+    def fly_to(self, vec_h, fov_deg: float | None = None, duration: int = 1100) -> None:
+        """Voo do tour até uma direção horizontal (com refração), com zoom."""
+        v = np.asarray(vec_h, np.float64)
+        v = v / max(np.linalg.norm(v), 1e-12)
+        v = self._refract(v[np.newaxis, :])[0]
+        az, alt = vec_to_altaz(v)
+        self._stop_following()
+        fov = math.radians(fov_deg) if fov_deg else None
+        if fov is not None:
+            fov = max(FOV_MIN, min(FOV_MAX, fov))
+        self._animate_to(az, alt, fov, duration)
+
+    # -- asterismos (v0.20) --------------------------------------------------
+    def _load_asterisms(self, data_dir):
+        """``asterisms.json`` → (lista de metadados, polilinhas por chave)."""
+        import json
+
+        path = data_dir / "asterisms.json"
+        empty = skygeometry.PolylineSet.from_arrays(np.zeros((0, 3), np.float32),
+                                                    np.zeros(0, np.int32))
+        if not path.exists():
+            return [], empty
+        try:
+            info = json.loads(path.read_text(encoding="utf-8"))
+        except ValueError:
+            return [], empty
+        from ..core.objects import _hip_index
+
+        hip = _hip_index(self.stars)
+        verts, counts, ids, keep = [], [], [], []
+        for a in info:
+            vecs_all = []
+            for line in a.get("lines", []):
+                pts = [self.stars.xyz[hip[h]] for h in line if h in hip]
+                if len(pts) >= 2:
+                    verts.extend(pts)
+                    counts.append(len(pts))
+                    ids.append(a["key"])
+                    vecs_all.extend(pts)
+            if vecs_all:
+                c = np.mean(np.asarray(vecs_all, np.float64), axis=0)
+                a = dict(a, center=c / np.linalg.norm(c))
+                keep.append(a)
+        if not counts:
+            return keep, empty
+        return keep, skygeometry.PolylineSet.from_arrays(
+            np.asarray(verts, np.float32), np.asarray(counts, np.int32), np.asarray(ids))
 
     def _const_subset(self, pset, cid: str):
         key = (id(pset), cid)
@@ -3552,17 +3685,23 @@ class SkyWidget(QOpenGLWidget):
     def _draw_constellation_highlight(self, m: np.ndarray) -> None:
         import time as _time
 
-        if self._highlight_const is None:
-            return
-        cid, deadline = self._highlight_const
-        if _time.monotonic() > deadline:
+        now = _time.monotonic()
+        for k in [k for k, d in self._highlights.items() if d < now]:
+            del self._highlights[k]
+        if self._highlight_const is not None and self._highlight_const[1] < now:
             self._highlight_const = None
+        if not self._highlights:
             return
         r = self.renderer
-        r.draw_lines(self._segments(self._const_subset(self.const_bounds, cid), m,
-                                    (1.0, 0.80, 0.35, 0.95)))
-        r.draw_lines(self._segments(self._const_subset(self.const_lines, cid), m,
-                                    (1.0, 0.95, 0.75, 1.0)))
+        for kind, key in self._highlights:
+            if kind == "const":
+                r.draw_lines(self._segments(self._const_subset(self.const_bounds, key), m,
+                                            (1.0, 0.80, 0.35, 0.95)))
+                r.draw_lines(self._segments(self._const_subset(self.const_lines, key), m,
+                                            (1.0, 0.95, 0.75, 1.0)))
+            elif kind == "asterism":
+                r.draw_lines(self._segments(self._const_subset(self.asterism_lines, key), m,
+                                            COL_ASTERISM_HL))
 
     def describe_selection(self, selection) -> str:
         """Nome curto do objeto, para menus e títulos."""
