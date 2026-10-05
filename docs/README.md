@@ -4,7 +4,7 @@ Bem-vindo. Esta pasta reúne tudo o que você precisa para **instalar, usar
 e tirar proveito** do Carina — do primeiro clique ao planejamento de uma
 noite inteira de observação.
 
-> **Versão documentada: 0.20.0** — produto em desenvolvimento. Recursos e
+> **Versão documentada: 0.20.1** — produto em desenvolvimento. Recursos e
 > telas podem mudar entre versões; quando isso acontecer, esta pasta é
 > atualizada junto.
 

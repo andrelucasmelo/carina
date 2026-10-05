@@ -182,7 +182,8 @@ class FovDialog(QDialog):
             rotation_deg=float(self.slider_angle.value()),
             mosaic_cols=self.sp_cols.value(), mosaic_rows=self.sp_rows.value(),
             overlap=self.sp_overlap.value() / 100.0,
-            train=self.cb_train.currentData() or "direta")
+            train=self.cb_train.currentData() or "direta",
+            sub_s=int(self.sp_sub.value()))
 
     def _refresh_saved(self) -> None:
         from ..catalogs.equipment import setup_names
@@ -254,6 +255,25 @@ class FovDialog(QDialog):
         self.lbl_saved.setText("")
         self.setupChosen.emit(name)
 
+    def _edit_margins(self) -> None:
+        """A mesma tabela de margens da Sessão de astrofoto (``session/sub_margins``)."""
+        import json
+
+        from ..core.exposure import DEFAULT_MARGINS, normalize_margins
+        from .session_window import MarginsDialog
+
+        table = list(DEFAULT_MARGINS)
+        if self.settings is not None:
+            raw = self.settings.value("session/sub_margins", "", str)
+            try:
+                rows = [(None if a is None else float(a), float(b)) for a, b in json.loads(raw)]
+                table = normalize_margins(rows) if rows else table
+            except (ValueError, TypeError):
+                pass
+        dlg = MarginsDialog(table, self)
+        if dlg.exec() and self.settings is not None:
+            self.settings.set_value("session/sub_margins", json.dumps(dlg.table()))
+
     def restore_last(self) -> None:
         """Volta ao último setup escolhido (também o sem nome)."""
         import json
@@ -280,7 +300,8 @@ class FovDialog(QDialog):
             return
         widgets = (self.cb_scope, self.cb_camera, self.cb_eyepiece, self.cb_accessory,
                    self.cb_mount, self.cb_train, self.sp_cols, self.sp_rows,
-                   self.sp_overlap, self.slider_angle, self.chk_camera, self.chk_eyepiece)
+                   self.sp_overlap, self.slider_angle, self.chk_camera, self.chk_eyepiece,
+                   self.sp_sub)
         for w in widgets:
             w.blockSignals(True)
         for cb, value in ((self.cb_scope, s.telescope), (self.cb_camera, s.camera),
@@ -296,6 +317,7 @@ class FovDialog(QDialog):
         self.sp_rows.setValue(s.mosaic_rows)
         self.sp_overlap.setValue(int(round(s.overlap * 100)))
         self.slider_angle.setValue(int(s.rotation_deg))
+        self.sp_sub.setValue(int(getattr(s, "sub_s", 0) or 0))
         for w in widgets:
             w.blockSignals(False)
         self._ready = True
@@ -381,6 +403,27 @@ class FovDialog(QDialog):
         holder_m = QWidget()
         holder_m.setLayout(mrow)
         form.addRow(self.tr("Mosaico (câmera):"), holder_m)
+        # astrofotografia (v0.20.1): a sub do setup e as margens de perda, que a
+        # Sessão de astrofoto usa para contar as subs
+        srow2 = QHBoxLayout()
+        self.sp_sub = QSpinBox()
+        self.sp_sub.setRange(0, 1800)
+        self.sp_sub.setSuffix(" s")
+        self.sp_sub.setSpecialValueText(self.tr("a sugerida pelo céu"))
+        self.sp_sub.setToolTip(self.tr("Duração de cada sub-exposição com este setup. "
+                                       "\"A sugerida\" calcula pelo Bortle, pela câmera e "
+                                       "pela montagem."))
+        self.sp_sub.valueChanged.connect(self._recompute)
+        btn_margins = QPushButton(self.tr("Margens de perda…"))
+        btn_margins.setToolTip(self.tr("Quanto a mais fotografar para compensar subs "
+                                       "estragadas, por faixa de duração da sub"))
+        btn_margins.clicked.connect(self._edit_margins)
+        srow2.addWidget(self.sp_sub)
+        srow2.addWidget(btn_margins)
+        srow2.addStretch(1)
+        holder_s = QWidget()
+        holder_s.setLayout(srow2)
+        form.addRow(self.tr("Sub-exposição (câmera):"), holder_s)
         layout.addWidget(setup)
 
         opts = QGroupBox(self.tr("Exibição"))

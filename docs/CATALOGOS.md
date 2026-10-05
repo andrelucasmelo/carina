@@ -1,6 +1,6 @@
 # Catálogos e dados
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 De onde vêm os dados, o que está embarcado, e como criar e editar os
 seus próprios objetos.

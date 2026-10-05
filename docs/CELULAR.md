@@ -1,6 +1,6 @@
 # Companheiro no celular
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 Leve o roteiro da noite para o lado do telescópio: o celular mostra a lista
 em **vermelho** (para não perder a adaptação ao escuro) e cada **observado**

@@ -1,6 +1,6 @@
 # Impressão e cartas celestes
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 Tudo o que o Carina desenha pode sair da tela: em imagem, em PDF ou em
 papel. Desde a 0.16, as cartas são desenhadas **fora da tela**, em alta

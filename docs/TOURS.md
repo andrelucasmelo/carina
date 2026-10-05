@@ -1,6 +1,6 @@
 # Tours guiados
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 Um **tour** leva o céu, passo a passo, às estrelas, constelações e objetos
 de que fala: o relógio vai à hora certa, a vista voa até o alvo, a figura

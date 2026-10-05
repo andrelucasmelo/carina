@@ -1,6 +1,15 @@
 # O que há de novo
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
+
+## 0.20.1 — Sessão de astrofoto mais à mão
+
+- **📷 Sessão** na ficha do objeto: acrescenta o objeto de céu profundo ou a
+  estrela à sessão de astrofotografia (além do botão direito no mapa).
+- **Sub-exposição no setup**: em *Campo de visão*, cada setup guarda a
+  duração da sub (ou "a sugerida pelo céu"), e **Margens de perda…** abre a
+  tabela de margens por faixa; a sessão usa os dois.
+- A janela da sessão se ajusta à tela, e a coluna da esquerda rola.
 
 ## 0.20 — Tours guiados
 

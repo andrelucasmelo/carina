@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -355,7 +355,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.20.0 **não há**:
+Para não criar expectativa errada, na versão 0.20.1 **não há**:
 
 - cometas e asteroides;
 - atualização automática dos elementos orbitais de satélites e previsão do

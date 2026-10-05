@@ -58,6 +58,7 @@ ACTIONS = [
     ("list", "★ Minha lista", "Acrescenta à lista de observação"),
     ("observed", "✓ Observado", "Registra no diário"),
     ("copy", "Copiar", "Copia nome e coordenadas"),
+    ("session", "📷 Sessão", "Acrescenta à sessão de astrofotografia (Ctrl+Shift+S abre a sessão)"),
 ]
 
 SCORE_COLORS = [(75, "#2e9d5b"), (55, "#5f9e2e"), (35, "#b8902a"), (1, "#b8602a"),
@@ -294,6 +295,8 @@ class ObjectCard(QScrollArea):
         # corpos: "Detalhes" abre a janela da Lua ou a de planetas (v0.18)
         self.buttons["details"].setEnabled(self.ref.is_fixed or (
             self.ref.kind == "body" and self.ref.key != "Sol"))
+        # astrofoto de longa exposição: céu profundo e estrelas (v0.20.1)
+        self.buttons["session"].setEnabled(self.ref.kind in ("dso", "star"))
         self._fill_static()
         self.refresh(force=True)
 

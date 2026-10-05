@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -286,7 +286,7 @@ A mesma ficha aparece no painel lateral, no popup do botão direito
 - **Seu diário** — quantas vezes você observou, a última nota e as listas
   em que o objeto está;
 - **botões** — Centralizar, Seguir, Rastrear, Detalhes, Enquadrar, Melhor
-  hora, ★ Minha lista, ✓ Observado e Copiar.
+  hora, ★ Minha lista, ✓ Observado, Copiar e **📷 Sessão** (céu profundo e estrelas: acrescenta à sessão de astrofotografia).
 
 Abra com `Ctrl+J` ou clicando num objeto.
 

@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.20.0 — produto em desenvolvimento.
+> Carina 0.20.1 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa: o
 equipamento e o campo, a sessão da noite, a exposição, as horas de
@@ -102,8 +102,9 @@ para enquadrar um alvo alongado — uma galáxia de perfil, o Véu, a Chama.
 
 Diferente do roteiro visual (minutos por objeto), aqui cada alvo recebe
 **horas de integração** na noite escura. Acrescente os alvos — o objeto
-selecionado no mapa, uma das suas listas, as **sugestões** ou, no mapa, o
-**botão direito → 📷 Adicionar à sessão de astrofotografia** —, escolha o
+selecionado no mapa, uma das suas listas, as **sugestões**, o botão
+**📷 Sessão** da ficha do objeto ou, no mapa, o **botão direito → 📷
+Adicionar à sessão de astrofotografia** —, escolha o
 **setup** e o Carina divide a noite:
 
 - cada alvo fica com uma **cota** (partes iguais, ou as horas que você
@@ -143,8 +144,11 @@ abaixo de 5 s, o programa sugere um filtro.
 
 ### Quantas subs?
 
-Em **Sub-exposição**, escolha a duração das subs (ou **Sugerida**, a da
-seção anterior). O painel da direita mostra:
+Em **Sub-exposição** (no quadro *Setup e regras*, embaixo à esquerda),
+escolha a duração das subs ou clique em **Sugerida**, a da seção anterior.
+A sub também pode ficar gravada no próprio setup: em *Planejar ▸ Campo de
+visão*, linha **Sub-exposição (câmera)** — ao escolher esse setup na sessão,
+ela é usada. O painel da direita mostra:
 
 - **nesta noite**: quantas subs cabem no bloco de cada alvo e quantas devem
   sobrar boas;
@@ -162,7 +166,8 @@ e cresce com a duração da sub — uma rajada estraga a sub inteira. O padrão:
 | 181 a 300 s | 25% |
 | acima de 300 s | 30% |
 
-**Margens…** abre a tabela para mudar os valores e acrescentar faixas
+**Margens…** (na sessão) ou **Margens de perda…** (no Campo de visão) abre
+a mesma tabela para mudar os valores e acrescentar faixas
 (**+ Faixa**); a última vale para tudo acima. **Padrão** volta à tabela de
 fábrica.
 

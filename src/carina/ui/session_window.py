@@ -393,15 +393,27 @@ class SessionWindow(QMainWindow):
         rl.addLayout(grow)
         rl.addWidget(self.details, 1)
 
+        from PySide6.QtWidgets import QFrame, QScrollArea
+
+        left_scroll = QScrollArea()
+        left_scroll.setWidgetResizable(True)
+        left_scroll.setFrameShape(QFrame.NoFrame)
+        left_scroll.setWidget(left_box)
+        left_scroll.setMinimumWidth(320)
         split = QSplitter()
-        split.addWidget(left_box)
+        split.addWidget(left_scroll)
         split.addWidget(center)
         split.addWidget(right)
         split.setStretchFactor(1, 3)
         split.setStretchFactor(2, 2)
         split.setSizes([300, 700, 420])
         self.setCentralWidget(split)
-        self.resize(1450, 800)
+        w, h = 1450, 860
+        scr = self.screen() if hasattr(self, "screen") else None
+        if scr is not None:                  # nunca maior que a área útil da tela
+            area = scr.availableGeometry()
+            w, h = min(w, int(area.width() * 0.95)), min(h, int(area.height() * 0.92))
+        self.resize(w, h)
         self._fill_setups(active_setup)
         self.recompute()
 
@@ -455,7 +467,13 @@ class SessionWindow(QMainWindow):
             self.cb_mount.setCurrentIndex(max(0, self.cb_mount.findData(
                 s.mount_kind(self.equipment))))
             self.cb_mount.blockSignals(False)
-            if not self._sub_user:
+            fixed = int(getattr(s, "sub_s", 0) or 0)
+            if fixed > 0:                    # a sub gravada no setup manda
+                self.sp_sub.blockSignals(True)
+                self.sp_sub.setValue(fixed)
+                self.sp_sub.blockSignals(False)
+                self._sub_user = False
+            elif not self._sub_user:
                 adv = self._advice()
                 if adv is not None:
                     self.sp_sub.blockSignals(True)

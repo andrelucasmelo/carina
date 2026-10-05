@@ -418,6 +418,7 @@ class Setup:
     mosaic_rows: int = 1
     overlap: float = 0.15
     train: str = "direta"      # ocular: direta | invertida | espelhada
+    sub_s: int = 0             # sub-exposição da sessão (s); 0 = a sugerida pelo céu
 
     def to_dict(self) -> dict:
         return asdict(self)
