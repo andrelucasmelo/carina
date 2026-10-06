@@ -40,6 +40,11 @@ recebem visitas.
 
 ---
 
+**Analema**
+O "8" que o Sol desenha no céu quando é visto à mesma hora do relógio ao
+longo do ano: a altura varia com as estações (a inclinação do eixo da
+Terra) e o lado varia com a equação do tempo (a órbita elíptica).
+
 **Asterismo**
 Uma figura de estrelas conhecida que não é uma das 88 constelações
 oficiais: as Três Marias (parte de Órion), o Bule de Sagitário, a Falsa

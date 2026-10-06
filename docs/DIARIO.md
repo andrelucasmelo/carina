@@ -1,6 +1,6 @@
 # Diário e listas
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 O Carina guarda o que você cria: listas de alvos, o diário do que
 observou e os perfis de horizonte. Tudo fica num único arquivo no seu
@@ -62,6 +62,42 @@ exclua, vá ao objeto no mapa ou **exporte em CSV** para uma planilha.
 
 A **ficha** de cada objeto mostra o histórico: "Observado 3× · último em
 02/10/2026: trapézio nítido", além das listas em que ele está.
+
+---
+
+## Importar e exportar listas
+
+Em *Minhas listas*, **Exportar…** grava a lista em três formatos:
+
+| Formato | Para |
+|---|---|
+| **CSV do Carina** | Planilhas (Excel, LibreOffice): nome, tipo, identidade, coordenadas e nota |
+| **Telescopius** | O site de planejamento Telescopius (CSV com "Catalogue Entry") |
+| **SkySafari** (`.skylist`) | Os aplicativos SkySafari no celular e no tablet |
+
+**Importar…** lê os mesmos formatos (e qualquer CSV com uma coluna de
+nomes) para a lista aberta. Os nomes são resolvidos pela busca do programa —
+"M 42", "NGC 253", "Sirius", "Plêiades" —, e os que não forem encontrados
+aparecem no aviso.
+
+---
+
+## Relatório da noite
+
+*Arquivo ▸ Relatório da noite…*: escolha a noite (as que têm registros no
+diário aparecem na lista) e salve:
+
+- o **relatório em PDF** — o céu inteiro na hora do meio das suas
+  observações, o local, o pôr do Sol, a noite escura e a Lua, e a tabela do
+  que você observou, com hora, instrumento, nota e anotações;
+- o **cartão para compartilhar** — uma imagem de 1080×1350 (o formato
+  vertical das redes sociais) com o céu daquela noite e a lista dos objetos.
+
+Uma "noite" vai do meio-dia ao meio-dia seguinte: o que você registrou às
+2h da manhã entra na noite que começou na véspera.
+
+Os **programas de observação** — Messier, Caldwell, Herschel 400… — usam o
+diário para medir o progresso. Veja [Programas de observação](PROGRAMAS.md).
 
 ---
 

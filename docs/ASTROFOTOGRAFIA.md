@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa: o
 equipamento e o campo, a sessão da noite, a exposição, as horas de
@@ -231,10 +231,18 @@ ou comparar a sua imagem com o mapa.
 
 ## Zona de influência da Lua
 
-Tecla `U`. Dois anéis em torno da Lua — **interno**, onde o brilho lunar
-estraga a foto, e **externo**, de cautela. O raio cresce com a fase: de
-cerca de 10° numa Lua fina a 50° na cheia. A sessão de astrofoto e o
-calendário de imageabilidade já levam a Lua em conta.
+Tecla `U`. Três anéis em torno da Lua, calculados pelo modelo de brilho
+do céu de **Krisciunas & Schaefer (1991)** com a fase, a altura da Lua e o
+Bortle do seu céu: **vermelho**, onde o céu fica 1,5 magnitude mais claro
+que a 90° da Lua; **laranja**, 1 mag; **amarelo**, 0,5 mag. Na Lua cheia
+eles chegam a uns 10°, 25° e 50°; numa Lua quarto, encolhem — e com a Lua
+fina ou baixa vale a regra prática antiga, de dois anéis.
+
+> Com Lua cheia, o céu **inteiro** fica umas 2 magnitudes mais claro que
+> sem Lua; os anéis mostram onde, além disso, a proximidade dela pesa.
+
+A sessão de astrofoto e o calendário de imageabilidade já levam a Lua em
+conta.
 
 ---
 

@@ -49,6 +49,7 @@ valem com a janela principal ativa.
 | Objetos | Minhas listas | `Ctrl+Shift+L` |
 | Objetos | ★ Acrescentar seleção à minha lista | `Ctrl+B` |
 | Objetos | Diário de observação | `Ctrl+Shift+J` |
+| Objetos | Programas de observação | `Ctrl+Shift+G` |
 | Objetos | Gerenciar catálogo de céu profundo | `Ctrl+D` |
 | Sistema Solar | Eclipses | `Ctrl+E` |
 | Sistema Solar | Exibir caminhos dos planetas | `Shift+P` |

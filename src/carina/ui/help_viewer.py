@@ -39,6 +39,7 @@ INDEX = [
     ("LUA.md", "A Lua"),
     ("CALENDARIO.md", "Calendário do céu"),
     ("DIARIO.md", "Diário e listas"),
+    ("PROGRAMAS.md", "Programas de observação"),
     ("ASTROFOTOGRAFIA.md", "Astrofotografia"),
     ("IMPRESSAO.md", "Impressão e cartas"),
     ("CATALOGOS.md", "Catálogos e dados"),

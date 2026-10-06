@@ -42,7 +42,8 @@ def _parse_args(argv):
                  "catalogs", "print", "night", "location", "horizon",
                  "lists", "tonight", "calendar", "chart", "help", "firstrun",
                  "moon", "moonplan", "lunar100", "skycal", "today", "planets",
-                 "session", "tours", "toursgallery"],
+                 "session", "tours", "toursgallery", "programs", "planisphere",
+                 "poster", "report", "quiz", "sunpath"],
         default=None, help="abre um diálogo/janela ao iniciar (para testes)",
     )
     parser.add_argument("--planet-path", metavar="NOME", default=None,
@@ -538,6 +539,21 @@ def main(argv=None) -> int:
         if mode == "apresentacao":
             player.btn_present.setChecked(True)
             player.btn_auto.setChecked(False)
+    elif args.dialog in ("programs", "planisphere", "poster", "report", "quiz", "sunpath"):
+        opener = {"programs": win._open_programs, "planisphere": win._open_planisphere,
+                  "poster": win._open_poster, "report": win._open_night_report,
+                  "quiz": win._open_quiz, "sunpath": win._open_sunpath}[args.dialog]
+        opener()
+        dialog = {"programs": "_programs_window", "planisphere": "_planisphere",
+                  "poster": "_poster", "report": "_night_report", "quiz": "_quiz",
+                  "sunpath": "_sunpath"}[args.dialog]
+        dialog = getattr(win, dialog)
+        if args.dialog == "programs" and args.dialog_text:
+            keys = [pr.key for pr in dialog.programs]
+            if args.dialog_text in keys:
+                dialog.list.setCurrentRow(keys.index(args.dialog_text))
+        if args.dialog == "poster":
+            dialog._preview()
     elif args.dialog == "toursgallery":
         from .ui.tours_gallery import ToursGallery
 

@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -132,6 +132,8 @@ Oito menus, agrupados por tarefa. A lista completa de atalhos está em
 | Exportar vista… | `Ctrl+S` | Salva a tela atual em PNG, JPG ou PDF |
 | Gerar carta celeste… | `Ctrl+Shift+P` | Carta para imprimir com moldura, perfis e atlas ([IMPRESSAO.md](IMPRESSAO.md)) |
 | Anotar a vista atual… | | Editor de anotações sobre a tela em modo mapa |
+| Relatório da noite… | | PDF com o céu e as observações da noite e cartão PNG para compartilhar ([DIARIO.md](DIARIO.md#relatório-da-noite)) |
+| Pôster do céu… | | O céu de uma data com título e frase, A3/A4 ([IMPRESSAO.md](IMPRESSAO.md#pôster-do-céu)) |
 | Minha foto no mapa… | | Sobrepõe uma foto sua, alinhada por duas estrelas ([ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md#minha-foto-no-mapa)) |
 | Preferências… | `Ctrl+,` | Idioma, fonte da interface, rótulos do céu, instrumento da nota |
 | Sair | | Fecha o programa |
@@ -210,6 +212,7 @@ na barra lateral** e a exibição dos painéis.
 | Minhas listas… | `Ctrl+Shift+L` | Listas de alvos com a nota da noite ([DIARIO.md](DIARIO.md)) |
 | ★ Acrescentar seleção à minha lista | `Ctrl+B` | Acrescenta o objeto selecionado |
 | Diário de observação… | `Ctrl+Shift+J` | Registros, busca e exportação CSV |
+| Programas de observação… | `Ctrl+Shift+G` | Messier, Caldwell, Herschel 400… com progresso e certificado ([PROGRAMAS.md](PROGRAMAS.md)) |
 | Gerenciar catálogo de céu profundo… | `Ctrl+D` | CRUD completo, categorias, habilitar/desabilitar |
 
 ### Sistema Solar
@@ -224,7 +227,9 @@ na barra lateral** e a exibição dos painéis.
 | Limpar caminhos dos planetas | | Descarta os caminhos |
 | Previsão da Lua (28 dias)… | | Calcula o caminho lunar |
 | Exibir previsão da Lua no céu | `Shift+M` | Mostra ou esconde |
-| Zona de influência da Lua | `U` | Anéis de prejuízo para astrofotografia |
+| Zona de influência da Lua | `U` | Anéis onde a Lua clareia o céu (Krisciunas & Schaefer) |
+| Caminho do Sol e analema | | O caminho do Sol no dia e o "8" da hora atual |
+| Nascer e ocaso do Sol no ano… | | Tabela semana a semana, com o azimute |
 
 ### Planejar
 
@@ -239,6 +244,7 @@ na barra lateral** e a exibição dos painéis.
 | Lua ▸ | | **A Lua em detalhe…** (`Ctrl+Shift+M`), **Planejador de foto lunar…** e **Lunar 100…** ([LUA.md](LUA.md)) |
 | Roteiros ▸ | | Maratonas, melhores objetos, roteiro da minha lista, destaques ([PLANEJAMENTO.md](PLANEJAMENTO.md)) |
 | Campo de visão (equipamentos)… | `Ctrl+K` | Simulador de enquadramento, setups salvos e mosaico |
+| Planisfério… | | O disco de estrelas sob a janela do horizonte ([PLANEJAMENTO.md](PLANEJAMENTO.md#planisfério)) |
 | Configurar planejamento… | `Ctrl+Shift+O` | Ritmo, janela da noite e altitude mínima |
 
 ### Tours
@@ -247,6 +253,7 @@ na barra lateral** e a exibição dos painéis.
 |---|---|---|
 | Galeria de tours… | `Ctrl+Shift+T` | Os tours por categoria, com a data do céu ([TOURS.md](TOURS.md)) |
 | Iniciantes ▸ · Intermediário ▸ · Astrofotografia ▸ · Extras ▸ | | Começa um tour direto |
+| Quiz do céu… | | "Qual constelação é esta?" e "Encontre a estrela" ([TOURS.md](TOURS.md#quiz-do-céu)) |
 | Asterismos | `Shift+A` | Mostra os asterismos no céu (o mesmo item de *Exibir ▸ Linhas e grades*) |
 | Como funcionam os tours | | Abre a ajuda dos tours |
 

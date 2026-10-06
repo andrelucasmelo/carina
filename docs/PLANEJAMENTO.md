@@ -1,6 +1,6 @@
 # Planejamento de observação
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 O Carina não só mostra o céu: ele responde **"dá para ver isto hoje, e a
 que horas?"** em todo lugar, e transforma a resposta num roteiro da noite
@@ -326,6 +326,24 @@ alcance e diz o que ficou de fora.
 
 **Ajuste o tempo por objeto ao seu ritmo real.** Se você desenha ou
 fotografa, ponha 10 minutos e aceite ver menos objetos.
+
+---
+
+## Planisfério
+
+*Planejar ▸ Planisfério…*: o planisfério de papel, na tela. O **disco de
+estrelas**, em volta do polo celeste visível, gira com a data e a hora; a
+**janela** do horizonte, com os pontos cardeais e o zênite, fica parada, e
+o que está fora dela está abaixo do horizonte.
+
+<div align="center">
+<img src="imagens/planisferio.png" alt="Planisfério" width="70%">
+</div>
+
+Como no de papel, alinhar a **data** (no anel do disco) com a **hora** (no
+anel de fora) mostra o céu daquele momento — o tique vermelho marca a data
+de hoje. **Arraste** o disco para girar o céu, ou digite a data e a hora;
+**Levar o céu a este instante** põe o mapa principal no mesmo momento.
 
 ---
 

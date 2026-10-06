@@ -1,6 +1,6 @@
 # Tours guiados
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 Um **tour** leva o céu, passo a passo, às estrelas, constelações e objetos
 de que fala: o relógio vai à hora certa, a vista voa até o alvo, a figura
@@ -232,6 +232,22 @@ painéis de mosaico pede) e como achá-lo pelas estrelas.
 | **Os planetas este ano** *(montado para a data)* | Cada planeta na próxima oposição ou maior elongação dos próximos doze meses | 10 min |
 | **O ano no céu** *(montado para a data)* | Eclipses, chuvas de meteoros, oposições e encontros dos próximos doze meses visíveis do seu local | 12 min |
 | **O céu de uma data** *(montado para a data)* | O céu às 21h da noite escolhida na galeria — um aniversário, um casamento, um nascimento: a Lua, os planetas e as constelações altas | 6 min |
+
+---
+
+## Quiz do céu
+
+*Tours ▸ Quiz do céu…*: para testar o que aprendeu (ou para uma aula),
+com o céu do momento no seu local:
+
+- **Qual constelação é esta?** — uma constelação de destaque é acesa no céu,
+  sem o nome, e há quatro opções;
+- **Encontre a estrela** — o quiz pede uma estrela brilhante pelo nome e
+  você clica nela no céu (os nomes ficam escondidos); se errar, o céu
+  mostra onde ela está.
+
+O placar conta os acertos; ao fechar, o céu volta ao que era. De dia ou com
+poucas constelações no alto, mude a hora para a noite.
 
 ---
 

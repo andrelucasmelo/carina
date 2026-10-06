@@ -1,6 +1,6 @@
 # Impressão e cartas celestes
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 Tudo o que o Carina desenha pode sair da tela: em imagem, em PDF ou em
 papel. Desde a 0.16, as cartas são desenhadas **fora da tela**, em alta
@@ -93,6 +93,24 @@ conteúdo e a moldura das outras abas:
 ### Imprimir e exportar
 
 **Abrir no editor** leva a página (ou o atlas) para o editor de anotações.
+
+---
+
+## Pôster do céu
+
+*Arquivo ▸ Pôster do céu…*: o céu inteiro de uma data, visto do zênite,
+num círculo, com **título**, **data e hora**, **local** e uma **frase** —
+"o céu da noite em que você nasceu". Escolha o papel (**A3** ou **A4**) e o
+tema (**escuro**, de noite, ou **claro**, de papel), clique em
+**Pré-visualizar** e salve em **PDF** ou **PNG**.
+
+<div align="center">
+<img src="imagens/poster.png" alt="Pôster do céu" width="70%">
+</div>
+
+O céu é calculado para o local escolhido no programa (*Local ▸
+Localização*); o campo "Local" do pôster é só o texto impresso. Para o céu
+de outra cidade, troque o local antes.
 
 ---
 

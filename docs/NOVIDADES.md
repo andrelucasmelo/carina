@@ -1,6 +1,26 @@
 # O que há de novo
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
+
+## 0.22 — Programas, a noite registrada e o céu na parede
+
+- **Programas de observação** (`Ctrl+Shift+G`): Messier, Caldwell,
+  Herschel 400, Lunar 100, Céu ao binóculo e Planetas no ano, com anel de
+  progresso pelo diário e **certificado em PDF** ao concluir. Veja
+  [Programas de observação](PROGRAMAS.md).
+- **Relatório da noite** (*Arquivo*): PDF com o céu da noite e a tabela do
+  que você observou, e um **cartão** 1080×1350 para compartilhar.
+- **Pôster do céu** (*Arquivo*): o céu de uma data — um nascimento, um
+  casamento — com título e frase, em A3 ou A4.
+- **Planisfério** (*Planejar*): o disco de estrelas girando sob a janela do
+  horizonte, como o de papel.
+- **Quiz do céu** (*Tours*): "Qual constelação é esta?" e "Encontre a
+  estrela".
+- **Listas**: importar e exportar em CSV, Telescopius e SkySafari.
+- **Lembretes** do calendário viram notificação do Windows uma hora antes.
+- **Caminho do Sol e analema** no céu, e a tabela de nascer e ocaso do ano.
+- **Zona de influência da Lua** calculada pelo modelo de Krisciunas &
+  Schaefer: anéis onde o céu clareia 1,5, 1 e 0,5 magnitude.
 
 ## 0.21 — Tours guiados (parte 2)
 

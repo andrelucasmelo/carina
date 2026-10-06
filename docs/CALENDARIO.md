@@ -1,6 +1,6 @@
 # Calendário do céu
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 Tudo o que vale anotar na agenda de quem observa, calculado para o **seu
 local**: fases e eventos da Lua, eclipses, planetas, encontros, ocultações,
@@ -69,6 +69,12 @@ Android importam esse formato:
 - **celular**: envie o arquivo para você mesmo e abra o anexo.
 
 Os eventos com lembrete ativo vão com um aviso uma hora antes.
+
+### Aviso do Windows
+
+Com o Carina aberto, cada lembrete vira uma **notificação do Windows** uma
+hora antes do evento — uma vez só. Clicar na notificação traz o programa
+para a frente.
 
 ---
 

@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.21.0 — produto em desenvolvimento.
+> Carina 0.22.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -289,6 +289,24 @@ Detalhes em [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
 
 ---
 
+## Programas, relatório e pôster
+
+- **Programas de observação** (`Ctrl+Shift+G`): Messier, Caldwell, Herschel
+  400, Lunar 100, Céu ao binóculo e Planetas no ano, com progresso pelo
+  diário e certificado em PDF. Ver [PROGRAMAS.md](PROGRAMAS.md).
+- **Relatório da noite** em PDF e **cartão** 1080×1350 para compartilhar
+  (*Arquivo*). Ver [DIARIO.md](DIARIO.md#relatório-da-noite).
+- **Pôster do céu** de uma data, A3/A4 (*Arquivo*). Ver
+  [IMPRESSAO.md](IMPRESSAO.md#pôster-do-céu).
+- **Planisfério** interativo (*Planejar*).
+- **Quiz do céu** (*Tours*).
+- **Listas** importadas e exportadas em CSV, Telescopius e SkySafari.
+- **Lembretes** viram notificação do Windows uma hora antes.
+- **Caminho do Sol e analema** (*Sistema Solar*), com a tabela de nascer e
+  ocaso do ano.
+
+---
+
 ## Impressão e exportação
 
 Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
@@ -355,7 +373,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.21.0 **não há**:
+Para não criar expectativa errada, na versão 0.22.0 **não há**:
 
 - cometas e asteroides;
 - atualização automática dos elementos orbitais de satélites e previsão do
