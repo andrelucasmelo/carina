@@ -50,8 +50,17 @@ CATEGORIES = {
 STEP_KINDS = ("intro", "goto", "highlight", "object", "pause", "fim", "ui")
 # ordem sugerida: o "próximo tour" ao concluir um e a ordem na galeria
 SUGGESTED_ORDER = [
+    # iniciantes
     "como-se-orientar", "estrelas-brilhantes", "constelacoes-famosas", "famosos-ceu-profundo",
-    "lua-e-planetas", "conhecendo-o-carina", "ceu-primavera", "ceu-do-mes", "objetos-do-mes",
+    "lua-e-planetas", "conhecendo-o-carina",
+    # intermediário
+    "ceu-do-mes", "ceu-verao", "ceu-outono", "ceu-inverno", "ceu-primavera",
+    "ceu-binoculo", "cidade-grande", "historias-do-ceu", "historia-astronomia",
+    # astrofotografia
+    "objetos-do-mes", "foto-verao", "foto-outono", "foto-inverno", "foto-primavera",
+    "mosaicos", "lua-fotografar",
+    # extras
+    "ceu-austral", "lua-10-noites", "planetas-ano", "ano-no-ceu", "ceu-de-uma-data",
 ]
 TARGET_KINDS = ("star", "dso", "body", "const", "asterism", "altaz")
 # graus: abaixo disso o alvo "não está no céu" para o passo (por tipo de alvo);
@@ -81,6 +90,9 @@ class Step:
     skip_if_below: float | None = None    # graus; None = padrão
     optional: bool = True                 # pular (True) ou mostrar com aviso
     card: dict | None = None              # dados extras (tours gerados)
+    fov_circle: float | None = None       # v0.21: campo circular (graus) desenhado — binóculo
+    setup_fov: bool = False               # v0.21: desenha o campo do setup ativo no alvo
+    finder: bool = False                  # v0.21: acrescenta a rota a partir das estrelas
 
     @classmethod
     def from_dict(cls, d: dict) -> "Step":
@@ -155,7 +167,9 @@ def validate(tour: Tour) -> list[str]:
 
 
 _WHEN = re.compile(r"^(agora|inicio_da_noite|hora:\d{1,2}:\d{2}|data:\d{2}-\d{2} hora:\d{1,2}:\d{2})$")
-_STEP_TIME = re.compile(r"^([+-]\d+(\.\d+)?[hm]|\d{1,2}:\d{2}|melhor)$")
+_STEP_TIME = re.compile(r"^([+-]\d+(\.\d+)?[hm]|\d{1,2}:\d{2}|melhor|"
+                        r"data:\d{2}-\d{2} hora:\d{1,2}:\d{2}|"
+                        r"em:\d{4}-\d{2}-\d{2}T\d{1,2}:\d{2})$")
 
 
 def load_dir(path: Path) -> list[Tour]:
@@ -455,6 +469,15 @@ def step_time(engine, spec: str, base: dt.datetime, target: Resolved | None) -> 
         tg = Target(icrs=target.icrs) if target.icrs is not None else Target(body=target.body)
         vis = compute_visibility(engine, tg, base, 15.0, refine=False)
         return vis.best_utc or base
+    if spec.startswith("data:"):
+        # outra noite do mesmo ano do tour (histórias, estações)
+        m = re.match(r"data:(\d{2})-(\d{2}) hora:(\d{1,2}):(\d{2})", spec)
+        mo, d, hh, mm = (int(x) for x in m.groups())
+        return _at_local(dt.date(_local(base).year, mo, d), hh, mm, _local(base))
+    if spec.startswith("em:"):
+        # instante absoluto, hora local (extras: um mês de Lua, o ano no céu)
+        lt = dt.datetime.fromisoformat(spec[3:])
+        return lt.replace(tzinfo=_local(base).tzinfo).astimezone(UTC)
     hh, mm = (int(x) for x in spec.split(":"))
     return _at_local(evening_date(base), hh, mm, _local(base))
 
@@ -472,6 +495,7 @@ class PreparedStep:
     alt: float | None
     below: bool = False               # alvo abaixo do limite (mostrado com aviso)
     highlights: list[Resolved] = field(default_factory=list)
+    finder_text: str = ""             # rota de localização (passos com ``finder``)
 
     @property
     def fov(self) -> float:
@@ -537,9 +561,35 @@ class TourRun:
                                 f"({alt:.0f}°) nesta data e local"))
                 continue
             hl = [r for r in (self.resolver.resolve(h) for h in s.highlight) if r is not None]
-            self.steps.append(PreparedStep(s, n, when, target, alt, below, hl))
+            finder = self._finder(target) if s.finder else ""
+            self.steps.append(PreparedStep(s, n, when, target, alt, below, hl, finder))
         self.index = 0
         return self
+
+    def _finder(self, target: Resolved | None) -> str:
+        """Rota a partir das estrelas brilhantes (a mesma dos roteiros)."""
+        if target is None or target.icrs is None or self.resolver.stars is None:
+            return ""
+        from .observing import _build_finder
+
+        x, y, z = (float(c) for c in target.icrs)
+        ra, dec = math.atan2(y, x) % (2 * math.pi), math.asin(max(-1.0, min(1.0, z)))
+        skip = target.selection[1] if target.kind == "star" else None
+        cname = ""
+        if target.kind in ("dso", "star") and self.resolver.dso is not None:
+            con = None
+            if target.kind == "dso":
+                row = self.resolver.dso.cx.execute("SELECT con FROM objects WHERE id = ?",
+                                                   (target.selection[1],)).fetchone()
+                con = row[0] if row else None
+            else:
+                con = self.resolver.stars.con.get(int(target.selection[1]))
+            if con:
+                from ..catalogs.constnames import CONSTELLATIONS
+
+                cname = CONSTELLATIONS.get(con, (con, con))[1]
+        text, _guides = _build_finder(self.resolver.stars, ra, dec, cname, skip_index=skip)
+        return text
 
     # -- navegação -------------------------------------------------------------
     @property
@@ -587,3 +637,16 @@ def done_keys(userdata) -> set[str]:
     if userdata is None:
         return set()
     return set(userdata.profiles(TOUR_DONE_KIND))
+
+
+# ---------------------------------------------------------------------------
+# Valores do local nos textos (v0.21)
+# ---------------------------------------------------------------------------
+
+def expand_context(text: str, values: dict[str, str]) -> str:
+    """Troca ``{local}``, ``{sqm_local}``, ``{bortle_local}``… pelos valores do
+    usuário. Chaves desconhecidas ficam como estão (o texto não quebra)."""
+    def repl(m: re.Match) -> str:
+        return str(values.get(m.group(1), m.group(0)))
+
+    return re.sub(r"\{([a-z_]+)\}", repl, text)

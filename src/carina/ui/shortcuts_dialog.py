@@ -29,6 +29,7 @@ MOUSE_AND_KEYS = [
     ("Esc", "Limpa a seleção (durante um tour: sai do tour)"),
     ("→ / ←", "Durante um tour: próximo passo / passo anterior"),
     ("Espaço", "Durante um tour: avança sozinho (liga e desliga)"),
+    ("F5", "Durante um tour: modo apresentação (tela cheia, texto grande)"),
 ]
 
 

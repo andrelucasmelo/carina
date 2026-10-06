@@ -109,12 +109,24 @@ class TourPlayer(QDockWidget):
         self.btn_help.setText("?")
         self.btn_help.setToolTip(self.tr("Como funcionam os tours"))
         self.btn_help.clicked.connect(self.helpRequested.emit)
+        self.btn_present = QToolButton()
+        self.btn_present.setText("⛶")
+        self.btn_present.setCheckable(True)
+        self.btn_present.setToolTip(self.tr("Modo apresentação: tela cheia, texto grande (F5)"))
+        self.btn_present.toggled.connect(self._present_toggled)
+        self.btn_voice = QToolButton()
+        self.btn_voice.setText("🔊")
+        self.btn_voice.setCheckable(True)
+        self.btn_voice.setToolTip(self.tr("Narrar os passos com a voz do Windows (experimental)"))
+        self.btn_voice.toggled.connect(self._voice_toggled)
         self.btn_exit = QPushButton(self.tr("Sair"))
         self.btn_exit.setToolTip(self.tr("Sair do tour e voltar o céu ao que era (Esc)"))
         self.btn_exit.clicked.connect(lambda: self.stop(False))
         nav.addWidget(self.btn_prev)
         nav.addWidget(self.btn_next, 1)
         nav.addWidget(self.btn_auto)
+        nav.addWidget(self.btn_present)
+        nav.addWidget(self.btn_voice)
         nav.addWidget(self.btn_help)
         nav.addWidget(self.btn_exit)
         lay.addLayout(nav)
@@ -144,13 +156,28 @@ class TourPlayer(QDockWidget):
         self._shortcuts: list[QShortcut] = []
         for key, slot in ((Qt.Key_Right, self.next), (Qt.Key_Left, self.prev),
                           (Qt.Key_Space, lambda: self.btn_auto.toggle()),
-                          (Qt.Key_Escape, lambda: self.stop(False))):
+                          (Qt.Key_Escape, lambda: self.stop(False)),
+                          (Qt.Key_F5, lambda: self.btn_present.toggle())):
             sc = QShortcut(QKeySequence(key), main)
             sc.setContext(Qt.WindowShortcut)
             sc.activated.connect(slot)
             sc.setEnabled(False)
             self._shortcuts.append(sc)
         self.suggested_key = ""
+        self._last_text = ""
+        self._presenting = False
+        self._saved_window: dict = {}
+        self.overlay = None
+        from ..core.speech import Speaker
+
+        self.speaker = Speaker()
+        settings = getattr(main, "settings", None)
+        if settings is not None and settings.value("tours/voice", False, bool) \
+                and self.speaker.available():
+            self.btn_voice.blockSignals(True)
+            self.btn_voice.setChecked(True)
+            self.btn_voice.blockSignals(False)
+        self.btn_voice.setEnabled(self.speaker.available())
         self.hide()
 
     # ------------------------------------------------------------------
@@ -198,6 +225,9 @@ class TourPlayer(QDockWidget):
         self.btn_auto.blockSignals(False)
         for sc in self._shortcuts:
             sc.setEnabled(False)
+        self.speaker.stop()
+        if self._presenting:
+            self.btn_present.setChecked(False)
         self._clear_card()
         if self.state is not None:
             self.state.restore(self.sky, self.engine)
@@ -298,6 +328,8 @@ class TourPlayer(QDockWidget):
             sky.selection = cur.target.selection        # sem abrir a ficha
         elif sky.selection is not None and s.kind != "intro":
             sky.selection = None
+        # campos desenhados: binóculo (círculo) ou o setup ativo (v0.21)
+        self._apply_fov_shapes(s)
         # câmera
         t = self.engine.ts.from_datetime(cur.when)
         vec = T.horizontal_vec(self.engine, cur.target, t) if cur.target is not None else None
@@ -330,7 +362,11 @@ class TourPlayer(QDockWidget):
                                  "onde ele está.").format(o=cur.target.label, a=cur.alt))
         self.warn.setVisible(bool(warns))
         self.warn.setText("\n".join(warns))
-        self.text.setMarkdown(lore.expand(cur.step.text))
+        text = T.expand_context(lore.expand(cur.step.text), self._context_values())
+        if cur.finder_text:
+            text += f"\n\n**Como achar.** {cur.finder_text}"
+        self.text.setMarkdown(text)
+        self._last_text = text
         self._set_image(cur.step.image)
         self._clear_card()
         card = cur.step.card
@@ -341,6 +377,33 @@ class TourPlayer(QDockWidget):
         self.btn_prev.setEnabled(run.index > 0)
         self.btn_next.setText(self.tr("Concluir ✓") if run.at_end else self.tr("Próximo ▶"))
         self.end_box.hide()
+        if self._presenting:
+            self._fill_overlay(cur)
+        if self.btn_voice.isChecked():
+            self.speaker.say(f"{cur.step.title}. {self._last_text}")
+
+    def _context_values(self) -> dict:
+        fn = getattr(self.main, "tour_context_values", None)
+        try:
+            return fn() if fn is not None else {}
+        except Exception:                      # noqa: BLE001 — texto continua legível
+            return {}
+
+    def _apply_fov_shapes(self, s) -> None:
+        import math
+
+        from ..catalogs.equipment import FovShape
+
+        shapes = []
+        if s.fov_circle:
+            d = math.radians(float(s.fov_circle))
+            shapes = [FovShape("circle", d, d, self.tr("Binóculo — {f}°").format(
+                f=f"{float(s.fov_circle):g}".replace(".", ",")))]
+        elif s.setup_fov:
+            setup = self.main.active_setup() if hasattr(self.main, "active_setup") else None
+            if setup is not None:
+                shapes = setup.shapes(self.main.equipment())
+        self.sky.set_fov_shapes(shapes, 0.0, True)
 
     def _set_image(self, spec: str) -> None:
         path = None
@@ -434,3 +497,151 @@ class TourPlayer(QDockWidget):
         self.stop(True)
         if key and hasattr(self.main, "start_tour"):
             self.main.start_tour(key)
+
+    # -- voz (experimental) ------------------------------------------------
+    def _voice_toggled(self, on: bool) -> None:
+        settings = getattr(self.main, "settings", None)
+        if settings is not None:
+            settings.set_value("tours/voice", bool(on))
+        if not on:
+            self.speaker.stop()
+        elif self.active and self.run.current is not None:
+            self.speaker.say(f"{self.run.current.step.title}. {self._last_text}")
+
+    # -- modo apresentação --------------------------------------------------
+    @property
+    def presenting(self) -> bool:
+        return self._presenting
+
+    def _present_toggled(self, on: bool) -> None:
+        if on and not self._presenting:
+            self.enter_presentation()
+        elif not on and self._presenting:
+            self.exit_presentation()
+
+    def enter_presentation(self) -> None:
+        """Tela cheia, sem menus nem painéis; o texto num painel inferior
+        semitransparente sobre o céu, com letra grande, e avanço automático."""
+        from PySide6.QtWidgets import QDockWidget
+
+        main = self.main
+        docks = [d for d in main.findChildren(QDockWidget) if d.isVisible()]
+        self._saved_window = {
+            "full": main.isFullScreen(), "max": main.isMaximized(),
+            "geom": main.saveGeometry(), "docks": docks,
+            "menu": main.menuBar().isVisible(),
+            "status": main.statusBar().isVisible(),
+            "auto": self.btn_auto.isChecked(),
+        }
+        self._presenting = True
+        for d in docks:
+            d.hide()
+        main.menuBar().hide()
+        main.statusBar().hide()
+        main.showFullScreen()
+        if self.overlay is None:
+            self.overlay = PresentationOverlay(self, self.sky)
+        self.overlay.show()
+        self.overlay.raise_()
+        if not self.btn_auto.isChecked():
+            self.btn_auto.setChecked(True)
+        if self.active and self.run.current is not None:
+            self._fill_overlay(self.run.current)
+
+    def exit_presentation(self) -> None:
+        main = self.main
+        st = self._saved_window
+        self._presenting = False
+        if self.overlay is not None:
+            self.overlay.hide()
+        if st.get("menu", True):
+            main.menuBar().show()
+        if st.get("status", True):
+            main.statusBar().show()
+        if not st.get("full", False):
+            main.showNormal()
+            if st.get("max"):
+                main.showMaximized()
+            elif st.get("geom") is not None:
+                main.restoreGeometry(st["geom"])
+        for d in st.get("docks", []):
+            if d is not self or self.active:
+                d.show()
+        if not st.get("auto", False) and self.btn_auto.isChecked():
+            self.btn_auto.setChecked(False)
+        self.btn_present.blockSignals(True)
+        self.btn_present.setChecked(False)
+        self.btn_present.blockSignals(False)
+
+    def _fill_overlay(self, cur) -> None:
+        if self.overlay is None:
+            return
+        run = self.run
+        self.overlay.set_content(cur.step.title, self._last_text,
+                                 f"{run.index + 1} / {len(run.steps)}")
+
+
+class PresentationOverlay(QFrame):
+    """Painel inferior do modo apresentação, por cima do céu."""
+
+    def __init__(self, player: TourPlayer, sky) -> None:
+        super().__init__(sky)
+        from PySide6.QtCore import QEvent
+
+        self.player = player
+        self.sky = sky
+        self.setObjectName("tour_overlay")
+        self.setStyleSheet(
+            "#tour_overlay { background: rgba(8, 10, 18, 205); border-top: 1px solid "
+            "rgba(255,255,255,40); } QLabel { color: #e8ecf5; background: transparent; }")
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(48, 18, 48, 18)
+        top = QHBoxLayout()
+        self.title = QLabel()
+        self.title.setStyleSheet("font-size: 26pt; font-weight: 600;")
+        self.counter = QLabel()
+        self.counter.setStyleSheet("font-size: 12pt; color: #9aa4b8;")
+        top.addWidget(self.title, 1)
+        top.addWidget(self.counter)
+        self.text = QLabel()
+        self.text.setWordWrap(True)
+        self.text.setTextFormat(Qt.RichText)
+        self.text.setStyleSheet("font-size: 16pt;")
+        hint = QLabel(self.tr("← →  passos   ·   Espaço  pausa   ·   F5  sai da "
+                              "apresentação   ·   Esc  encerra o tour"))
+        hint.setStyleSheet("font-size: 10pt; color: #7d879b;")
+        lay.addLayout(top)
+        lay.addWidget(self.text)
+        lay.addWidget(hint)
+        self._evt = QEvent.Resize
+        sky.installEventFilter(self)
+        self.hide()
+
+    def eventFilter(self, obj, event) -> bool:
+        if obj is self.sky and event.type() == self._evt and self.isVisible():
+            self._place()
+        return False
+
+    def showEvent(self, e) -> None:
+        super().showEvent(e)
+        self._place()
+
+    def _place(self) -> None:
+        w = self.sky.width()
+        self.setFixedWidth(w)
+        self.adjustSize()
+        h = min(self.sizeHint().height(), int(self.sky.height() * 0.42))
+        self.setGeometry(0, self.sky.height() - h, w, h)
+
+    def set_content(self, title: str, markdown: str, counter: str) -> None:
+        from PySide6.QtGui import QFont, QTextDocument
+
+        doc = QTextDocument()
+        doc.setDefaultFont(QFont("Segoe UI", 17))       # o HTML gerado leva o tamanho
+        doc.setMarkdown(markdown)
+        body = doc.toHtml()
+        self.title.setText(title)
+        self.counter.setText(counter)
+        self.text.setText(body)
+        self._place()
+

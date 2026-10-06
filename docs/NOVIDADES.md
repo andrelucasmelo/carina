@@ -1,6 +1,25 @@
 # O que há de novo
 
-> Carina 0.20.1 — produto em desenvolvimento.
+> Carina 0.21.0 — produto em desenvolvimento.
+
+## 0.21 — Tours guiados (parte 2)
+
+O catálogo de tours completo — 27 ao todo:
+
+- **As quatro estações** (verão, outono, inverno e primavera) e **O céu ao
+  binóculo**, montado para a estação, com o campo de 6° desenhado;
+- **Astronomia na cidade grande**: o céu em Bortle 9, o brilho do céu no
+  seu local, o que resiste à luz em cada estação e o binóculo como aliado;
+- **Histórias do céu** e **A história da astronomia no céu**;
+- **Astrofotografia**: o céu de cada estação para fotografar, com o campo
+  do seu setup e a rota a partir das estrelas; **Mosaicos e grandes
+  campos**; **A Lua para fotografar**;
+- **Extras**: O céu austral profundo, Um mês de Lua em dez noites, Os
+  planetas este ano, O ano no céu e O céu de uma data.
+
+**Modo apresentação** (`F5`): tela cheia, o texto embaixo com letra grande
+e avanço automático. **Narração** pela voz do Windows (experimental). Veja
+[Tours guiados](TOURS.md).
 
 ## 0.20.1 — Sessão de astrofoto mais à mão
 

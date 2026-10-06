@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.20.1 — produto em desenvolvimento.
+> Carina 0.21.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -246,7 +246,7 @@ na barra lateral** e a exibição dos painéis.
 | Item | Atalho | O que faz |
 |---|---|---|
 | Galeria de tours… | `Ctrl+Shift+T` | Os tours por categoria, com a data do céu ([TOURS.md](TOURS.md)) |
-| Iniciantes ▸ · Intermediário ▸ · Astrofotografia ▸ | | Começa um tour direto |
+| Iniciantes ▸ · Intermediário ▸ · Astrofotografia ▸ · Extras ▸ | | Começa um tour direto |
 | Asterismos | `Shift+A` | Mostra os asterismos no céu (o mesmo item de *Exibir ▸ Linhas e grades*) |
 | Como funcionam os tours | | Abre a ajuda dos tours |
 

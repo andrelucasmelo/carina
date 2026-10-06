@@ -1,0 +1,192 @@
+{
+ "steps": [
+  {
+   "title": "Oitenta e oito constelações",
+   "kind": "intro",
+   "target": "altaz:180,60",
+   "fov": 130.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": true,
+    "const_bounds": true,
+    "dso": false,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "O céu oficial tem **88 constelações**, com fronteiras definidas pela União Astronômica Internacional em 1930 — cada estrela pertence a exatamente uma delas. Mas as figuras são muito mais antigas e vêm de mãos muito diferentes: sacerdotes babilônios, poetas gregos, navegadores holandeses, um astrônomo francês no Cabo da Boa Esperança.\n\nNeste tour o relógio pula para a noite do ano em que cada figura aparece bem no céu do Brasil."
+  },
+  {
+   "title": "O zodíaco babilônico",
+   "target": "const:Sco",
+   "time": "data:07-15 hora:21:00",
+   "fov": 80.0,
+   "highlight": [
+    "const:Sco",
+    "const:Sgr",
+    "const:Lib"
+   ],
+   "text": "As constelações do **zodíaco** — o caminho do Sol, da Lua e dos planetas — nasceram na Mesopotâmia há mais de três mil anos. O Escorpião, o Leão, o Touro, os Gêmeos e a cabra-peixe de Capricórnio já aparecem em tábuas de argila babilônicas.\n\nPor causa da **precessão**, um bamboleio lento do eixo da Terra, as datas dos signos não coincidem mais com as constelações: hoje o Sol passa pelo Escorpião só por uma semana — e ainda cruza o Ofiúco."
+  },
+  {
+   "title": "As 48 de Ptolomeu",
+   "target": "const:Ori",
+   "time": "data:01-15 hora:21:30",
+   "fov": 70.0,
+   "highlight": [
+    "const:Ori",
+    "const:Tau",
+    "const:CMa"
+   ],
+   "text": "Por volta do ano 150, em Alexandria, **Cláudio Ptolomeu** reuniu no **Almagesto** um catálogo de mais de mil estrelas em **48 constelações** — herança grega e babilônica. Todas sobrevivem até hoje (uma delas, a Argo, dividida em três).\n\nÓrion, o Touro e o Cão Maior estão entre elas. O Almagesto foi traduzido para o árabe, e por isso tantas estrelas têm nomes árabes: Betelgeuse, Rigel, Aldebaran."
+  },
+  {
+   "title": "Órion e o Escorpião",
+   "target": "const:Sco",
+   "time": "data:07-15 hora:21:00",
+   "fov": 60.0,
+   "highlight": [
+    "const:Sco",
+    "asterism:ferrao"
+   ],
+   "text": "{lore:short:Sco}\n\nO mito explica um fato do céu: Órion e o Escorpião estão quase opostos. Quando um nasce no leste, o outro se põe no oeste — o caçador foge para sempre do animal que o matou."
+  },
+  {
+   "title": "A família de Andrômeda",
+   "target": "const:And",
+   "time": "data:11-15 hora:22:00",
+   "fov": 90.0,
+   "highlight": [
+    "const:And",
+    "const:Per",
+    "const:Cas",
+    "const:Cep",
+    "const:Peg",
+    "const:Cet"
+   ],
+   "text": "Uma única história ocupa um pedaço inteiro do céu. **Cassiopeia**, rainha da Etiópia, gabou-se de ser mais bela que as nereidas; Poseidon mandou o monstro **Ceto** (a Baleia) devastar o reino. O rei **Cefeu** acorrentou a filha, **Andrômeda**, a um rochedo, e **Perseu**, voltando com a cabeça da Medusa — de cujo sangue nascera **Pégaso** —, a salvou.\n\nDo Brasil, a família fica baixa no norte nas noites de primavera."
+  },
+  {
+   "title": "O navio Argo",
+   "target": "const:Car",
+   "time": "data:02-15 hora:21:00",
+   "fov": 80.0,
+   "highlight": [
+    "const:Car",
+    "const:Pup",
+    "const:Vel"
+   ],
+   "text": "**Jasão** e os **Argonautas** navegaram até a Cólquida em busca do Velo de Ouro (o carneiro de Áries). O navio, **Argo Navis**, era uma constelação enorme do céu austral, tão grande que Lacaille a dividiu em três em 1756: **Quilha**, **Popa** e **Vela**.\n\nPor isso as letras gregas das três seguem a numeração antiga: a Quilha tem alfa e beta, a Popa começa no zeta."
+  },
+  {
+   "title": "Hércules e os doze trabalhos",
+   "target": "const:Hya",
+   "time": "data:04-15 hora:21:00",
+   "fov": 100.0,
+   "highlight": [
+    "const:Hya",
+    "const:Leo",
+    "const:Cnc"
+   ],
+   "text": "O céu de outono guarda três dos trabalhos de **Hércules**: o **Leão de Nemeia**, de pele invulnerável; a **Hidra de Lerna**, de muitas cabeças; e o **Caranguejo** que Hera mandou para atrapalhá-lo na luta. Mais ao norte fica o **Dragão** Ládon, que guardava as maçãs de ouro — e o próprio herói, ajoelhado, no céu de inverno."
+  },
+  {
+   "title": "Calisto e as Ursas",
+   "target": "const:UMa",
+   "time": "data:04-15 hora:22:00",
+   "fov": 60.0,
+   "highlight": [
+    "const:UMa",
+    "asterism:carro"
+   ],
+   "text": "{lore:short:UMa}\n\nDo Brasil, a Ursa Maior fica baixa no norte, e a Ursa Menor, com a Estrela Polar, abaixo do horizonte — um lembrete de que a mitologia grega foi feita para o céu do Mediterrâneo."
+  },
+  {
+   "title": "O céu dos navegadores",
+   "target": "const:Tuc",
+   "time": "data:10-15 hora:21:00",
+   "fov": 90.0,
+   "highlight": [
+    "const:Tuc",
+    "const:Gru",
+    "const:Phe",
+    "const:Pav",
+    "const:Ind"
+   ],
+   "text": "O céu em volta do polo sul ficou vazio no mapa até o fim do século XVI, quando os navegadores holandeses **Pieter Keyser** e **Frederick de Houtman** mediram as estrelas do sul nas viagens às Índias Orientais. Delas nasceram **doze** constelações de aves e animais exóticos: o Tucano, o Grou, a Fênix, o Pavão, o Índio, a Ave-do-Paraíso…\n\nForam publicadas por Plancius e pelo atlas **Uranometria** de Johann Bayer, em 1603."
+  },
+  {
+   "title": "Lacaille e o céu da ciência",
+   "target": "const:Oct",
+   "time": "data:07-15 hora:20:00",
+   "fov": 90.0,
+   "highlight": [
+    "const:Oct",
+    "const:Men",
+    "const:Tel",
+    "const:Nor",
+    "const:Cir"
+   ],
+   "skip_if_below": -90.0,
+   "text": "Em 1751 e 1752, **Nicolas-Louis de Lacaille** mapeou quase dez mil estrelas do céu austral a partir da Cidade do Cabo. Preencheu os vazios com **14** constelações que homenageiam instrumentos da ciência e das artes: o Telescópio, o Microscópio, o Relógio, o Compasso, o Esquadro, o Octante (que contém o polo sul) e a Mesa — a montanha do Cabo, de onde observava."
+  },
+  {
+   "title": "Hevelius, Plancius e as últimas figuras",
+   "target": "const:Mon",
+   "time": "data:01-15 hora:22:00",
+   "fov": 60.0,
+   "highlight": [
+    "const:Mon",
+    "const:Col",
+    "const:CMi"
+   ],
+   "text": "Outras figuras foram encaixadas entre as antigas: o cartógrafo **Petrus Plancius** criou o **Unicórnio**, a **Pomba** e a **Girafa**; **Johannes Hevelius**, em Gdańsk, sete constelações pequenas no céu do norte, como o Lince (\"é preciso olhos de lince para vê-lo\") e o Escudo de Sobieski.\n\nDezenas de outras propostas — a Gata, o Balão, a Máquina de Imprimir — não sobreviveram."
+  },
+  {
+   "title": "O Cruzeiro do Sul",
+   "target": "const:Cru",
+   "time": "data:05-15 hora:21:00",
+   "fov": 40.0,
+   "highlight": [
+    "asterism:cruzeiro",
+    "asterism:apontadores"
+   ],
+   "text": "{lore:short:Cru}"
+  },
+  {
+   "title": "Outros céus",
+   "target": "dso:C 99",
+   "time": "data:06-15 hora:21:00",
+   "fov": 40.0,
+   "highlight": [
+    "asterism:cruzeiro"
+   ],
+   "skip_if_below": -90.0,
+   "text": "As 88 constelações são uma tradição entre muitas. Para vários povos indígenas do Brasil, as manchas escuras da Via Láctea formam a **Ema** (Guirá Nhandu), com a cabeça no Saco de Carvão, junto do Cruzeiro; na Austrália, povos aborígenes veem um **emu** na mesma região — duas culturas sem contato, a mesma ave no céu.\n\nAs constelações e histórias de outros povos estão planejadas para uma versão futura do Carina."
+  },
+  {
+   "title": "O céu é uma biblioteca",
+   "kind": "fim",
+   "target": "altaz:180,60",
+   "fov": 130.0,
+   "skip_if_below": -90.0,
+   "text": "Cada constelação guarda um pedaço da história humana: a astronomia babilônica, os mitos gregos, a era das navegações, a ciência do Iluminismo. A ficha de cada constelação — botão direito no céu ▸ **Qual constelação é esta?** — traz a origem e a história dela.\n\nPróximo tour sugerido: **A história da astronomia no céu**."
+  }
+ ],
+ "key": "historias-do-ceu",
+ "title": "Histórias do céu",
+ "subtitle": "De onde vêm as 88 constelações — Babilônia, Grécia, os navegadores e os mitos que ficaram",
+ "category": "intermediario",
+ "level": 2,
+ "minutes": 20,
+ "when": "inicio_da_noite",
+ "lat_range": [
+  -35.0,
+  5.0
+ ],
+ "tags": [
+  "constelações",
+  "mitologia",
+  "história"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

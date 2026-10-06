@@ -11,7 +11,7 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.20.1-blue)](#estado-do-projeto)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.21.0-blue)](#estado-do-projeto)
 [![testes](https://img.shields.io/badge/testes-306%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.20.1 — **em desenvolvimento**
+> ### Versão 0.21.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -60,7 +60,7 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 📓 | **Diário e listas** | Listas de alvos com a nota da noite e diário de observação com condições, guardados no seu computador |
 | 🗺️ | **Cartas de campo** | PDF com a carta geral da noite, checklist e uma carta de localização por objeto, em tema claro, escuro ou vermelho |
 | 📷 | **Astrofotografia** | Sessão da noite com blocos de integração (meridiano e zênite), exposição sugerida, imageabilidade no ano, setups salvos, mosaico, "cabe no meu campo?" e minha foto no mapa |
-| 🧭 | **Tours guiados** | O céu passo a passo: orientação, estrelas brilhantes, constelações, céu profundo, o céu de cada mês e da primavera, objetos do mês para fotografar; asterismos e as histórias das 88 constelações |
+| 🧭 | **Tours guiados** | 27 tours: orientação, constelações, céu profundo, as quatro estações, o céu do mês, binóculo, cidade grande, histórias do céu e da astronomia, astrofotografia por estação, mosaicos, Lua, planetas e o ano no céu; modo apresentação; asterismos e as histórias das 88 constelações |
 | 📱 | **Companheiro no celular** | O roteiro em vermelho no celular pelo QR code; o "observado" vai para o diário |
 | 🛰️ | **ISS e satélites** | Passagens visíveis a partir de elementos orbitais importados, com trilha no céu |
 | 🖨️ | **Cartas celestes** | Gerador de cartas com moldura, legenda, escala e bússola, em papel, escuro ou vermelho; perfis e atlas multipágina; anotações à mão livre |
@@ -156,7 +156,7 @@ O executável embarca tudo e **não exige Python instalado**.
 Precisão astronômica é o compromisso central do projeto — cada cálculo é
 conferido contra fontes independentes:
 
-- **449 testes automatizados** cobrindo projeção, efemérides, eclipses,
+- **462 testes automatizados** cobrindo projeção, efemérides, eclipses,
   crepúsculos, visibilidade, pontuação, rastreamento, planejamento e
   renderização;
 - **nascer, culminação e ocaso** conferidos contra o almanaque do Skyfield

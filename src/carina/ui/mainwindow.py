@@ -484,7 +484,7 @@ class MainWindow(QMainWindow):
         from ..core.tours import CATEGORIES
 
         for cat, label in CATEGORIES.items():
-            if cat in ("aplicativo", "extra"):
+            if cat == "aplicativo":
                 continue
             sub = m_tours.addMenu(label.split(" — ")[0])
             sub.aboutToShow.connect(lambda c=cat, m=sub: self._fill_tours_menu(c, m))
@@ -991,6 +991,23 @@ class MainWindow(QMainWindow):
 
     def tour_title(self, key: str) -> str:
         return next((e["title"] for e in self.tour_entries() if e["key"] == key), "")
+
+    def tour_context_values(self) -> dict:
+        """Valores do local usados nos textos dos tours ({local}, {sqm_local}…)."""
+        loc = self.settings.location()
+        vals = {"local": loc.name or "seu local", "bortle_atual": str(int(self.sky.bortle))}
+        try:
+            from ..core.lightpollution import bortle_from_sqm, sqm_at
+
+            sqm = sqm_at(loc.latitude, loc.longitude)
+            if sqm is not None:
+                vals["sqm_local"] = f"{sqm:.1f}".replace(".", ",")
+                vals["bortle_local"] = str(int(bortle_from_sqm(sqm)))
+        except Exception:                    # noqa: BLE001 — mapa ausente: sem números
+            pass
+        vals.setdefault("sqm_local", "—")
+        vals.setdefault("bortle_local", vals["bortle_atual"])
+        return vals
 
     def tour_gen_context(self, now_utc):
         from ..core.tours_generated import GenContext

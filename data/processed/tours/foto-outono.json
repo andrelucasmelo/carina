@@ -1,0 +1,102 @@
+{
+ "steps": [
+  {
+   "title": "Fotografar no outono",
+   "kind": "intro",
+   "target": "altaz:180,60",
+   "fov": 130.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": false,
+    "asterisms": true,
+    "dso": true,
+    "dso_names": true,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "O outono traz a Via Láctea austral mais rica para o começo da noite — Carina, o Cruzeiro, o Centauro — e, mais tarde, as galáxias do Centauro e da Hidra. Em cada passo o relógio vai à melhor hora de captura de uma noite de abril, com o campo do seu setup ativo desenhado no alvo.\n\nNoites mais secas e longas fazem do outono uma das melhores estações para fotografar no Brasil."
+  },
+  {
+   "title": "A Nebulosa de Carina",
+   "target": "dso:NGC 3372",
+   "time": "data:04-15 hora:20:30",
+   "fov": 5.0,
+   "setup_fov": true,
+   "finder": true,
+   "image": "dss:NGC 3372",
+   "text": "Alta logo ao escurecer, a **Nebulosa de Carina** é o grande alvo da estação. Com 2°, cabe inteira em focais curtas; com focais longas, escolha um detalhe — o Buraco da Fechadura, junto de Eta Carinae, ou a Montanha Mística, uma coluna de poeira esculpida pela radiação.\n\nAo lado, NGC 3532 e IC 2602 compõem um campo largo inesquecível."
+  },
+  {
+   "title": "O Galo Correndo",
+   "target": "dso:IC 2944",
+   "time": "data:04-15 hora:21:30",
+   "fov": 3.0,
+   "setup_fov": true,
+   "finder": true,
+   "text": "Perto de Lambda Centauri, uma nebulosa de emissão que lembra uma galinha correndo: o **Galo Correndo** (IC 2944). Dentro dela, os **glóbulos de Thackeray**, pequenas nuvens escuras, aparecem em focais longas."
+  },
+  {
+   "title": "A Caixinha de Joias e o Saco de Carvão",
+   "target": "dso:C 99",
+   "time": "data:04-15 hora:22:00",
+   "fov": 8.0,
+   "setup_fov": true,
+   "text": "Um alvo de campo largo: o **Saco de Carvão**, escuro, encostado no Cruzeiro, com a Caixinha de Joias na borda. Com uma lente de 50 a 135 mm, o contraste entre a poeira e a Via Láctea é o próprio tema da foto."
+  },
+  {
+   "title": "Ômega Centauri",
+   "target": "dso:NGC 5139",
+   "time": "data:04-15 hora:23:30",
+   "fov": 2.0,
+   "setup_fov": true,
+   "finder": true,
+   "image": "dss:NGC 5139",
+   "text": "O maior globular da Galáxia rende em qualquer focal. O cuidado é não estourar o núcleo: subs curtas (30 a 60 s) e muitas delas, ou HDR. As cores das estrelas — gigantes vermelhas e estrelas azuis — aparecem bem com um pouco de saturação."
+  },
+  {
+   "title": "Centaurus A",
+   "target": "dso:NGC 5128",
+   "time": "data:04-15 hora:23:30",
+   "fov": 2.0,
+   "setup_fov": true,
+   "finder": true,
+   "text": "Uma galáxia elíptica cortada por uma faixa de poeira: **Centaurus A** (NGC 5128), a 12 milhões de anos-luz, resultado da fusão de duas galáxias. É uma das galáxias mais brilhantes do céu e um alvo excelente para focais de 800 mm ou mais."
+  },
+  {
+   "title": "O Catavento do Sul",
+   "target": "dso:M 83",
+   "time": "data:04-15 hora:00:30",
+   "fov": 2.0,
+   "setup_fov": true,
+   "finder": true,
+   "image": "dss:M 83",
+   "text": "Na Hidra, **M 83** é uma espiral barrada vista de frente, com braços cheios de regiões rosadas de formação de estrelas. Passa alta perto da meia-noite em abril; pede focal longa e boa integração — 6 horas ou mais fazem diferença."
+  },
+  {
+   "title": "Bom outono de fotos",
+   "kind": "fim",
+   "target": "altaz:180,60",
+   "fov": 130.0,
+   "skip_if_below": -90.0,
+   "text": "Combine um alvo de começo de noite (Carina) com uma galáxia depois da meia-noite: a **Sessão de astrofoto** organiza a troca de alvos e avisa quando virar a montagem no meridiano."
+  }
+ ],
+ "key": "foto-outono",
+ "title": "O céu de outono para fotografar",
+ "subtitle": "Carina, o Galo Correndo, Ômega Centauri, Centaurus A e o Catavento do Sul",
+ "category": "astrofoto",
+ "level": 3,
+ "minutes": 15,
+ "when": "data:04-15 hora:21:00",
+ "lat_range": [
+  -35.0,
+  5.0
+ ],
+ "tags": [
+  "astrofotografia",
+  "outono",
+  "nebulosas",
+  "galáxias"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

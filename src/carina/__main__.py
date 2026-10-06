@@ -526,12 +526,17 @@ def main(argv=None) -> int:
                 dialog.add_current()
     elif args.dialog == "tours":
         # --dialog-text "chave[:passo]": abre o tour já no passo pedido
-        key, _, step = (args.dialog_text or "constelacoes-famosas").partition(":")
+        # --dialog-text "chave[:passo[:apresentacao]]"
+        key, _, rest = (args.dialog_text or "constelacoes-famosas").partition(":")
+        step, _, mode = rest.partition(":")
         win.start_tour(key, win.engine.time.current_datetime())
         player = win.tour_player()
         if step.isdigit():
             player.go(int(step) - 1)
         player.finish_animation()
+        if mode == "apresentacao":
+            player.btn_present.setChecked(True)
+            player.btn_auto.setChecked(False)
     elif args.dialog == "toursgallery":
         from .ui.tours_gallery import ToursGallery
 

@@ -135,3 +135,33 @@ Só ao binóculo ou telescópio, como uma estrela azulada de magnitude 8. Foi ac
 
 ## lua
 A Lua é o melhor primeiro alvo de qualquer instrumento. Com o Sol iluminando de lado, o relevo perto da linha que separa o dia da noite (o terminador) aparece cheio de sombras; na Lua cheia, as crateras quase somem e se destacam os mares escuros e os raios claros.
+
+## lua:3
+Uma Lua fina, baixa no oeste logo depois do pôr do Sol. Repare na parte "escura": ela não está totalmente apagada, mas acinzentada — é a **luz cinérea**, a luz do Sol refletida pela Terra e devolvida pela Lua. Leonardo da Vinci foi o primeiro a explicar isso.
+
+## lua:5
+O terminador avança sobre a borda leste da Lua. O **Mare Crisium**, oval e isolado, já aparece inteiro; perto da linha de sombra, as grandes crateras **Petavius** e **Langrenus** mostram paredes e picos centrais iluminados de lado.
+
+## lua:7
+**Quarto crescente**: o terminador corta o disco ao meio e é a melhor fase para ver relevo ao telescópio. Perto do centro, em algumas lunações, o "X" luminoso de Werner e Purbach (o **Lunar X**) aparece por poucas horas; ao norte começam os **Apeninos** e os **Alpes** lunares.
+
+## lua:9
+O terminador chega a **Copérnico**, uma cratera de 93 km com paredes em degraus e picos centrais — a "monarca da Lua". Ao norte, a cratera escura **Platão** e a baía do **Sinus Iridum** vão aparecendo.
+
+## lua:11
+O Sol nasce nos **Montes Jura**: por algumas horas eles se acendem além do terminador e desenham um arco luminoso, a **Alça Dourada**, na borda do Sinus Iridum. Mais ao sul, **Gassendi**, com o fundo rachado, e **Aristarco**, a formação mais brilhante da Lua.
+
+## lua:14
+**Lua cheia**: sem sombras, as crateras quase somem, e o que se destaca são os **mares escuros** — o "rosto" da Lua — e os **raios claros** de Tycho e Copérnico, material lançado por impactos recentes. É a melhor fase para fotografar a Lua nascendo sobre a paisagem, logo depois do pôr do Sol.
+
+## lua:17
+A Lua minguante nasce tarde e fica alta de madrugada. O terminador agora é o **pôr do Sol** lunar: avança sobre o lado leste, e o Mare Crisium começa a ser engolido pela sombra. As crateras mostram as sombras do lado oposto ao das noites de Lua crescente.
+
+## lua:20
+Na Lua gibosa minguante, o terminador do pôr do Sol passa pelos grandes mares do leste. Observar a mesma cratera no nascer e no pôr do Sol lunar é como ver duas formações diferentes: as sombras se invertem.
+
+## lua:23
+**Quarto minguante**, alta ao amanhecer. Os Apeninos e os Alpes voltam ao terminador, agora com o Sol se pondo; a **Rupes Recta**, uma escarpa reta de 110 km, aparece como uma linha **clara** — no quarto crescente ela era escura.
+
+## lua:26
+Uma Lua fina de madrugada, baixa no leste antes do nascer do Sol, de novo com a **luz cinérea** na parte escura. O terminador passa pelo **Oceanus Procellarum** e pela cratera escura **Grimaldi**, quase na borda.

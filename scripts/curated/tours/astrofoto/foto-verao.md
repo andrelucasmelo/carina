@@ -1,0 +1,94 @@
+---
+key: foto-verao
+title: O céu de verão para fotografar
+subtitle: Órion, a Roseta, a Tarântula e a Quilha — os alvos de janeiro na melhor hora de captura
+category: astrofoto
+level: 3
+minutes: 15
+when: data:01-15 hora:22:00
+lat_range: -35, 5
+tags: astrofotografia, verão, nebulosas
+author: Carina / Astronomia no Quintal
+---
+
+## Fotografar no verão
+@kind: intro
+@target: altaz:0,80
+@fov: 130
+@layers: const_lines=1, const_names=0, asterisms=1, dso=1, dso_names=1, grid_altaz=0
+@skip_if_below: -90
+
+O verão é a estação das grandes nebulosas de emissão: a região de Órion inteira, a Roseta, a Gaivota e, ao sul, a Grande Nuvem com a Tarântula. Em cada passo o relógio vai à **melhor hora de captura** de uma noite de janeiro — perto da passagem pelo meridiano, quando o alvo está mais alto e a atmosfera atrapalha menos.
+
+O retângulo no céu é o campo do seu **setup ativo** (Planejar ▸ Campo de visão); sem setup, o passo mostra só o alvo. A rota a partir das estrelas ajuda a apontar sem goto.
+
+## A Nebulosa de Órion
+@target: dso:M 42
+@time: data:01-15 hora:22:00
+@fov: 4
+@setup_fov: sim
+@finder: sim
+@image: dss:M 42
+
+O alvo mais fácil e mais compensador do céu: **M 42** é tão brilhante que o núcleo, o Trapézio, satura em segundos. A técnica clássica é juntar subs curtas (para o núcleo) e longas (para a nebulosidade externa) — o chamado HDR.
+
+Com focais de 300 a 600 mm, M 42, M 43 e o Homem Correndo (NGC 1977) cabem no mesmo quadro.
+
+## A Cabeça de Cavalo
+@target: dso:B 33
+@time: data:01-15 hora:22:00
+@fov: 3
+@setup_fov: sim
+@finder: sim
+
+Junto de Alnitak, a primeira das Três Marias, a nuvem escura da **Cabeça de Cavalo** se recorta contra o brilho vermelho de IC 434; ao lado, a **Nebulosa da Chama** (NGC 2024). Precisa de integração longa e de um filtro de hidrogênio-alfa em céu urbano; Alnitak, muito brilhante, gera reflexos.
+
+## A Roseta
+@target: dso:NGC 2237
+@time: data:01-15 hora:23:00
+@fov: 4
+@setup_fov: sim
+@finder: sim
+
+No Unicórnio, entre Betelgeuse e Procyon, a **Nebulosa da Roseta**: um anel de gás de mais de um grau com um aglomerado jovem no centro. É um dos melhores alvos para filtros de banda estreita — em SHO aparece em cores espetaculares.
+
+Com mais de 1°, pede focais curtas (até uns 400 mm em sensor APS-C) ou um mosaico.
+
+## A Gaivota
+@target: dso:IC 2177
+@time: data:01-15 hora:23:30
+@fov: 6
+@setup_fov: sim
+@finder: sim
+
+Na divisa entre o Unicórnio e o Cão Maior, a **Nebulosa da Gaivota** abre as asas por quase três graus. É alvo de lente ou refrator de focal curta, e fica bonita com hidrogênio-alfa mesmo sob céu claro.
+
+## A Tarântula
+@target: dso:NGC 2070
+@time: data:01-15 hora:23:00
+@fov: 3
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 2070
+
+Na **Grande Nuvem de Magalhães**, a **Nebulosa da Tarântula** é a maior região de formação de estrelas do Grupo Local — a 160 mil anos-luz e, ainda assim, visível a olho nu. Fica alta o ano todo no sul do Brasil e é um alvo exclusivo do hemisfério sul.
+
+Uma focal média mostra a Tarântula; uma lente de 135 mm, a Nuvem inteira.
+
+## A Nebulosa de Carina, de madrugada
+@target: dso:NGC 3372
+@time: data:01-15 hora:03:00
+@fov: 5
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 3372
+
+Para quem fica acordado, a **Nebulosa de Carina** passa alta de madrugada em janeiro — em abril ela já estará alta no começo da noite. Maior e mais brilhante que a de Órion, tem detalhes para qualquer focal: o Buraco da Fechadura, a Montanha Mística, Eta Carinae.
+
+## Bom verão de fotos
+@kind: fim
+@target: altaz:0,80
+@fov: 130
+@skip_if_below: -90
+
+No verão brasileiro, o desafio é o tempo: noites curtas, calor (ruído térmico) e nuvens de chuva. Planeje com **Objetos do mês para fotografar** e monte a noite na **Sessão de astrofoto**, que divide o tempo entre os alvos e conta as subs.

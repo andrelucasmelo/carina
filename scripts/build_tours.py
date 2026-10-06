@@ -24,6 +24,10 @@ Cada arquivo ``scripts/curated/tours/<categoria>/<chave>.md`` é um tour:
     @optional: no
     @image: dss:M 42
     @skip_if_below: 10
+    @time: data:07-15 hora:21:00   (outra noite do ano do tour)  ou  em:2026-11-03T20:15
+    @fov_circle: 6                 (campo de binóculo desenhado)
+    @setup_fov: sim                (campo do setup ativo desenhado no alvo)
+    @finder: sim                   (acrescenta a rota a partir das estrelas)
 
     Texto do passo em Markdown. {lore:Ori} insere a história da constelação.
 
@@ -101,8 +105,10 @@ def parse_markdown(text: str) -> dict:
                                for kv in v.split(",") if "=" in kv}
                 elif k == "optional":
                     step[k] = v.lower() not in ("no", "não", "nao", "0", "false")
-                elif k in ("fov", "duration_s", "skip_if_below"):
+                elif k in ("fov", "duration_s", "skip_if_below", "fov_circle"):
                     step[k] = float(v)
+                elif k in ("setup_fov", "finder"):
+                    step[k] = v.lower() in ("1", "sim", "yes", "true")
                 elif k == "bortle":
                     step[k] = int(v)
                 else:
@@ -126,6 +132,18 @@ def parse_texts(path: Path) -> dict[str, str]:
     return out
 
 
+def parse_tsv(path: Path) -> list[tuple[str, str]]:
+    """``_binoculo.tsv``: alvo e texto separados por tabulação."""
+    if not path.exists():
+        return []
+    rows = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip() and not line.startswith("#"):
+            spec, _, text = line.partition("	")
+            rows.append((spec.strip(), text.strip()))
+    return rows
+
+
 def build(check_only: bool = False) -> list[dict]:
     from carina.catalogs import skygeometry
     from carina.catalogs.stars import StarCatalog
@@ -139,6 +157,10 @@ def build(check_only: bool = False) -> list[dict]:
     out, errs = [], []
     keys: set[str] = set()
     texts = parse_texts(SRC / "_textos.md")
+    bino = parse_tsv(SRC / "_binoculo.tsv")
+    for spec, _txt in bino:
+        if res.resolve(spec) is None:
+            errs.append(f"_binoculo.tsv: alvo não encontrado {spec}")
     for key in texts:
         if key.startswith("estrela:") and res.star_index(key[8:]) is None:
             errs.append(f"_textos.md: estrela desconhecida {key[8:]}")
@@ -173,6 +195,9 @@ def build(check_only: bool = False) -> list[dict]:
                 json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
         (OUT / "_textos.json").write_text(json.dumps(texts, ensure_ascii=False, indent=1),
                                           encoding="utf-8")
+        (OUT / "_binoculo.json").write_text(
+            json.dumps([{"target": t, "text": x} for t, x in bino], ensure_ascii=False,
+                       indent=1), encoding="utf-8")
     return out
 
 

@@ -148,7 +148,7 @@ def test_gallery_entries_and_welcome(win, qt_app):
     g = ToursGallery(win)
     assert g.welcome.isVisibleTo(g)
     assert win.settings.value("tours/welcome_seen", False, bool) is False   # só ao usar
-    assert set(g.lists) == {"iniciante", "intermediario", "astrofoto"}
+    assert set(g.lists) == {"iniciante", "intermediario", "astrofoto", "extra"}
     assert g.select("ceu-primavera") and g.current_key() == "ceu-primavera"
     started = []
     g.startRequested.connect(lambda k, ref: started.append(k))

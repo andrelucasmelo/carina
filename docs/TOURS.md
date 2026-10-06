@@ -1,18 +1,20 @@
 # Tours guiados
 
-> Carina 0.20.1 — produto em desenvolvimento.
+> Carina 0.21.0 — produto em desenvolvimento.
 
 Um **tour** leva o céu, passo a passo, às estrelas, constelações e objetos
 de que fala: o relógio vai à hora certa, a vista voa até o alvo, a figura
 se acende e um texto curto explica o que se está vendo. Ao sair, o céu
 volta **exatamente** como estava.
 
-Há três categorias:
+Há quatro categorias, com 27 tours:
 
 - **Iniciantes — Primeiro céu**: para quem ainda não conhece o céu;
-- **Intermediário — Lendo o céu**: as estações, o céu de cada mês, as
-  histórias das constelações;
-- **Astrofotografia — Planejando a captura**: o que fotografar e quando.
+- **Intermediário — Lendo o céu**: as quatro estações, o céu de cada mês,
+  o binóculo, a cidade grande, as histórias do céu e da astronomia;
+- **Astrofotografia — Planejando a captura**: o que fotografar e quando;
+- **Extras**: o céu austral, a Lua, os planetas e o ano no céu, e o céu de
+  uma data especial.
 
 ---
 
@@ -54,6 +56,8 @@ a hora do céu** daquele passo e o texto. Embaixo:
 | **◀** | `←` | Passo anterior — o céu volta exatamente ao que aquele passo mostrou |
 | **Próximo ▶** | `→` | Próximo passo; no último, **Concluir ✓** |
 | **⏵ / ⏸** | `Espaço` | Avança sozinho, no ritmo de cada passo |
+| **⛶** | `F5` | Modo apresentação (ver abaixo) |
+| **🔊** | | Narra cada passo com a voz do Windows (experimental, desligado por padrão) |
 | **?** | | Abre esta página |
 | **Sair** | `Esc` | Encerra o tour e devolve o céu ao que era |
 
@@ -69,6 +73,31 @@ O que o céu faz em cada passo:
 Nada disso altera as suas preferências: relógio, câmera, camadas, Bortle e
 seleção voltam ao que eram ao sair — no fim, no meio do tour ou ao fechar o
 programa.
+
+Alguns passos desenham também um **campo no céu**: o círculo laranja de um
+binóculo (6°), nos tours de binóculo, ou o campo do seu **setup ativo** (o
+retângulo da câmera, com o mosaico, se houver), nos tours de
+astrofotografia. Esses passos trazem ainda a **rota a partir das estrelas**
+("Comece por… e caminhe…") para apontar sem goto.
+
+### Modo apresentação
+
+<div align="center">
+<img src="imagens/tours-apresentacao.png" alt="Modo apresentação: o céu em tela cheia e o texto embaixo" width="95%">
+</div>
+
+Para mostrar o céu numa aula, num clube ou numa tela grande: **⛶** (ou
+`F5`) põe o programa em tela cheia, esconde menus e painéis e mostra o
+texto do passo num painel semitransparente embaixo, com letra grande. O
+avanço automático liga sozinho; `Espaço` pausa, `← →` navegam, `F5` volta
+ao normal e `Esc` encerra o tour. A janela volta exatamente ao que era.
+
+### Narração (experimental)
+
+**🔊** lê cada passo em voz alta com o sintetizador de voz do próprio
+Windows — nada é instalado nem baixado. A qualidade depende das vozes em
+português instaladas no seu Windows (*Configurações ▸ Hora e idioma ▸
+Fala*). A escolha fica salva.
 
 ### Passos pulados
 
@@ -108,14 +137,21 @@ A ordem da tabela é a ordem sugerida.
 
 | Tour | O que mostra | Duração |
 |---|---|---|
-| **O céu de primavera** | As noites de outubro: o "céu das águas" (Capricórnio, Aquário, Peixe Austral), as aves do sul e a Pequena Nuvem, o Escultor, o Grande Quadrado e Andrômeda, o Triângulo de Inverno se pondo e as Plêiades nascendo | 18 min |
 | **O céu deste mês** *(montado para a data)* | Ver abaixo | 20 min |
+| **O céu de verão** | As noites de janeiro: Órion e a Nebulosa de Órion, Sirius, Canopus, o Touro, Gêmeos, o Hexágono de Verão, o Cocheiro, o Erídano, a Grande Nuvem, a antiga Argo e o Cruzeiro nascendo | 18 min |
+| **O céu de outono** | As noites de abril: o Cruzeiro, a Caixinha de Joias e o Saco de Carvão, o Centauro e Ômega Centauri, a Nebulosa de Carina, a Falsa Cruz, o Leão, o Presépio, a Hidra, Spica e o Corvo | 18 min |
+| **O céu de inverno** | As noites de julho: o Escorpião, Antares e M 4, M 6 e M 7, Sagitário, a Lagoa e M 22, Ofiúco, Libra, o Altar, o Triângulo de Inverno, Arcturus e M 11 | 18 min |
+| **O céu de primavera** | As noites de outubro: o "céu das águas" (Capricórnio, Aquário, Peixe Austral), as aves do sul e a Pequena Nuvem, o Escultor, o Grande Quadrado e Andrômeda, o Triângulo de Inverno se pondo e as Plêiades nascendo | 18 min |
+| **O céu ao binóculo** *(montado para a data)* | Até 14 alvos de binóculo bem altos no começo da noite da estação, com o campo de 6° desenhado | 15 min |
+| **Astronomia na cidade grande** | O céu simulado em Bortle 9, o brilho do céu no seu local, o que resiste à luz em cada estação, o que é a poluição luminosa e como melhorar o seu céu, e dez alvos de binóculo para a cidade | 20 min |
+| **Histórias do céu** | De onde vêm as 88 constelações: o zodíaco babilônico, as 48 de Ptolomeu, os mitos de Órion e o Escorpião, da família de Andrômeda, do navio Argo, de Hércules e das Ursas, os navegadores, Lacaille, Hevelius e outros céus | 20 min |
+| **A história da astronomia no céu** | De Hiparco ao buraco negro de Sagitário: doze descobertas, cada uma presa a um objeto que você pode ver | 20 min |
 
 > **A data das estações.** Os tours de estação mostram uma noite típica —
 > 15 de outubro às 21h para a primavera — e não a noite de hoje. Fora da
 > estação, o tour avisa; ao sair, o relógio volta ao que era. Foram
-> escritos para o céu do Brasil (latitudes de 35° S a 5° N). As outras
-> estações chegam na versão 0.21.
+> escritos para o céu do Brasil (latitudes de 35° S a 5° N). As histórias
+> fazem o mesmo: cada passo vai à noite do ano em que a figura aparece bem.
 
 ### O céu deste mês
 
@@ -134,6 +170,17 @@ crepúsculo náutico):
 ---
 
 ## Astrofotografia — Planejando a captura
+
+| Tour | O que mostra | Duração |
+|---|---|---|
+| **Objetos do mês para fotografar** *(montado para a data)* | Ver abaixo | 25 min |
+| **O céu de verão / outono / inverno / primavera para fotografar** | Seis ou sete alvos de cada estação na melhor hora de captura de uma noite típica, com o campo do seu setup ativo desenhado e a rota a partir das estrelas | 15 min cada |
+| **Mosaicos e grandes campos** | A Grande Nuvem, a região de Órion, Carina, Rho Ophiuchi, o centro da Galáxia e a Pequena Nuvem, com o seu mosaico desenhado, e dicas de mosaico | 12 min |
+| **A Lua para fotografar** | Que fase escolher para cada tema, exposição e foco, mosaicos da Lua e o planejador | 7 min |
+
+Para ver o campo da sua câmera nos tours de astrofotografia, escolha um
+setup em *Planejar ▸ Campo de visão* (o setup ativo); com mosaico
+configurado, os painéis aparecem.
 
 ### Objetos do mês para fotografar
 
@@ -173,6 +220,18 @@ Cada objeto tem um **cartão**:
 O texto diz o horário útil na noite típica, a mediana do mês, quando
 virar a montagem, se o objeto **cabe no campo** do setup ativo (ou quantos
 painéis de mosaico pede) e como achá-lo pelas estrelas.
+
+---
+
+## Extras
+
+| Tour | O que mostra | Duração |
+|---|---|---|
+| **O céu austral profundo** | O que o hemisfério norte não vê: as Nuvens de Magalhães, Eta Carinae, Ômega Centauri, 47 Tucanae, a Caixinha de Joias, Centaurus A e NGC 253 | 12 min |
+| **Um mês de Lua em dez noites** *(montado para a data)* | A lunação atual em dez noites — da Lua fina do anoitecer à da madrugada —, com o que observar no terminador em cada uma | 10 min |
+| **Os planetas este ano** *(montado para a data)* | Cada planeta na próxima oposição ou maior elongação dos próximos doze meses | 10 min |
+| **O ano no céu** *(montado para a data)* | Eclipses, chuvas de meteoros, oposições e encontros dos próximos doze meses visíveis do seu local | 12 min |
+| **O céu de uma data** *(montado para a data)* | O céu às 21h da noite escolhida na galeria — um aniversário, um casamento, um nascimento: a Lua, os planetas e as constelações altas | 6 min |
 
 ---
 
@@ -217,7 +276,10 @@ versão futura.
   data" e os que usam "a melhor hora desta noite" funcionam a qualquer
   hora — é um bom jeito de planejar.
 - **Outra data**: escolha na galeria a noite de um aniversário, de uma
-  viagem ou do próximo fim de semana no sítio.
+  viagem ou do próximo fim de semana no sítio — e faça **O céu de uma
+  data**.
+- **Numa aula ou num clube**: use o modo apresentação (`F5`) com o avanço
+  automático.
 - **Do tour para o campo**: guarde os objetos numa lista e use
   *Planejar ▸ Roteiros ▸ Roteiro da minha lista* para ter horários e cartas
   de localização.

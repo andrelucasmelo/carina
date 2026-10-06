@@ -781,6 +781,309 @@ def objetos_do_mes(ctx: GenContext) -> Tour:
 
 
 # ---------------------------------------------------------------------------
+# v0.21 — binóculo e extras
+# ---------------------------------------------------------------------------
+
+_BINO: list | None = None
+
+
+def binocular_targets() -> list[dict]:
+    """Lista curada de alvos de binóculo (``_binoculo.json``)."""
+    global _BINO
+    if _BINO is None:
+        from ..config import package_data_dir
+
+        path = package_data_dir() / "tours" / "_binoculo.json"
+        try:
+            _BINO = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        except ValueError:
+            _BINO = []
+    return _BINO
+
+
+def _evening_grid(eng, base: dt.datetime, hours: float = 4.0):
+    grid = [base + dt.timedelta(minutes=10 * k) for k in range(int(hours * 6) + 1)]
+    mats = [np.asarray(eng.horizontal_matrix(eng.ts.from_datetime(g)), np.float64)
+            for g in grid]
+    return grid, mats
+
+
+def ceu_binoculo(ctx: GenContext) -> Tour:
+    from .observing import season_of
+    from .tours import Resolver
+
+    eng = ctx.engine
+    base = base_time(eng, "inicio_da_noite", ctx.now_utc)
+    season, _months = season_of(base, ctx.latitude)
+    grid, mats = _evening_grid(eng, base)
+    res = Resolver(ctx.stars, ctx.dso)
+    picks = []
+    for item in binocular_targets():
+        r = res.resolve(item["target"])
+        if r is None or r.icrs is None:
+            continue
+        vecs = np.array([m @ r.icrs for m in mats])
+        alts = np.degrees(np.arcsin(np.clip(vecs[:, 2], -1.0, 1.0)))
+        k = int(np.argmax(alts))
+        if alts[k] >= 30.0:
+            az = math.degrees(math.atan2(vecs[k, 1], vecs[k, 0])) % 360.0
+            picks.append((grid[k], az, item, r, float(alts[k])))
+    picks.sort(key=lambda x: (x[0], x[1]))
+    picks = picks[:14]
+    pole_az, _a, _n = _pole(ctx.latitude)
+    steps = [Step(
+        title=f"O céu ao binóculo — {season}", kind="intro", target=f"altaz:{pole_az:.0f},60",
+        fov=120, layers={"dso": True, "dso_names": True, "const_lines": True},
+        skip_if_below=-90,
+        text=(f"{len(picks)} alvos para binóculo bem altos nas primeiras horas das noites de "
+              f"{season}, na ordem em que ficam melhores. O círculo laranja mostra o campo de "
+              "um binóculo comum, de uns 6°.\n\nDicas: apoie os cotovelos (ou use um tripé), "
+              "dê 15 minutos para os olhos se acostumarem ao escuro e varra devagar em volta "
+              "de cada alvo — o binóculo é o instrumento do passeio."))]
+    for when, az, item, r, alt in picks:
+        name = r.label
+        steps.append(Step(
+            title=name, target=item["target"], time=_hm(when), fov=9, fov_circle=6,
+            image=f"dss:{item['target'][4:]}" if item["target"].startswith("dso:") else "",
+            text=(item["text"] + "\n\n"
+                  f"Mais alto às **{_hm(when)}**, a {alt:.0f}° de altura, no {dir_pt(az)}.")))
+    steps.append(Step(
+        title="Bons passeios", kind="fim", target=f"altaz:{pole_az:.0f},60", fov=120,
+        skip_if_below=-90,
+        text=("Um binóculo 7×50 ou 10×50 é o melhor primeiro instrumento: leve, barato e com "
+              "o campo largo que muitos destes objetos pedem. Volte a este tour em outra "
+              "estação — a lista muda com o céu.")))
+    return Tour("ceu-binoculo", f"O céu ao binóculo — {season}", "intermediario",
+                subtitle="Alvos para binóculo da estação, com o campo de 6° desenhado",
+                level=1, minutes=15, when=_when_rule(base), generated=True, steps=steps)
+
+
+def ceu_de_uma_data(ctx: GenContext) -> Tour:
+    from ..catalogs import skygeometry
+    from ..config import package_data_dir
+    from .localtime import to_local
+    from .tours import evening_date
+
+    eng = ctx.engine
+    day = evening_date(ctx.now_utc)
+    lt = to_local(ctx.now_utc)
+    base = dt.datetime(day.year, day.month, day.day, 21, 0, tzinfo=lt.tzinfo).astimezone(UTC)
+    phase, illum = _moon_info(eng, base)
+    pole_az, _a, _n = _pole(ctx.latitude)
+    top = "altaz:0,90" if ctx.latitude < 0 else "altaz:180,90"
+    steps = [Step(
+        title=f"O céu de {day:%d/%m/%Y}", kind="intro", target=top, fov=130,
+        layers={"const_lines": True, "const_names": True, "planet_names": True},
+        skip_if_below=-90,
+        text=(f"Este é o céu de **{day:%d/%m/%Y} às 21h**, visto de {{local}}. Um aniversário, "
+              "o dia de um casamento, a noite de um nascimento: o céu daquela noite foi único — "
+              "a Lua e os planetas nunca se repetem do mesmo jeito.\n\n"
+              f"A Lua estava **{phase.lower()}**, com {illum:.0f}% do disco iluminado."))]
+    alt_m, az_m = altaz_of(eng, base, body="Lua")
+    if alt_m > 5:
+        steps.append(Step(
+            title="A Lua", target="body:Lua", fov=3.0, skip_if_below=-90,
+            text=(f"A Lua estava a {alt_m:.0f}° de altura, no {dir_pt(az_m)} — "
+                  f"{phase.lower()}, {illum:.0f}% iluminada.\n\n" + texts().get("lua", ""))))
+    t_mid = eng.ts.from_datetime(base)
+    mags = {b.name: b.magnitude for b in eng.bodies(t_mid)}
+    for name in ("Vênus", "Júpiter", "Saturno", "Marte", "Mercúrio"):
+        alt, az = altaz_of(eng, base, body=name)
+        if alt > 10:
+            steps.append(Step(
+                title=name, target=f"body:{name}", fov=2.0, skip_if_below=-90,
+                text=(texts().get(f"planeta:{name}", "") + "\n\n"
+                      f"Naquela noite: a {alt:.0f}° de altura, no {dir_pt(az)}, magnitude "
+                      f"{_num(mags.get(name, 0.0))}.")))
+    infos = skygeometry.load_constellation_info(package_data_dir())
+    m = np.asarray(eng.horizontal_matrix(t_mid), np.float64)
+    seen, consts = set(), []
+    for c in infos:
+        if c["id"] in seen or int(c.get("rank", 3)) > 1:
+            continue
+        seen.add(c["id"])
+        ra, dec = math.radians(c["ra"]), math.radians(c["dec"])
+        v = m @ np.array([math.cos(dec) * math.cos(ra), math.cos(dec) * math.sin(ra),
+                          math.sin(dec)])
+        alt = math.degrees(math.asin(max(-1.0, min(1.0, float(v[2])))))
+        if alt >= 40:
+            consts.append((-alt, c["id"]))
+    for _a2, cid in sorted(consts)[:4]:
+        steps.append(Step(
+            title=_const_name(cid), target=f"const:{cid}", fov=50, highlight=[f"const:{cid}"],
+            text=f"Alta no céu daquela noite.\n\n{{lore:short:{cid}}}"))
+    steps.append(Step(
+        title="Para guardar", kind="fim", target=top, fov=130, skip_if_below=-90,
+        text=("Para levar esta noite para o papel, use o **gerador de carta** "
+              "(`Ctrl+Shift+P`) com o relógio nesta data: o céu daquela noite em PDF ou "
+              "imagem.")))
+    return Tour("ceu-de-uma-data", f"O céu de {day:%d/%m/%Y}", "extra",
+                subtitle="O céu da noite escolhida na galeria — aniversário, casamento, nascimento",
+                level=1, minutes=6, when=f"data:{day:%m-%d} hora:21:00", generated=True,
+                steps=steps)
+
+
+LUNAR_AGES = (3, 5, 7, 9, 11, 14, 17, 20, 23, 26)
+
+
+def lua_10_noites(ctx: GenContext) -> Tour:
+    from skyfield import almanac
+
+    from .localtime import to_local
+    from .twilight import night_info
+
+    eng = ctx.engine
+    t0 = eng.ts.from_datetime(ctx.now_utc - dt.timedelta(days=30))
+    t1 = eng.ts.from_datetime(ctx.now_utc + dt.timedelta(days=5))
+    times, phases = almanac.find_discrete(t0, t1, almanac.moon_phases(eng.eph))
+    news = [t.utc_datetime() for t, ph in zip(times, phases) if int(ph) == 0
+            and t.utc_datetime() <= ctx.now_utc + dt.timedelta(days=1)]
+    new = news[-1] if news else ctx.now_utc
+    steps = [Step(
+        title="Um mês de Lua em dez noites", kind="intro", target="altaz:270,30", fov=100,
+        skip_if_below=-90,
+        text=(f"A lunação que começou na Lua nova de **{to_local(new):%d/%m}**, em dez noites: "
+              "da Lua fina do anoitecer à Lua fina da madrugada. Em cada passo o relógio vai à "
+              "noite certa e a vista aproxima a Lua.\n\nO que muda de noite para noite é o "
+              "**terminador**, a linha entre o dia e a noite lunares: é perto dele que as "
+              "crateras e montanhas aparecem cheias de sombras."))]
+    lt0 = to_local(new)
+    for age in LUNAR_AGES:
+        inst = new + dt.timedelta(days=age)
+        day = to_local(inst)
+        if age <= 15:
+            ref = day.replace(hour=15, minute=0).astimezone(UTC)
+            info = night_info(eng, ref)
+            dusk = info.nautical_dusk or ref
+            when = dusk + dt.timedelta(minutes=25 if age < 13 else 120)
+            moment = "ao anoitecer" if age < 13 else "no começo da noite"
+        else:
+            ref = day.replace(hour=3, minute=0).astimezone(UTC)
+            info = night_info(eng, ref)
+            dawn = info.nautical_dawn or ref
+            when = dawn - dt.timedelta(minutes=40)
+            moment = "de madrugada"
+        phase, illum = _moon_info(eng, when)
+        lw = to_local(when)
+        steps.append(Step(
+            title=f"{age} dias — {phase}", target="body:Lua", fov=1.2,
+            time=f"em:{lw:%Y-%m-%dT%H:%M}", skip_if_below=3, optional=True,
+            text=(f"**{lw:%d/%m}**, {moment}: a Lua com {age} dias, {illum:.0f}% iluminada.\n\n"
+                  + texts().get(f"lua:{age}", ""))))
+    steps.append(Step(
+        title="Para observar de verdade", kind="fim", target="altaz:270,30", fov=100,
+        skip_if_below=-90,
+        text=("**A Lua em detalhe** (`Ctrl+Shift+M`) mostra as crateras no terminador de "
+              "qualquer noite, com os nomes; o **Planejador de foto lunar** diz as noites boas "
+              "para cada tipo de foto; a **Lunar 100** é a lista de alvos para ir riscando.")))
+    return Tour("lua-10-noites", "Um mês de Lua em dez noites", "extra",
+                subtitle="A lunação atual, da Lua fina do anoitecer à da madrugada",
+                level=1, minutes=10, when="agora", generated=True, steps=steps)
+
+
+def planetas_ano(ctx: GenContext) -> Tour:
+    from .localtime import to_local
+    from .planets import INNER, apparitions
+    from .twilight import night_info
+
+    eng = ctx.engine
+    kinds = {"oposicao": "oposição", "elong_leste": "maior elongação ao anoitecer",
+             "elong_oeste": "maior elongação de madrugada"}
+    steps = [Step(
+        title="Os planetas este ano", kind="intro", target="altaz:0,90" if ctx.latitude < 0
+        else "altaz:180,90", fov=130, layers={"planet_names": True, "ecliptic": True},
+        skip_if_below=-90,
+        text=("Cada planeta tem a sua melhor época: os de fora do Sol (Marte, Júpiter, Saturno, "
+              "Urano, Netuno) na **oposição**, quando ficam do lado oposto ao Sol, a noite toda "
+              "no céu e no máximo de brilho; Mercúrio e Vênus nas **maiores elongações**, quando "
+              "se afastam mais do Sol.\n\nEste tour visita cada planeta na próxima boa ocasião, "
+              "nos próximos doze meses."))]
+    for name in ("Mercúrio", "Vênus", "Marte", "Júpiter", "Saturno", "Urano", "Netuno"):
+        try:
+            aps = [a for a in apparitions(eng, name, ctx.now_utc, years=1.05)
+                   if a.kind in kinds]
+        except Exception:                  # noqa: BLE001
+            aps = []
+        if not aps:
+            continue
+        ap = max(aps, key=lambda a: a.altitude) if name in INNER else aps[0]
+        if name in INNER:
+            info = night_info(eng, ap.when_utc)
+            evening = ap.kind == "elong_leste"
+            when = ((info.civil_dusk or ap.when_utc) + dt.timedelta(minutes=20) if evening
+                    else (info.civil_dawn or ap.when_utc) - dt.timedelta(minutes=20))
+        else:
+            when, _alt = _best_body_time(eng, name, ap.when_utc, 10.0)
+            when = when or ap.when_utc
+        lw = to_local(when)
+        note = f" — {ap.note}" if ap.note else ""
+        steps.append(Step(
+            title=f"{name}: {kinds[ap.kind]}", target=f"body:{name}",
+            fov=1.0 if name in ("Júpiter", "Saturno") else 2.0,
+            time=f"em:{lw:%Y-%m-%dT%H:%M}", skip_if_below=-90,
+            text=(texts().get(f"planeta:{name}", "") + "\n\n"
+                  f"**{kinds[ap.kind].capitalize()} em {to_local(ap.when_utc):%d/%m/%Y}**{note}. "
+                  f"Magnitude {_num(ap.magnitude)}, diâmetro de {_num(ap.diameter, 0)}″.")))
+    steps.append(Step(
+        title="Mais sobre cada planeta", kind="fim", target="altaz:0,90", fov=130,
+        skip_if_below=-90,
+        text=("A janela **Planetas** (`Ctrl+Shift+E`) mostra a temporada de cada um no seu local, "
+              "as fases de Mercúrio e Vênus, as luas de Júpiter e Saturno e a inclinação dos anéis.")))
+    return Tour("planetas-ano", "Os planetas este ano", "extra",
+                subtitle="Cada planeta na sua próxima boa ocasião, nos próximos doze meses",
+                level=2, minutes=10, when="agora", generated=True, steps=steps)
+
+
+def ano_no_ceu(ctx: GenContext) -> Tour:
+    from ..core.engine import _BODIES
+    from .events import compute_events
+    from .localtime import to_local
+
+    eng = ctx.engine
+    end = ctx.now_utc + dt.timedelta(days=365)
+    try:
+        evs = compute_events(eng, ctx.now_utc, end,
+                             categories=["eclipse", "planeta", "meteoros", "encontro", "lua"],
+                             min_importance=2)
+    except Exception:                      # noqa: BLE001
+        evs = []
+    evs = [e for e in evs if e.visible is not False]
+    chosen = sorted([e for e in evs if e.importance >= 3], key=lambda e: e.start_utc)
+    if len(chosen) < 12:
+        rest = sorted([e for e in evs if e.importance == 2], key=lambda e: e.start_utc)
+        step = max(1, len(rest) // max(1, 12 - len(chosen)))
+        chosen += rest[::step][:12 - len(chosen)]
+    chosen.sort(key=lambda e: e.start_utc)
+    bodies = {b[0] for b in _BODIES}
+    top = "altaz:0,90" if ctx.latitude < 0 else "altaz:180,90"
+    steps = [Step(
+        title="O ano no céu", kind="intro", target=top, fov=130, skip_if_below=-90,
+        text=(f"Os destaques dos próximos doze meses visíveis de {{local}}: eclipses, chuvas de "
+              "meteoros, oposições e encontros da Lua com planetas e estrelas. Cada passo leva o "
+              "céu ao instante do evento.\n\nNo **Calendário do céu** (`Ctrl+Shift+A`) cada um "
+              "tem detalhes e o botão 🔔 para lembrar no dia."))]
+    for ev in chosen[:12]:
+        lw = to_local(ev.start_utc)
+        tgt = ev.target if ev.target in bodies else ""
+        steps.append(Step(
+            title=f"{lw:%d/%m} — {ev.title}", target=f"body:{tgt}" if tgt else top,
+            fov=8.0 if tgt else 120.0, time=f"em:{lw:%Y-%m-%dT%H:%M}", skip_if_below=-90,
+            text=(f"**{lw:%d/%m/%Y}, {lw:%H:%M}** — {ev.title}."
+                  + (f"\n\n{ev.detail}" if ev.detail else ""))))
+    if len(steps) == 1:
+        steps.append(Step(title="Sem destaques", kind="pause", target=top, fov=130,
+                          skip_if_below=-90,
+                          text="Não há eventos de destaque calculados para os próximos meses."))
+    steps.append(Step(
+        title="Até o próximo", kind="fim", target=top, fov=130, skip_if_below=-90,
+        text=("Volte a este tour daqui a alguns meses: ele é montado sempre a partir da data de "
+              "hoje.")))
+    return Tour("ano-no-ceu", "O ano no céu", "extra",
+                subtitle="Eclipses, chuvas de meteoros, oposições e encontros dos próximos 12 meses",
+                level=1, minutes=12, when="agora", generated=True, steps=steps)
+
+
+# ---------------------------------------------------------------------------
 # registro
 # ---------------------------------------------------------------------------
 
@@ -800,6 +1103,21 @@ GENERATORS: dict[str, GenMeta] = {m.key: m for m in (
     GenMeta("objetos-do-mes", "Objetos do mês para fotografar",
             "Alvos com pelo menos 4 h úteis por noite, em ordem de quando ficam bons",
             "astrofoto", 3, 25, objetos_do_mes),
+    GenMeta("ceu-binoculo", "O céu ao binóculo",
+            "Alvos para binóculo da estação, com o campo de 6° desenhado",
+            "intermediario", 1, 15, ceu_binoculo),
+    GenMeta("ceu-de-uma-data", "O céu de uma data",
+            "O céu da noite escolhida na galeria — aniversário, casamento, nascimento",
+            "extra", 1, 6, ceu_de_uma_data),
+    GenMeta("lua-10-noites", "Um mês de Lua em dez noites",
+            "A lunação atual, da Lua fina do anoitecer à da madrugada",
+            "extra", 1, 10, lua_10_noites),
+    GenMeta("planetas-ano", "Os planetas este ano",
+            "Cada planeta na sua próxima boa ocasião, nos próximos doze meses",
+            "extra", 2, 10, planetas_ano),
+    GenMeta("ano-no-ceu", "O ano no céu",
+            "Eclipses, chuvas de meteoros, oposições e encontros dos próximos 12 meses",
+            "extra", 1, 12, ano_no_ceu),
 )}
 
 
