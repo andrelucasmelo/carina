@@ -69,12 +69,13 @@ class ListsWindow(QMainWindow):
         self.btn_remove = QPushButton(self.tr("Remover"))
         self.btn_note = QPushButton(self.tr("Anotar…"))
         self.btn_current = QPushButton(self.tr("Usar como lista do ★"))
-        self.btn_csv = QPushButton(self.tr("Exportar CSV…"))
+        self.btn_csv = QPushButton(self.tr("Exportar…"))
+        self.btn_import = QPushButton(self.tr("Importar…"))
         self.btn_plan = QPushButton(self.tr("Montar roteiro desta noite"))
         self.btn_plan.setDefault(True)
         bottom = QHBoxLayout()
         for b in (self.btn_goto, self.btn_up, self.btn_down, self.btn_remove,
-                  self.btn_note, self.btn_current, self.btn_csv):
+                  self.btn_note, self.btn_current, self.btn_import, self.btn_csv):
             bottom.addWidget(b)
         bottom.addStretch(1)
         bottom.addWidget(self.btn_plan)
@@ -100,7 +101,8 @@ class ListsWindow(QMainWindow):
         self.btn_remove.clicked.connect(self._remove)
         self.btn_note.clicked.connect(self._edit_note)
         self.btn_current.clicked.connect(self._set_current)
-        self.btn_csv.clicked.connect(self._export_csv)
+        self.btn_csv.clicked.connect(self._export)
+        self.btn_import.clicked.connect(self._import)
         self.btn_plan.clicked.connect(
             lambda: self.planRequested.emit(self.current_name()))
         self.table.itemSelectionChanged.connect(self._update_buttons)
@@ -293,6 +295,51 @@ class ListsWindow(QMainWindow):
             self.ud.set_item_note(item["id"], text)
             self._load_items()
             self.table.selectRow(r)
+
+    def _export(self) -> None:
+        """Exportar a lista: CSV do Carina, Telescopius ou SkySafari (v0.22)."""
+        from ..core.listformats import FORMATS, export
+
+        lid = self.ud.list_id(self.current_name()) if self.current_name() else None
+        if lid is None:
+            return
+        filters = ";;".join(FORMATS.values())
+        path, chosen = QFileDialog.getSaveFileName(
+            self, self.tr("Exportar lista"), f"{self.current_name()}.csv", filters)
+        if not path:
+            return
+        fmt = next(k for k, v in FORMATS.items() if v == chosen) if chosen else "csv"
+        if path.lower().endswith(".skylist"):
+            fmt = "skylist"
+        text = export(fmt, self.ud.items(lid))
+        Path(path).write_text(text, encoding="utf-8-sig" if fmt == "csv" else "utf-8")
+
+    def _import(self) -> None:
+        """Importar de CSV (Carina/Telescopius) ou .skylist para a lista atual."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from ..core.listformats import import_names, resolve
+
+        path, _f = QFileDialog.getOpenFileName(
+            self, self.tr("Importar lista"), "",
+            self.tr("Listas (*.csv *.skylist *.txt);;Todos os arquivos (*)"))
+        if not path:
+            return
+        text = Path(path).read_text(encoding="utf-8", errors="replace")
+        fmt = "skylist" if path.lower().endswith(".skylist") or "SkyObject=" in text else (
+            "telescopius" if "catalogue entry" in text.lower() else "csv")
+        names = import_names(fmt, text)
+        found, missing = resolve(names, self.ctx.stars, self.ctx.dso)
+        name = self.current_name() or Path(path).stem
+        lid = self.ud.ensure_list(name)
+        added = sum(1 for it in found if self.ud.add_item(lid, it["kind"], it["ident"],
+                                                          it["name"], it["ra"], it["dec"])
+                    is not None)
+        self.refresh_lists(select=name)
+        msg = self.tr("{a} objeto(s) importado(s) para “{l}”.").format(a=added, l=name)
+        if missing:
+            msg += "\n" + self.tr("Não encontrados: {m}").format(m=", ".join(missing[:15]))
+        QMessageBox.information(self, "Carina", msg)
 
     def _export_csv(self) -> None:
         path, _ = QFileDialog.getSaveFileName(

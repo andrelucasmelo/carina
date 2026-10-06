@@ -57,6 +57,7 @@ DEFAULT_LAYERS = {
     "dso_images": False,
     "moon_labels": True,      # nomes das formações lunares ao aproximar
     "asterisms": False,       # Três Marias, Bule, Falsa Cruz… (v0.20)
+    "sun_path": False,        # caminho do Sol no dia e analema (v0.22)
 }
 
 COL_ASTERISM = (0.98, 0.72, 0.38, 0.80)
@@ -871,6 +872,9 @@ class SkyWidget(QOpenGLWidget):
         # --- zona de influência da Lua para astrofotografia (item 5) ---
         if self.layers["moon_zone"]:
             self._draw_moon_zone(t)
+        # --- caminho do Sol e analema (v0.22) ---
+        if self.layers.get("sun_path"):
+            self._draw_sun_path(t)
 
         # cache para o picking por clique
         self._pick_stars = star_px[:3] if star_px is not None else None
@@ -1738,11 +1742,34 @@ class SkyWidget(QOpenGLWidget):
             self.renderer.fill_polygons([lit], (0.93, 0.92, 0.86, 1.0))
             self._moon_marks_screen.append((mk, cx_, cy_, radius))
 
-    def _draw_moon_zone(self, t) -> None:
-        """Anéis da zona de influência da Lua (regra prática por iluminação).
+    def moon_zone_radii(self, t) -> list[tuple[float, float]]:
+        """[(Δmag, raio em rad)] da zona de influência pelo modelo de
+        Krisciunas & Schaefer (1991): onde o céu fica 0,5, 1 e 2 mag mais claro
+        que a 90° da Lua — 1,5, 1 e 0,5 mag (com o fundo do Bortle escolhido). Vazio com a Lua
+        abaixo do horizonte ou fina demais para fazer diferença."""
+        from ..core.exposure import BORTLE_SQM
+        from ..core.skybrightness import relative_separation
 
-        Círculo interno: zona crítica (evitar alvos de astrofoto); externo:
-        zona de cautela. Raios crescem com a fração iluminada.
+        moon = next((b for b in self.engine.bodies(t) if b.name == "Lua"), None)
+        if moon is None or moon.alt <= 0:
+            return []
+        illum = float(self.engine.moon_illumination(t))
+        phase = math.degrees(math.acos(max(-1.0, min(1.0, 2.0 * illum - 1.0))))
+        z = 90.0 - math.degrees(moon.alt)
+        dark = BORTLE_SQM.get(int(self.bortle), 20.2)
+        out = []
+        for d in (-1.5, -1.0, -0.5):
+            r = relative_separation(d, phase, z, min(z, 80.0), dark)
+            if r is not None and r < 89.0:
+                out.append((d, math.radians(r)))
+        return out
+
+    def _draw_moon_zone(self, t) -> None:
+        """Anéis da zona de influência da Lua (v0.22: Krisciunas & Schaefer).
+
+        Cada anel marca onde o céu fica 1,5, 1 e 0,5 magnitude mais claro que a
+        90° da Lua — vermelho, laranja e amarelo.
+        Sem nenhum (Lua fina ou baixa), vale a regra prática antiga.
         """
         moon = next(
             (b for b in self.engine.bodies(t) if b.name == "Lua"), None
@@ -1751,8 +1778,15 @@ class SkyWidget(QOpenGLWidget):
             return
         if float(self.camera.forward_component(moon.vec[np.newaxis, :])[0]) < -0.4:
             return
-        illum = self.engine.moon_illumination(t)
-        r1, r2 = moon_influence_radii(illum)
+        rings = self.moon_zone_radii(t)
+        colors = {-1.5: (0.95, 0.42, 0.32, 0.70), -1.0: (0.95, 0.65, 0.35, 0.55),
+                  -0.5: (0.92, 0.82, 0.42, 0.40)}
+        if not rings:
+            illum = self.engine.moon_illumination(t)
+            r1, r2 = moon_influence_radii(illum)
+            rings_c = [(r1, (0.90, 0.72, 0.35, 0.55)), (r2, (0.90, 0.72, 0.35, 0.30))]
+        else:
+            rings_c = [(r, colors[d]) for d, r in rings]
 
         u = moon.vec / np.linalg.norm(moon.vec)
         ref = (
@@ -1763,7 +1797,7 @@ class SkyWidget(QOpenGLWidget):
         e1 /= np.linalg.norm(e1)
         e2 = np.cross(u, e1)
         ang = np.linspace(0.0, 2.0 * math.pi, 121)
-        for radius, alpha in ((r1, 0.55), (r2, 0.30)):
+        for radius, color in rings_c:
             ring = (
                 math.cos(radius) * u[np.newaxis, :]
                 + math.sin(radius) * (
@@ -1783,7 +1817,40 @@ class SkyWidget(QOpenGLWidget):
             out[0::2, 1] = y[idx]
             out[1::2, 0] = x[idx + 1]
             out[1::2, 1] = y[idx + 1]
-            out[:, 2:] = (0.90, 0.72, 0.35, alpha)
+            out[:, 2:] = color
+            self.renderer.draw_lines(out)
+
+    def _draw_sun_path(self, t) -> None:
+        """Caminho do Sol no dia (linha) e analema na hora cheia atual (o "8")."""
+        from ..core import sunpath
+
+        lt = to_local(t.utc_datetime())
+        key = (lt.date(), lt.hour, round(self.engine.topos.latitude.degrees, 3),
+               round(self.engine.topos.longitude.degrees, 3))
+        cache = getattr(self, "_sun_path_cache", None)
+        if cache is None or cache[0] != key:
+            path = sunpath.sun_path_day(self.engine, lt.date())
+            ana = sunpath.analemma(self.engine, lt.year, lt.hour)
+            ana = np.vstack([ana, ana[:1]])
+            mk = skygeometry.PolylineSet.from_arrays
+            self._sun_path_cache = (
+                key, mk(path.astype(np.float32), np.array([len(path)], np.int32)),
+                mk(ana.astype(np.float32), np.array([len(ana)], np.int32)))
+        _key, path_set, ana_set = self._sun_path_cache
+        for pset, color in ((path_set, (1.0, 0.82, 0.30, 0.85)),
+                            (ana_set, (1.0, 0.60, 0.25, 0.80))):
+            pts = np.asarray(pset.verts, np.float64)
+            pts = self._refract(pts) if len(pts) else pts
+            x, y, vis = self._to_screen(pts, margin=32.0)
+            if self._hide_below_ground():
+                vis = vis & (pts[:, 2] > -0.002)
+            idx = np.nonzero(vis[:-1] & vis[1:])[0]
+            if len(idx) == 0:
+                continue
+            out = np.empty((2 * len(idx), 6), dtype=np.float32)
+            out[0::2, 0], out[0::2, 1] = x[idx], y[idx]
+            out[1::2, 0], out[1::2, 1] = x[idx + 1], y[idx + 1]
+            out[:, 2:] = color
             self.renderer.draw_lines(out)
 
     def _draw_bodies(self, t, m: np.ndarray):

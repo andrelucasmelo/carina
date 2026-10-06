@@ -441,6 +441,7 @@ def main(argv=None) -> int:
             QTimer.singleShot(900, win.show_whats_new_if_needed)
             QTimer.singleShot(1600, win.show_today_if_needed)
             QTimer.singleShot(1200, win.restore_photo_overlay)
+            QTimer.singleShot(5000, win.start_reminder_watch)
 
     if args.screenshot or args.bench:
         # capturas são reprodutíveis: modo noturno só quando pedido

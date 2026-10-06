@@ -47,6 +47,7 @@ _LAYER_ACTIONS = [
      "G", True),
     ("cardinals", "Pontos cardeais", "Q", True),
     ("asterisms", "Asterismos (Três Marias, Bule, Falsa Cruz…)", "Shift+A", False),
+    ("sun_path", "Caminho do Sol e analema", None, False),
     ("star_names", "Nomes das estrelas", "N", True),
     ("planet_names", "Nomes dos planetas", None, True),
     ("moon_labels", "Nomes das formações da Lua", None, True),
@@ -205,6 +206,8 @@ class MainWindow(QMainWindow):
         self._add(m_file, self.tr("Gerar carta celeste…"),
                   self._open_chart_dialog, "Ctrl+Shift+P")
         self._add(m_file, self.tr("Anotar a vista atual…"), self._open_print_map)
+        self._add(m_file, self.tr("Relatório da noite…"), self._open_night_report)
+        self._add(m_file, self.tr("Pôster do céu…"), self._open_poster)
         self._add(m_file, self.tr("Minha foto no mapa…"), self._open_photo_overlay)
         m_file.addSeparator()
         self._add(m_file, self.tr("Preferências…"), self._open_preferences, "Ctrl+,")
@@ -440,6 +443,9 @@ class MainWindow(QMainWindow):
                                         None, "Shift+M", checkable=True)
         self.act_moon_layer.toggled.connect(self._toggle_moon_forecast)
         m_sol.addAction(layer["moon_zone"])
+        m_sol.addSeparator()
+        m_sol.addAction(layer["sun_path"])
+        self._add(m_sol, self.tr("Nascer e ocaso do Sol no ano…"), self._open_sunpath)
 
         # --- Planejar --------------------------------------------------
         m_plan = bar.addMenu(self.tr("&Planejar"))
@@ -473,6 +479,7 @@ class MainWindow(QMainWindow):
                             ("STARS", self.tr("Estrelas brilhantes…"))):
             self._add(m_rot, label, lambda _c=False, k=kind: self._open_marathon(k))
         self._add(m_plan, self.tr("Campo de visão (equipamentos)…"), self._open_fov, "Ctrl+K")
+        self._add(m_plan, self.tr("Planisfério…"), self._open_planisphere)
         m_plan.addSeparator()
         self._add(m_plan, self.tr("Configurar planejamento…"),
                   self._open_plan_settings, "Ctrl+Shift+O")
@@ -492,6 +499,7 @@ class MainWindow(QMainWindow):
             sub.aboutToShow.connect(lambda c=cat, m=sub: self._fill_tours_menu(c, m))
             self._tours_menus[cat] = sub
         m_tours.addSeparator()
+        self._add(m_tours, self.tr("Quiz do céu…"), self._open_quiz)
         m_tours.addAction(layer["asterisms"])
         self._add(m_tours, self.tr("Como funcionam os tours"),
                   lambda: self._open_help("TOURS.md"))
@@ -1709,6 +1717,114 @@ class MainWindow(QMainWindow):
             pass
         self._diary_changed()
         return True
+
+    # -- lembretes do Windows (v0.22) ------------------------------------------
+    def start_reminder_watch(self) -> None:
+        """Confere os lembretes a cada minuto e avisa uma hora antes."""
+        if getattr(self, "_reminder_timer", None) is not None:
+            return
+        self._reminder_timer = QTimer(self)
+        self._reminder_timer.setInterval(60_000)
+        self._reminder_timer.timeout.connect(self.check_reminders)
+        self._reminder_timer.start()
+        self.check_reminders()
+
+    def _notified_uids(self) -> set[str]:
+        import json
+
+        raw = self.settings.value("reminders/notified", "", str)
+        try:
+            return set(json.loads(raw)) if raw else set()
+        except ValueError:
+            return set()
+
+    def check_reminders(self, now_utc=None) -> list:
+        """Avisa os lembretes devidos; devolve os avisados (testes)."""
+        import datetime as dt
+        import json
+
+        from ..core import events as skyevents
+        from ..core.notify import due_now, message_for
+
+        now = now_utc or dt.datetime.now(dt.timezone.utc)
+        try:
+            rems = skyevents.reminders(self.userdata)
+        except Exception:                      # noqa: BLE001 — banco indisponível
+            return []
+        notified = self._notified_uids()
+        due = due_now(rems, now, notified)
+        for ev in due:
+            self.notify(*message_for(ev, now))
+            notified.add(ev.uid)
+        if due:
+            alive = {ev.uid for ev in rems if ev.start_utc > now - dt.timedelta(days=2)}
+            self.settings.set_value("reminders/notified", json.dumps(sorted(notified & alive)))
+        return due
+
+    def notify(self, title: str, body: str) -> None:
+        """Notificação do Windows: ícone de bandeja do Qt (nativo) ou PowerShell."""
+        from PySide6.QtWidgets import QSystemTrayIcon
+
+        if QSystemTrayIcon.isSystemTrayAvailable():
+            tray = getattr(self, "_tray", None)
+            if tray is None:
+                tray = QSystemTrayIcon(self.windowIcon(), self)
+                tray.setToolTip("Carina")
+                tray.activated.connect(lambda *_: (self.showNormal(), self.raise_(),
+                                                   self.activateWindow()))
+                self._tray = tray
+            tray.show()
+            tray.showMessage(title, body, QSystemTrayIcon.Information, 15_000)
+        else:
+            from ..core.notify import powershell_toast
+
+            powershell_toast(title, body)
+        self.statusBar().showMessage(f"{title} — {body}", 15_000)
+
+    def _open_sunpath(self) -> None:
+        """Sistema Solar ▸ Nascer e ocaso do Sol no ano (v0.22)."""
+        from .sunpath_dialog import SunPathDialog
+
+        dlg = SunPathDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._sunpath = dlg
+        dlg.show()
+
+    def _open_quiz(self) -> None:
+        """Tours ▸ Quiz do céu (v0.22): modo aula."""
+        from .quiz import QuizDialog
+
+        dlg = QuizDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._quiz = dlg
+        dlg.show()
+
+    def _open_planisphere(self) -> None:
+        """Planejar ▸ Planisfério (v0.22)."""
+        from .planisphere import PlanisphereDialog
+
+        dlg = PlanisphereDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._planisphere = dlg
+        dlg.show()
+
+    def _open_poster(self) -> None:
+        """Arquivo ▸ Pôster do céu (v0.22)."""
+        from .poster_dialog import PosterDialog
+
+        dlg = PosterDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._poster = dlg
+        dlg.show()
+
+    def _open_night_report(self) -> None:
+        """Arquivo ▸ Relatório da noite (v0.22): PDF e cartão para compartilhar."""
+        from .night_report import NightReportDialog
+
+        dlg = NightReportDialog(self)
+        dlg.setAttribute(Qt.WA_DeleteOnClose, True)
+        self._night_report = dlg
+        dlg.show()
 
     def _open_programs(self) -> None:
         """Objetos ▸ Programas de observação (v0.22)."""
