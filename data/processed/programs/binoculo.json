@@ -1,0 +1,367 @@
+{
+ "key": "binoculo",
+ "title": "Céu ao binóculo",
+ "source": "Lista curada do Carina",
+ "items": [
+  {
+   "number": 1,
+   "kind": "dso",
+   "ident": "M 45",
+   "name": "M 45",
+   "common": "Pleiades",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Tau"
+  },
+  {
+   "number": 2,
+   "kind": "dso",
+   "ident": "Mel 25",
+   "name": "Mel 25",
+   "common": "",
+   "group": "OC",
+   "type": "OpC",
+   "con": ""
+  },
+  {
+   "number": 3,
+   "kind": "dso",
+   "ident": "M 42",
+   "name": "M 42",
+   "common": "Great Orion Nebula, Orion Nebula",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Ori"
+  },
+  {
+   "number": 4,
+   "kind": "dso",
+   "ident": "M 41",
+   "name": "M 41",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 5,
+   "kind": "dso",
+   "ident": "M 47",
+   "name": "M 47",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 6,
+   "kind": "dso",
+   "ident": "NGC 2451",
+   "name": "NGC 2451",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 7,
+   "kind": "dso",
+   "ident": "NGC 2477",
+   "name": "NGC 2477",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 8,
+   "kind": "dso",
+   "ident": "NGC 2516",
+   "name": "NGC 2516",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 9,
+   "kind": "dso",
+   "ident": "IC 2391",
+   "name": "IC 2391",
+   "common": "omi Vel Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vel"
+  },
+  {
+   "number": 10,
+   "kind": "dso",
+   "ident": "IC 2602",
+   "name": "IC 2602",
+   "common": "tet Car Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 11,
+   "kind": "dso",
+   "ident": "NGC 3532",
+   "name": "NGC 3532",
+   "common": "Wishing Well Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 12,
+   "kind": "dso",
+   "ident": "NGC 3114",
+   "name": "NGC 3114",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 13,
+   "kind": "dso",
+   "ident": "NGC 3372",
+   "name": "NGC 3372",
+   "common": "Carina Nebula, eta Car Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Car"
+  },
+  {
+   "number": 14,
+   "kind": "dso",
+   "ident": "NGC 4755",
+   "name": "NGC 4755",
+   "common": "Herschel's Jewel Box, kappa Crucis Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cru"
+  },
+  {
+   "number": 15,
+   "kind": "dso",
+   "ident": "C 99",
+   "name": "C 99",
+   "common": "Saco de Carvão (Coalsack)",
+   "group": "DARK",
+   "type": "DrkN",
+   "con": "Cru"
+  },
+  {
+   "number": 16,
+   "kind": "dso",
+   "ident": "NGC 5139",
+   "name": "NGC 5139",
+   "common": "Omega Centauri",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Cen"
+  },
+  {
+   "number": 17,
+   "kind": "dso",
+   "ident": "NGC 6231",
+   "name": "NGC 6231",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 18,
+   "kind": "dso",
+   "ident": "M 7",
+   "name": "M 7",
+   "common": "Ptolemy's Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 19,
+   "kind": "dso",
+   "ident": "M 6",
+   "name": "M 6",
+   "common": "Butterfly Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 20,
+   "kind": "dso",
+   "ident": "M 4",
+   "name": "M 4",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sco"
+  },
+  {
+   "number": 21,
+   "kind": "dso",
+   "ident": "M 8",
+   "name": "M 8",
+   "common": "Lagoon Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Sgr"
+  },
+  {
+   "number": 22,
+   "kind": "dso",
+   "ident": "M 22",
+   "name": "M 22",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 23,
+   "kind": "dso",
+   "ident": "M 24",
+   "name": "M 24",
+   "common": "Small Sgr Star Cloud",
+   "group": "OTHER",
+   "type": "*Ass",
+   "con": "Sgr"
+  },
+  {
+   "number": 24,
+   "kind": "dso",
+   "ident": "M 11",
+   "name": "M 11",
+   "common": "Amas de l'Ecu de Sobieski, Wild Duck Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sct"
+  },
+  {
+   "number": 25,
+   "kind": "dso",
+   "ident": "NGC 6397",
+   "name": "NGC 6397",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Ara"
+  },
+  {
+   "number": 26,
+   "kind": "dso",
+   "ident": "NGC 104",
+   "name": "NGC 104",
+   "common": "47 Tuc Cluster",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Tuc"
+  },
+  {
+   "number": 27,
+   "kind": "dso",
+   "ident": "NGC 292",
+   "name": "NGC 292",
+   "common": "Small Magellanic Cloud",
+   "group": "GAL",
+   "type": "G",
+   "con": "Tuc"
+  },
+  {
+   "number": 28,
+   "kind": "dso",
+   "ident": "ESO056-115",
+   "name": "ESO056-115",
+   "common": "Large Magellanic Cloud, Nubecula Major",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dor"
+  },
+  {
+   "number": 29,
+   "kind": "dso",
+   "ident": "NGC 253",
+   "name": "NGC 253",
+   "common": "Sculptor Filament, Silver Coin",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 30,
+   "kind": "dso",
+   "ident": "M 31",
+   "name": "M 31",
+   "common": "Andromeda Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 31,
+   "kind": "dso",
+   "ident": "M 44",
+   "name": "M 44",
+   "common": "Beehive, Praesepe Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cnc"
+  },
+  {
+   "number": 32,
+   "kind": "dso",
+   "ident": "M 35",
+   "name": "M 35",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 33,
+   "kind": "dso",
+   "ident": "M 36",
+   "name": "M 36",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 34,
+   "kind": "dso",
+   "ident": "Mel 111",
+   "name": "Mel 111",
+   "common": "Coma Star Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Com"
+  },
+  {
+   "number": 35,
+   "kind": "dso",
+   "ident": "Cl399",
+   "name": "Cl399",
+   "common": "Brocchi's Cluster, Al Sufi's Cluster, Coathanger Asterism",
+   "group": "OTHER",
+   "type": "*Ass",
+   "con": "Vul"
+  },
+  {
+   "number": 36,
+   "kind": "dso",
+   "ident": "M 13",
+   "name": "M 13",
+   "common": "Hercules Globular Cluster",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Her"
+  }
+ ]
+}

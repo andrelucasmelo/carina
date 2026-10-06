@@ -416,6 +416,8 @@ class MainWindow(QMainWindow):
                   self._add_selection_to_list, "Ctrl+B")
         self._add(m_objs, self.tr("Diário de observação…"), self._open_journal,
                   "Ctrl+Shift+J")
+        self._add(m_objs, self.tr("Programas de observação…"), self._open_programs,
+                  "Ctrl+Shift+G")
         m_objs.addSeparator()
         self._add(m_objs, self.tr("Gerenciar catálogo de céu profundo…"),
                   self._manage_dso, "Ctrl+D")
@@ -912,6 +914,7 @@ class MainWindow(QMainWindow):
                                       note="registrado pelo celular", bortle=self.sky.bortle)
         self.statusBar().showMessage(self.tr("{o} observado (pelo celular)").format(o=name), 6000)
         self._refresh_cards(reselect=True)
+        self._diary_changed()
         dlg = getattr(self, "_companion", None)
         try:
             if dlg is not None:
@@ -1259,14 +1262,7 @@ class MainWindow(QMainWindow):
         when = values.pop("when_utc")
         self.userdata.add_observation(kind, ident, name, when, **values)
         self.statusBar().showMessage(self.tr("{o} registrado no diário").format(o=name), 5000)
-        observed = self.userdata.observed_idents()
-        for attr, method in (("_moon_window", "set_observed"), ("_lunar100", "reload")):
-            w = getattr(self, attr, None)
-            try:
-                if w is not None and w.isVisible():
-                    getattr(w, method)(observed)
-            except RuntimeError:
-                pass
+        self._diary_changed()
         return True
 
     def show_today_if_needed(self) -> None:
@@ -1711,7 +1707,39 @@ class MainWindow(QMainWindow):
                 jw.reload()
         except RuntimeError:
             pass
+        self._diary_changed()
         return True
+
+    def _open_programs(self) -> None:
+        """Objetos ▸ Programas de observação (v0.22)."""
+        from .programs_window import ProgramsWindow
+
+        win = getattr(self, "_programs_window", None)
+        try:
+            if win is not None and win.isVisible():
+                win.reload()
+                win.raise_()
+                win.activateWindow()
+                return
+        except RuntimeError:
+            pass
+        win = ProgramsWindow(self)
+        win.setAttribute(Qt.WA_DeleteOnClose, True)
+        win.gotoRequested.connect(self._goto_ident)
+        self._programs_window = win
+        win.show()
+
+    def _diary_changed(self) -> None:
+        """Avisa as janelas que mostram progresso (programas, Lua, Lunar 100)."""
+        observed = self.userdata.observed_idents()
+        for attr, method in (("_moon_window", "set_observed"), ("_lunar100", "reload"),
+                             ("_programs_window", "reload")):
+            w = getattr(self, attr, None)
+            try:
+                if w is not None and w.isVisible():
+                    getattr(w, method)(observed)
+            except RuntimeError:
+                pass
 
     def _open_journal(self) -> None:
         """Objetos ▸ Diário de observação (v0.15 T8)."""

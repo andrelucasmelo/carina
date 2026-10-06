@@ -1,0 +1,1097 @@
+{
+ "key": "caldwell",
+ "title": "Caldwell",
+ "source": "Patrick Moore, Sky & Telescope (1995)",
+ "items": [
+  {
+   "number": 1,
+   "kind": "dso",
+   "ident": "NGC 188",
+   "name": "C 1 (NGC 188)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cep"
+  },
+  {
+   "number": 2,
+   "kind": "dso",
+   "ident": "NGC 40",
+   "name": "C 2 (NGC 40)",
+   "common": "Bow-Tie nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cep"
+  },
+  {
+   "number": 3,
+   "kind": "dso",
+   "ident": "NGC 4236",
+   "name": "C 3 (NGC 4236)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 4,
+   "kind": "dso",
+   "ident": "NGC 7023",
+   "name": "C 4 (NGC 7023)",
+   "common": "Iris Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Cep"
+  },
+  {
+   "number": 5,
+   "kind": "dso",
+   "ident": "IC 342",
+   "name": "C 5 (IC 342)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cam"
+  },
+  {
+   "number": 6,
+   "kind": "dso",
+   "ident": "NGC 6543",
+   "name": "C 6 (NGC 6543)",
+   "common": "Cat's Eye Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Dra"
+  },
+  {
+   "number": 7,
+   "kind": "dso",
+   "ident": "NGC 2403",
+   "name": "C 7 (NGC 2403)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cam"
+  },
+  {
+   "number": 8,
+   "kind": "dso",
+   "ident": "NGC 559",
+   "name": "C 8 (NGC 559)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 9,
+   "kind": "dso",
+   "ident": "Sh2-155",
+   "name": "C 9 (Sh2-155)",
+   "common": "",
+   "group": "NEB",
+   "type": "HII",
+   "con": ""
+  },
+  {
+   "number": 10,
+   "kind": "dso",
+   "ident": "NGC 663",
+   "name": "C 10 (NGC 663)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 11,
+   "kind": "dso",
+   "ident": "NGC 7635",
+   "name": "C 11 (NGC 7635)",
+   "common": "Bubble Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Cas"
+  },
+  {
+   "number": 12,
+   "kind": "dso",
+   "ident": "NGC 6946",
+   "name": "C 12 (NGC 6946)",
+   "common": "Fireworks Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cyg"
+  },
+  {
+   "number": 13,
+   "kind": "dso",
+   "ident": "NGC 457",
+   "name": "C 13 (NGC 457)",
+   "common": "Owl Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 14,
+   "kind": "dso",
+   "ident": "NGC 869",
+   "name": "C 14 (NGC 869)",
+   "common": "h Persei Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 15,
+   "kind": "dso",
+   "ident": "NGC 6826",
+   "name": "C 15 (NGC 6826)",
+   "common": "Blinking Planetary",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cyg"
+  },
+  {
+   "number": 16,
+   "kind": "dso",
+   "ident": "NGC 7243",
+   "name": "C 16 (NGC 7243)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Lac"
+  },
+  {
+   "number": 17,
+   "kind": "dso",
+   "ident": "NGC 147",
+   "name": "C 17 (NGC 147)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cas"
+  },
+  {
+   "number": 18,
+   "kind": "dso",
+   "ident": "NGC 185",
+   "name": "C 18 (NGC 185)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cas"
+  },
+  {
+   "number": 19,
+   "kind": "dso",
+   "ident": "IC 5146",
+   "name": "C 19 (IC 5146)",
+   "common": "Cocoon Nebula",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Cyg"
+  },
+  {
+   "number": 20,
+   "kind": "dso",
+   "ident": "NGC 7000",
+   "name": "C 20 (NGC 7000)",
+   "common": "North America Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Cyg"
+  },
+  {
+   "number": 21,
+   "kind": "dso",
+   "ident": "NGC 4449",
+   "name": "C 21 (NGC 4449)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 22,
+   "kind": "dso",
+   "ident": "NGC 7662",
+   "name": "C 22 (NGC 7662)",
+   "common": "Copeland's Blue Snowball",
+   "group": "PN",
+   "type": "PN",
+   "con": "And"
+  },
+  {
+   "number": 23,
+   "kind": "dso",
+   "ident": "NGC 891",
+   "name": "C 23 (NGC 891)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 24,
+   "kind": "dso",
+   "ident": "NGC 1275",
+   "name": "C 24 (NGC 1275)",
+   "common": "Perseus A",
+   "group": "GAL",
+   "type": "G",
+   "con": "Per"
+  },
+  {
+   "number": 25,
+   "kind": "dso",
+   "ident": "NGC 2419",
+   "name": "C 25 (NGC 2419)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Lyn"
+  },
+  {
+   "number": 26,
+   "kind": "dso",
+   "ident": "NGC 4244",
+   "name": "C 26 (NGC 4244)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 27,
+   "kind": "dso",
+   "ident": "NGC 6888",
+   "name": "C 27 (NGC 6888)",
+   "common": "Crescent Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Cyg"
+  },
+  {
+   "number": 28,
+   "kind": "dso",
+   "ident": "NGC 752",
+   "name": "C 28 (NGC 752)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "And"
+  },
+  {
+   "number": 29,
+   "kind": "dso",
+   "ident": "NGC 5005",
+   "name": "C 29 (NGC 5005)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 30,
+   "kind": "dso",
+   "ident": "NGC 7331",
+   "name": "C 30 (NGC 7331)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 31,
+   "kind": "dso",
+   "ident": "IC 405",
+   "name": "C 31 (IC 405)",
+   "common": "Flaming Star Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Aur"
+  },
+  {
+   "number": 32,
+   "kind": "dso",
+   "ident": "NGC 4631",
+   "name": "C 32 (NGC 4631)",
+   "common": "Whale Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 33,
+   "kind": "dso",
+   "ident": "NGC 6992",
+   "name": "C 33 (NGC 6992)",
+   "common": "Eastern Veil, Network Nebula",
+   "group": "NEB",
+   "type": "SNR",
+   "con": "Cyg"
+  },
+  {
+   "number": 34,
+   "kind": "dso",
+   "ident": "NGC 6960",
+   "name": "C 34 (NGC 6960)",
+   "common": "Veil Nebula, Filamentary Nebula, Western Veil",
+   "group": "NEB",
+   "type": "SNR",
+   "con": "Cyg"
+  },
+  {
+   "number": 35,
+   "kind": "dso",
+   "ident": "NGC 4889",
+   "name": "C 35 (NGC 4889)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 36,
+   "kind": "dso",
+   "ident": "NGC 4559",
+   "name": "C 36 (NGC 4559)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 37,
+   "kind": "dso",
+   "ident": "NGC 6882",
+   "name": "C 37 (NGC 6882)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 38,
+   "kind": "dso",
+   "ident": "NGC 4565",
+   "name": "C 38 (NGC 4565)",
+   "common": "Needle Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 39,
+   "kind": "dso",
+   "ident": "NGC 2392",
+   "name": "C 39 (NGC 2392)",
+   "common": "Eskimo Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Gem"
+  },
+  {
+   "number": 40,
+   "kind": "dso",
+   "ident": "NGC 3626",
+   "name": "C 40 (NGC 3626)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 41,
+   "kind": "dso",
+   "ident": "Mel 25",
+   "name": "C 41 (Mel 25)",
+   "common": "",
+   "group": "OC",
+   "type": "OpC",
+   "con": ""
+  },
+  {
+   "number": 42,
+   "kind": "dso",
+   "ident": "NGC 7006",
+   "name": "C 42 (NGC 7006)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Del"
+  },
+  {
+   "number": 43,
+   "kind": "dso",
+   "ident": "NGC 7814",
+   "name": "C 43 (NGC 7814)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 44,
+   "kind": "dso",
+   "ident": "NGC 7479",
+   "name": "C 44 (NGC 7479)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 45,
+   "kind": "dso",
+   "ident": "NGC 5248",
+   "name": "C 45 (NGC 5248)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Boo"
+  },
+  {
+   "number": 46,
+   "kind": "dso",
+   "ident": "NGC 2261",
+   "name": "C 46 (NGC 2261)",
+   "common": "Hubble's Nebula",
+   "group": "NEB",
+   "type": "RfN",
+   "con": "Mon"
+  },
+  {
+   "number": 47,
+   "kind": "dso",
+   "ident": "NGC 6934",
+   "name": "C 47 (NGC 6934)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Del"
+  },
+  {
+   "number": 48,
+   "kind": "dso",
+   "ident": "NGC 2775",
+   "name": "C 48 (NGC 2775)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cnc"
+  },
+  {
+   "number": 49,
+   "kind": "dso",
+   "ident": "NGC 2237",
+   "name": "C 49 (NGC 2237)",
+   "common": "Rosette A",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Mon"
+  },
+  {
+   "number": 50,
+   "kind": "dso",
+   "ident": "NGC 2239",
+   "name": "C 50 (NGC 2239)",
+   "common": "",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Mon"
+  },
+  {
+   "number": 51,
+   "kind": "dso",
+   "ident": "IC 1613",
+   "name": "C 51 (IC 1613)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 52,
+   "kind": "dso",
+   "ident": "NGC 4697",
+   "name": "C 52 (NGC 4697)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 53,
+   "kind": "dso",
+   "ident": "NGC 3115",
+   "name": "C 53 (NGC 3115)",
+   "common": "Spindle Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sex"
+  },
+  {
+   "number": 54,
+   "kind": "dso",
+   "ident": "NGC 2506",
+   "name": "C 54 (NGC 2506)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 55,
+   "kind": "dso",
+   "ident": "NGC 7009",
+   "name": "C 55 (NGC 7009)",
+   "common": "Saturn Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Aqr"
+  },
+  {
+   "number": 56,
+   "kind": "dso",
+   "ident": "NGC 246",
+   "name": "C 56 (NGC 246)",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cet"
+  },
+  {
+   "number": 57,
+   "kind": "dso",
+   "ident": "NGC 6822",
+   "name": "C 57 (NGC 6822)",
+   "common": "Barnard's Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sgr"
+  },
+  {
+   "number": 58,
+   "kind": "dso",
+   "ident": "NGC 2360",
+   "name": "C 58 (NGC 2360)",
+   "common": "Caroline's Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 59,
+   "kind": "dso",
+   "ident": "NGC 3242",
+   "name": "C 59 (NGC 3242)",
+   "common": "Jupiter's Ghost Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Hya"
+  },
+  {
+   "number": 60,
+   "kind": "dso",
+   "ident": "NGC 4038",
+   "name": "C 60 (NGC 4038)",
+   "common": "Antennae Galaxies",
+   "group": "GAL",
+   "type": "G",
+   "con": "Crv"
+  },
+  {
+   "number": 61,
+   "kind": "dso",
+   "ident": "NGC 4039",
+   "name": "C 61 (NGC 4039)",
+   "common": "Antennae Galaxies",
+   "group": "GAL",
+   "type": "G",
+   "con": "Crv"
+  },
+  {
+   "number": 62,
+   "kind": "dso",
+   "ident": "NGC 247",
+   "name": "C 62 (NGC 247)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 63,
+   "kind": "dso",
+   "ident": "NGC 7293",
+   "name": "C 63 (NGC 7293)",
+   "common": "Helix Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Aqr"
+  },
+  {
+   "number": 64,
+   "kind": "dso",
+   "ident": "NGC 2362",
+   "name": "C 64 (NGC 2362)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 65,
+   "kind": "dso",
+   "ident": "NGC 253",
+   "name": "C 65 (NGC 253)",
+   "common": "Sculptor Filament, Silver Coin",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 66,
+   "kind": "dso",
+   "ident": "NGC 5694",
+   "name": "C 66 (NGC 5694)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Hya"
+  },
+  {
+   "number": 67,
+   "kind": "dso",
+   "ident": "NGC 1097",
+   "name": "C 67 (NGC 1097)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "For"
+  },
+  {
+   "number": 68,
+   "kind": "dso",
+   "ident": "NGC 6729",
+   "name": "C 68 (NGC 6729)",
+   "common": "",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "CrA"
+  },
+  {
+   "number": 69,
+   "kind": "dso",
+   "ident": "NGC 6302",
+   "name": "C 69 (NGC 6302)",
+   "common": "Bug Nebula, Butterfly Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Sco"
+  },
+  {
+   "number": 70,
+   "kind": "dso",
+   "ident": "NGC 300",
+   "name": "C 70 (NGC 300)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 71,
+   "kind": "dso",
+   "ident": "NGC 2477",
+   "name": "C 71 (NGC 2477)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 72,
+   "kind": "dso",
+   "ident": "NGC 55",
+   "name": "C 72 (NGC 55)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 73,
+   "kind": "dso",
+   "ident": "NGC 1851",
+   "name": "C 73 (NGC 1851)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Col"
+  },
+  {
+   "number": 74,
+   "kind": "dso",
+   "ident": "NGC 3132",
+   "name": "C 74 (NGC 3132)",
+   "common": "Eight-Burst Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Vel"
+  },
+  {
+   "number": 75,
+   "kind": "dso",
+   "ident": "NGC 6124",
+   "name": "C 75 (NGC 6124)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 76,
+   "kind": "dso",
+   "ident": "NGC 6231",
+   "name": "C 76 (NGC 6231)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 77,
+   "kind": "dso",
+   "ident": "NGC 5128",
+   "name": "C 77 (NGC 5128)",
+   "common": "Centaurus A",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cen"
+  },
+  {
+   "number": 78,
+   "kind": "dso",
+   "ident": "NGC 6541",
+   "name": "C 78 (NGC 6541)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "CrA"
+  },
+  {
+   "number": 79,
+   "kind": "dso",
+   "ident": "NGC 3201",
+   "name": "C 79 (NGC 3201)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Vel"
+  },
+  {
+   "number": 80,
+   "kind": "dso",
+   "ident": "NGC 5139",
+   "name": "C 80 (NGC 5139)",
+   "common": "Omega Centauri",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Cen"
+  },
+  {
+   "number": 81,
+   "kind": "dso",
+   "ident": "NGC 6352",
+   "name": "C 81 (NGC 6352)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Ara"
+  },
+  {
+   "number": 82,
+   "kind": "dso",
+   "ident": "NGC 6193",
+   "name": "C 82 (NGC 6193)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Ara"
+  },
+  {
+   "number": 83,
+   "kind": "dso",
+   "ident": "NGC 4945",
+   "name": "C 83 (NGC 4945)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cen"
+  },
+  {
+   "number": 84,
+   "kind": "dso",
+   "ident": "NGC 5286",
+   "name": "C 84 (NGC 5286)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Cen"
+  },
+  {
+   "number": 85,
+   "kind": "dso",
+   "ident": "IC 2391",
+   "name": "C 85 (IC 2391)",
+   "common": "omi Vel Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vel"
+  },
+  {
+   "number": 86,
+   "kind": "dso",
+   "ident": "NGC 6397",
+   "name": "C 86 (NGC 6397)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Ara"
+  },
+  {
+   "number": 87,
+   "kind": "dso",
+   "ident": "NGC 1261",
+   "name": "C 87 (NGC 1261)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Hor"
+  },
+  {
+   "number": 88,
+   "kind": "dso",
+   "ident": "NGC 5823",
+   "name": "C 88 (NGC 5823)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cir"
+  },
+  {
+   "number": 89,
+   "kind": "dso",
+   "ident": "NGC 6087",
+   "name": "C 89 (NGC 6087)",
+   "common": "S Nor Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Nor"
+  },
+  {
+   "number": 90,
+   "kind": "dso",
+   "ident": "NGC 2867",
+   "name": "C 90 (NGC 2867)",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Car"
+  },
+  {
+   "number": 91,
+   "kind": "dso",
+   "ident": "NGC 3532",
+   "name": "C 91 (NGC 3532)",
+   "common": "Wishing Well Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 92,
+   "kind": "dso",
+   "ident": "NGC 3372",
+   "name": "C 92 (NGC 3372)",
+   "common": "Carina Nebula, eta Car Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Car"
+  },
+  {
+   "number": 93,
+   "kind": "dso",
+   "ident": "NGC 6752",
+   "name": "C 93 (NGC 6752)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Pav"
+  },
+  {
+   "number": 94,
+   "kind": "dso",
+   "ident": "NGC 4755",
+   "name": "C 94 (NGC 4755)",
+   "common": "Herschel's Jewel Box, kappa Crucis Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cru"
+  },
+  {
+   "number": 95,
+   "kind": "dso",
+   "ident": "NGC 6025",
+   "name": "C 95 (NGC 6025)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "TrA"
+  },
+  {
+   "number": 96,
+   "kind": "dso",
+   "ident": "NGC 2516",
+   "name": "C 96 (NGC 2516)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 97,
+   "kind": "dso",
+   "ident": "NGC 3766",
+   "name": "C 97 (NGC 3766)",
+   "common": "Pearl Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cen"
+  },
+  {
+   "number": 98,
+   "kind": "dso",
+   "ident": "NGC 4609",
+   "name": "C 98 (NGC 4609)",
+   "common": "Coalsack Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cru"
+  },
+  {
+   "number": 99,
+   "kind": "dso",
+   "ident": "C 99",
+   "name": "C 99",
+   "common": "Saco de Carvão (Coalsack)",
+   "group": "DARK",
+   "type": "DrkN",
+   "con": "Cru"
+  },
+  {
+   "number": 100,
+   "kind": "dso",
+   "ident": "IC 2944",
+   "name": "C 100 (IC 2944)",
+   "common": "lam Cen Nebula",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Cen"
+  },
+  {
+   "number": 101,
+   "kind": "dso",
+   "ident": "NGC 6744",
+   "name": "C 101 (NGC 6744)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Pav"
+  },
+  {
+   "number": 102,
+   "kind": "dso",
+   "ident": "IC 2602",
+   "name": "C 102 (IC 2602)",
+   "common": "tet Car Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Car"
+  },
+  {
+   "number": 103,
+   "kind": "dso",
+   "ident": "NGC 2070",
+   "name": "C 103 (NGC 2070)",
+   "common": "30 Dor Cluster, Tarantula Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Dor"
+  },
+  {
+   "number": 104,
+   "kind": "dso",
+   "ident": "NGC 362",
+   "name": "C 104 (NGC 362)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Tuc"
+  },
+  {
+   "number": 105,
+   "kind": "dso",
+   "ident": "NGC 4833",
+   "name": "C 105 (NGC 4833)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Mus"
+  },
+  {
+   "number": 106,
+   "kind": "dso",
+   "ident": "NGC 104",
+   "name": "C 106 (NGC 104)",
+   "common": "47 Tuc Cluster",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Tuc"
+  },
+  {
+   "number": 107,
+   "kind": "dso",
+   "ident": "NGC 6101",
+   "name": "C 107 (NGC 6101)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Aps"
+  },
+  {
+   "number": 108,
+   "kind": "dso",
+   "ident": "NGC 4372",
+   "name": "C 108 (NGC 4372)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Mus"
+  },
+  {
+   "number": 109,
+   "kind": "dso",
+   "ident": "NGC 3195",
+   "name": "C 109 (NGC 3195)",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cha"
+  }
+ ]
+}

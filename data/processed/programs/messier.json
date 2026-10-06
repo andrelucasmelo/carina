@@ -1,0 +1,1107 @@
+{
+ "key": "messier",
+ "title": "Messier",
+ "source": "Charles Messier (1771–1781)",
+ "items": [
+  {
+   "number": 1,
+   "kind": "dso",
+   "ident": "M 1",
+   "name": "M 1",
+   "common": "Crab Nebula",
+   "group": "NEB",
+   "type": "SNR",
+   "con": "Tau"
+  },
+  {
+   "number": 2,
+   "kind": "dso",
+   "ident": "M 2",
+   "name": "M 2",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Aqr"
+  },
+  {
+   "number": 3,
+   "kind": "dso",
+   "ident": "M 3",
+   "name": "M 3",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "CVn"
+  },
+  {
+   "number": 4,
+   "kind": "dso",
+   "ident": "M 4",
+   "name": "M 4",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sco"
+  },
+  {
+   "number": 5,
+   "kind": "dso",
+   "ident": "M 5",
+   "name": "M 5",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Se1"
+  },
+  {
+   "number": 6,
+   "kind": "dso",
+   "ident": "M 6",
+   "name": "M 6",
+   "common": "Butterfly Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 7,
+   "kind": "dso",
+   "ident": "M 7",
+   "name": "M 7",
+   "common": "Ptolemy's Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 8,
+   "kind": "dso",
+   "ident": "M 8",
+   "name": "M 8",
+   "common": "Lagoon Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Sgr"
+  },
+  {
+   "number": 9,
+   "kind": "dso",
+   "ident": "M 9",
+   "name": "M 9",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 10,
+   "kind": "dso",
+   "ident": "M 10",
+   "name": "M 10",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 11,
+   "kind": "dso",
+   "ident": "M 11",
+   "name": "M 11",
+   "common": "Amas de l'Ecu de Sobieski, Wild Duck Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sct"
+  },
+  {
+   "number": 12,
+   "kind": "dso",
+   "ident": "M 12",
+   "name": "M 12",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 13,
+   "kind": "dso",
+   "ident": "M 13",
+   "name": "M 13",
+   "common": "Hercules Globular Cluster",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Her"
+  },
+  {
+   "number": 14,
+   "kind": "dso",
+   "ident": "M 14",
+   "name": "M 14",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 15,
+   "kind": "dso",
+   "ident": "M 15",
+   "name": "M 15",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Peg"
+  },
+  {
+   "number": 16,
+   "kind": "dso",
+   "ident": "M 16",
+   "name": "M 16",
+   "common": "Eagle Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Se2"
+  },
+  {
+   "number": 17,
+   "kind": "dso",
+   "ident": "M 17",
+   "name": "M 17",
+   "common": "Checkmark Nebula, Lobster Nebula, Swan Nebula, omega Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Sgr"
+  },
+  {
+   "number": 18,
+   "kind": "dso",
+   "ident": "M 18",
+   "name": "M 18",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 19,
+   "kind": "dso",
+   "ident": "M 19",
+   "name": "M 19",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 20,
+   "kind": "dso",
+   "ident": "M 20",
+   "name": "M 20",
+   "common": "Trifid Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Sgr"
+  },
+  {
+   "number": 21,
+   "kind": "dso",
+   "ident": "M 21",
+   "name": "M 21",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 22,
+   "kind": "dso",
+   "ident": "M 22",
+   "name": "M 22",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 23,
+   "kind": "dso",
+   "ident": "M 23",
+   "name": "M 23",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 24,
+   "kind": "dso",
+   "ident": "M 24",
+   "name": "M 24",
+   "common": "Small Sgr Star Cloud",
+   "group": "OTHER",
+   "type": "*Ass",
+   "con": "Sgr"
+  },
+  {
+   "number": 25,
+   "kind": "dso",
+   "ident": "M 25",
+   "name": "M 25",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 26,
+   "kind": "dso",
+   "ident": "M 26",
+   "name": "M 26",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sct"
+  },
+  {
+   "number": 27,
+   "kind": "dso",
+   "ident": "M 27",
+   "name": "M 27",
+   "common": "Dumbbell Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Vul"
+  },
+  {
+   "number": 28,
+   "kind": "dso",
+   "ident": "M 28",
+   "name": "M 28",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 29,
+   "kind": "dso",
+   "ident": "M 29",
+   "name": "M 29",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 30,
+   "kind": "dso",
+   "ident": "M 30",
+   "name": "M 30",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Cap"
+  },
+  {
+   "number": 31,
+   "kind": "dso",
+   "ident": "M 31",
+   "name": "M 31",
+   "common": "Andromeda Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 32,
+   "kind": "dso",
+   "ident": "M 32",
+   "name": "M 32",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 33,
+   "kind": "dso",
+   "ident": "M 33",
+   "name": "M 33",
+   "common": "Triangulum Galaxy, Triangulum Pinwheel",
+   "group": "GAL",
+   "type": "G",
+   "con": "Tri"
+  },
+  {
+   "number": 34,
+   "kind": "dso",
+   "ident": "M 34",
+   "name": "M 34",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 35,
+   "kind": "dso",
+   "ident": "M 35",
+   "name": "M 35",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 36,
+   "kind": "dso",
+   "ident": "M 36",
+   "name": "M 36",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 37,
+   "kind": "dso",
+   "ident": "M 37",
+   "name": "M 37",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 38,
+   "kind": "dso",
+   "ident": "M 38",
+   "name": "M 38",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 39,
+   "kind": "dso",
+   "ident": "M 39",
+   "name": "M 39",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 40,
+   "kind": "dso",
+   "ident": "M 40",
+   "name": "M 40",
+   "common": "",
+   "group": "OTHER",
+   "type": "**",
+   "con": "UMa"
+  },
+  {
+   "number": 41,
+   "kind": "dso",
+   "ident": "M 41",
+   "name": "M 41",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 42,
+   "kind": "dso",
+   "ident": "M 42",
+   "name": "M 42",
+   "common": "Great Orion Nebula, Orion Nebula",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Ori"
+  },
+  {
+   "number": 43,
+   "kind": "dso",
+   "ident": "M 43",
+   "name": "M 43",
+   "common": "Mairan's Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Ori"
+  },
+  {
+   "number": 44,
+   "kind": "dso",
+   "ident": "M 44",
+   "name": "M 44",
+   "common": "Beehive, Praesepe Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cnc"
+  },
+  {
+   "number": 45,
+   "kind": "dso",
+   "ident": "M 45",
+   "name": "M 45",
+   "common": "Pleiades",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Tau"
+  },
+  {
+   "number": 46,
+   "kind": "dso",
+   "ident": "M 46",
+   "name": "M 46",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 47,
+   "kind": "dso",
+   "ident": "M 47",
+   "name": "M 47",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 48,
+   "kind": "dso",
+   "ident": "M 48",
+   "name": "M 48",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Hya"
+  },
+  {
+   "number": 49,
+   "kind": "dso",
+   "ident": "M 49",
+   "name": "M 49",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 50,
+   "kind": "dso",
+   "ident": "M 50",
+   "name": "M 50",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 51,
+   "kind": "dso",
+   "ident": "M 51",
+   "name": "M 51",
+   "common": "Whirlpool Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 52,
+   "kind": "dso",
+   "ident": "M 52",
+   "name": "M 52",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 53,
+   "kind": "dso",
+   "ident": "M 53",
+   "name": "M 53",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Com"
+  },
+  {
+   "number": 54,
+   "kind": "dso",
+   "ident": "M 54",
+   "name": "M 54",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 55,
+   "kind": "dso",
+   "ident": "M 55",
+   "name": "M 55",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 56,
+   "kind": "dso",
+   "ident": "M 56",
+   "name": "M 56",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Lyr"
+  },
+  {
+   "number": 57,
+   "kind": "dso",
+   "ident": "M 57",
+   "name": "M 57",
+   "common": "Ring Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Lyr"
+  },
+  {
+   "number": 58,
+   "kind": "dso",
+   "ident": "M 58",
+   "name": "M 58",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 59,
+   "kind": "dso",
+   "ident": "M 59",
+   "name": "M 59",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 60,
+   "kind": "dso",
+   "ident": "M 60",
+   "name": "M 60",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 61,
+   "kind": "dso",
+   "ident": "M 61",
+   "name": "M 61",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 62,
+   "kind": "dso",
+   "ident": "M 62",
+   "name": "M 62",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 63,
+   "kind": "dso",
+   "ident": "M 63",
+   "name": "M 63",
+   "common": "Sunflower Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 64,
+   "kind": "dso",
+   "ident": "M 64",
+   "name": "M 64",
+   "common": "Black Eye Galaxy, Evil Eye Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 65,
+   "kind": "dso",
+   "ident": "M 65",
+   "name": "M 65",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 66,
+   "kind": "dso",
+   "ident": "M 66",
+   "name": "M 66",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 67,
+   "kind": "dso",
+   "ident": "M 67",
+   "name": "M 67",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cnc"
+  },
+  {
+   "number": 68,
+   "kind": "dso",
+   "ident": "M 68",
+   "name": "M 68",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Hya"
+  },
+  {
+   "number": 69,
+   "kind": "dso",
+   "ident": "M 69",
+   "name": "M 69",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 70,
+   "kind": "dso",
+   "ident": "M 70",
+   "name": "M 70",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 71,
+   "kind": "dso",
+   "ident": "M 71",
+   "name": "M 71",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sge"
+  },
+  {
+   "number": 72,
+   "kind": "dso",
+   "ident": "M 72",
+   "name": "M 72",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Aqr"
+  },
+  {
+   "number": 73,
+   "kind": "dso",
+   "ident": "M 73",
+   "name": "M 73",
+   "common": "",
+   "group": "OTHER",
+   "type": "Other",
+   "con": "Aqr"
+  },
+  {
+   "number": 74,
+   "kind": "dso",
+   "ident": "M 74",
+   "name": "M 74",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Psc"
+  },
+  {
+   "number": 75,
+   "kind": "dso",
+   "ident": "M 75",
+   "name": "M 75",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 76,
+   "kind": "dso",
+   "ident": "M 76",
+   "name": "M 76",
+   "common": "Barbell Nebula, Cork Nebula, Little Dumbbell Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Per"
+  },
+  {
+   "number": 77,
+   "kind": "dso",
+   "ident": "M 77",
+   "name": "M 77",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 78,
+   "kind": "dso",
+   "ident": "M 78",
+   "name": "M 78",
+   "common": "",
+   "group": "NEB",
+   "type": "RfN",
+   "con": "Ori"
+  },
+  {
+   "number": 79,
+   "kind": "dso",
+   "ident": "M 79",
+   "name": "M 79",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Lep"
+  },
+  {
+   "number": 80,
+   "kind": "dso",
+   "ident": "M 80",
+   "name": "M 80",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sco"
+  },
+  {
+   "number": 81,
+   "kind": "dso",
+   "ident": "M 81",
+   "name": "M 81",
+   "common": "Bode's Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 82,
+   "kind": "dso",
+   "ident": "M 82",
+   "name": "M 82",
+   "common": "Cigar Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 83,
+   "kind": "dso",
+   "ident": "M 83",
+   "name": "M 83",
+   "common": "Southern Pinwheel Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Hya"
+  },
+  {
+   "number": 84,
+   "kind": "dso",
+   "ident": "M 84",
+   "name": "M 84",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 85,
+   "kind": "dso",
+   "ident": "M 85",
+   "name": "M 85",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 86,
+   "kind": "dso",
+   "ident": "M 86",
+   "name": "M 86",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 87,
+   "kind": "dso",
+   "ident": "M 87",
+   "name": "M 87",
+   "common": "Virgo Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 88,
+   "kind": "dso",
+   "ident": "M 88",
+   "name": "M 88",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 89,
+   "kind": "dso",
+   "ident": "M 89",
+   "name": "M 89",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 90,
+   "kind": "dso",
+   "ident": "M 90",
+   "name": "M 90",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 91,
+   "kind": "dso",
+   "ident": "M 91",
+   "name": "M 91",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 92,
+   "kind": "dso",
+   "ident": "M 92",
+   "name": "M 92",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Her"
+  },
+  {
+   "number": 93,
+   "kind": "dso",
+   "ident": "M 93",
+   "name": "M 93",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 94,
+   "kind": "dso",
+   "ident": "M 94",
+   "name": "M 94",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 95,
+   "kind": "dso",
+   "ident": "M 95",
+   "name": "M 95",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 96,
+   "kind": "dso",
+   "ident": "M 96",
+   "name": "M 96",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 97,
+   "kind": "dso",
+   "ident": "M 97",
+   "name": "M 97",
+   "common": "Owl Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "UMa"
+  },
+  {
+   "number": 98,
+   "kind": "dso",
+   "ident": "M 98",
+   "name": "M 98",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 99,
+   "kind": "dso",
+   "ident": "M 99",
+   "name": "M 99",
+   "common": "Coma Pinwheel, Virgo Cluster Pinwheel",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 100,
+   "kind": "dso",
+   "ident": "M 100",
+   "name": "M 100",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 101,
+   "kind": "dso",
+   "ident": "M 101",
+   "name": "M 101",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 102,
+   "kind": "dso",
+   "ident": "NGC 5866",
+   "name": "M 102 (NGC 5866)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 103,
+   "kind": "dso",
+   "ident": "M 103",
+   "name": "M 103",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 104,
+   "kind": "dso",
+   "ident": "M 104",
+   "name": "M 104",
+   "common": "Sombrero Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 105,
+   "kind": "dso",
+   "ident": "M 105",
+   "name": "M 105",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 106,
+   "kind": "dso",
+   "ident": "M 106",
+   "name": "M 106",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 107,
+   "kind": "dso",
+   "ident": "M 107",
+   "name": "M 107",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 108,
+   "kind": "dso",
+   "ident": "M 108",
+   "name": "M 108",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 109,
+   "kind": "dso",
+   "ident": "M 109",
+   "name": "M 109",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 110,
+   "kind": "dso",
+   "ident": "M 110",
+   "name": "M 110",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  }
+ ]
+}

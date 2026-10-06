@@ -1,0 +1,4007 @@
+{
+ "key": "herschel400",
+ "title": "Herschel 400",
+ "source": "Astronomical League — Herschel 400 Observing Program",
+ "items": [
+  {
+   "number": 1,
+   "kind": "dso",
+   "ident": "NGC 40",
+   "name": "NGC 40",
+   "common": "Bow-Tie nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cep"
+  },
+  {
+   "number": 2,
+   "kind": "dso",
+   "ident": "NGC 129",
+   "name": "NGC 129",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 3,
+   "kind": "dso",
+   "ident": "NGC 136",
+   "name": "NGC 136",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 4,
+   "kind": "dso",
+   "ident": "NGC 157",
+   "name": "NGC 157",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 5,
+   "kind": "dso",
+   "ident": "NGC 185",
+   "name": "NGC 185",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cas"
+  },
+  {
+   "number": 6,
+   "kind": "dso",
+   "ident": "M 110",
+   "name": "NGC 205 (M 110)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 7,
+   "kind": "dso",
+   "ident": "NGC 225",
+   "name": "NGC 225",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 8,
+   "kind": "dso",
+   "ident": "NGC 246",
+   "name": "NGC 246",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cet"
+  },
+  {
+   "number": 9,
+   "kind": "dso",
+   "ident": "NGC 247",
+   "name": "NGC 247",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 10,
+   "kind": "dso",
+   "ident": "NGC 253",
+   "name": "NGC 253",
+   "common": "Sculptor Filament, Silver Coin",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 11,
+   "kind": "dso",
+   "ident": "NGC 278",
+   "name": "NGC 278",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cas"
+  },
+  {
+   "number": 12,
+   "kind": "dso",
+   "ident": "NGC 288",
+   "name": "NGC 288",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Scl"
+  },
+  {
+   "number": 13,
+   "kind": "dso",
+   "ident": "NGC 381",
+   "name": "NGC 381",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 14,
+   "kind": "dso",
+   "ident": "NGC 404",
+   "name": "NGC 404",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 15,
+   "kind": "dso",
+   "ident": "NGC 436",
+   "name": "NGC 436",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 16,
+   "kind": "dso",
+   "ident": "NGC 457",
+   "name": "NGC 457",
+   "common": "Owl Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 17,
+   "kind": "dso",
+   "ident": "NGC 488",
+   "name": "NGC 488",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Psc"
+  },
+  {
+   "number": 18,
+   "kind": "dso",
+   "ident": "NGC 524",
+   "name": "NGC 524",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Psc"
+  },
+  {
+   "number": 19,
+   "kind": "dso",
+   "ident": "NGC 559",
+   "name": "NGC 559",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 20,
+   "kind": "dso",
+   "ident": "NGC 584",
+   "name": "NGC 584",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 21,
+   "kind": "dso",
+   "ident": "NGC 596",
+   "name": "NGC 596",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 22,
+   "kind": "dso",
+   "ident": "M 33",
+   "name": "NGC 598 (M 33)",
+   "common": "Triangulum Galaxy, Triangulum Pinwheel",
+   "group": "GAL",
+   "type": "G",
+   "con": "Tri"
+  },
+  {
+   "number": 23,
+   "kind": "dso",
+   "ident": "NGC 613",
+   "name": "NGC 613",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Scl"
+  },
+  {
+   "number": 24,
+   "kind": "dso",
+   "ident": "NGC 615",
+   "name": "NGC 615",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 25,
+   "kind": "dso",
+   "ident": "NGC 637",
+   "name": "NGC 637",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 26,
+   "kind": "dso",
+   "ident": "M 76",
+   "name": "NGC 651 (M 76)",
+   "common": "Barbell Nebula, Cork Nebula, Little Dumbbell Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Per"
+  },
+  {
+   "number": 27,
+   "kind": "dso",
+   "ident": "NGC 654",
+   "name": "NGC 654",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 28,
+   "kind": "dso",
+   "ident": "NGC 659",
+   "name": "NGC 659",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 29,
+   "kind": "dso",
+   "ident": "NGC 663",
+   "name": "NGC 663",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 30,
+   "kind": "dso",
+   "ident": "NGC 720",
+   "name": "NGC 720",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 31,
+   "kind": "dso",
+   "ident": "NGC 752",
+   "name": "NGC 752",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "And"
+  },
+  {
+   "number": 32,
+   "kind": "dso",
+   "ident": "NGC 772",
+   "name": "NGC 772",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Ari"
+  },
+  {
+   "number": 33,
+   "kind": "dso",
+   "ident": "NGC 779",
+   "name": "NGC 779",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 34,
+   "kind": "dso",
+   "ident": "NGC 869",
+   "name": "NGC 869",
+   "common": "h Persei Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 35,
+   "kind": "dso",
+   "ident": "NGC 884",
+   "name": "NGC 884",
+   "common": "chi Persei Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 36,
+   "kind": "dso",
+   "ident": "NGC 891",
+   "name": "NGC 891",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "And"
+  },
+  {
+   "number": 37,
+   "kind": "dso",
+   "ident": "NGC 908",
+   "name": "NGC 908",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 38,
+   "kind": "dso",
+   "ident": "NGC 936",
+   "name": "NGC 936",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 39,
+   "kind": "dso",
+   "ident": "NGC 1022",
+   "name": "NGC 1022",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 40,
+   "kind": "dso",
+   "ident": "NGC 1023",
+   "name": "NGC 1023",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Per"
+  },
+  {
+   "number": 41,
+   "kind": "dso",
+   "ident": "NGC 1027",
+   "name": "NGC 1027",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 42,
+   "kind": "dso",
+   "ident": "NGC 1052",
+   "name": "NGC 1052",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 43,
+   "kind": "dso",
+   "ident": "NGC 1055",
+   "name": "NGC 1055",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cet"
+  },
+  {
+   "number": 44,
+   "kind": "dso",
+   "ident": "NGC 1084",
+   "name": "NGC 1084",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Eri"
+  },
+  {
+   "number": 45,
+   "kind": "dso",
+   "ident": "NGC 1245",
+   "name": "NGC 1245",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 46,
+   "kind": "dso",
+   "ident": "NGC 1342",
+   "name": "NGC 1342",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 47,
+   "kind": "dso",
+   "ident": "NGC 1407",
+   "name": "NGC 1407",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Eri"
+  },
+  {
+   "number": 48,
+   "kind": "dso",
+   "ident": "NGC 1444",
+   "name": "NGC 1444",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 49,
+   "kind": "dso",
+   "ident": "NGC 1501",
+   "name": "NGC 1501",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cam"
+  },
+  {
+   "number": 50,
+   "kind": "dso",
+   "ident": "NGC 1502",
+   "name": "NGC 1502",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cam"
+  },
+  {
+   "number": 51,
+   "kind": "dso",
+   "ident": "NGC 1513",
+   "name": "NGC 1513",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 52,
+   "kind": "dso",
+   "ident": "NGC 1528",
+   "name": "NGC 1528",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 53,
+   "kind": "dso",
+   "ident": "NGC 1535",
+   "name": "NGC 1535",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Eri"
+  },
+  {
+   "number": 54,
+   "kind": "dso",
+   "ident": "NGC 1545",
+   "name": "NGC 1545",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Per"
+  },
+  {
+   "number": 55,
+   "kind": "dso",
+   "ident": "NGC 1647",
+   "name": "NGC 1647",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Tau"
+  },
+  {
+   "number": 56,
+   "kind": "dso",
+   "ident": "NGC 1664",
+   "name": "NGC 1664",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 57,
+   "kind": "dso",
+   "ident": "NGC 1788",
+   "name": "NGC 1788",
+   "common": "",
+   "group": "NEB",
+   "type": "RfN",
+   "con": "Ori"
+  },
+  {
+   "number": 58,
+   "kind": "dso",
+   "ident": "NGC 1817",
+   "name": "NGC 1817",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Tau"
+  },
+  {
+   "number": 59,
+   "kind": "dso",
+   "ident": "NGC 1857",
+   "name": "NGC 1857",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 60,
+   "kind": "dso",
+   "ident": "NGC 1907",
+   "name": "NGC 1907",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 61,
+   "kind": "dso",
+   "ident": "NGC 1931",
+   "name": "NGC 1931",
+   "common": "",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Aur"
+  },
+  {
+   "number": 62,
+   "kind": "dso",
+   "ident": "NGC 1961",
+   "name": "NGC 1961",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cam"
+  },
+  {
+   "number": 63,
+   "kind": "dso",
+   "ident": "NGC 1964",
+   "name": "NGC 1964",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Lep"
+  },
+  {
+   "number": 64,
+   "kind": "dso",
+   "ident": "NGC 1980",
+   "name": "NGC 1980",
+   "common": "Lower Sword",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Ori"
+  },
+  {
+   "number": 65,
+   "kind": "dso",
+   "ident": "NGC 1999",
+   "name": "NGC 1999",
+   "common": "",
+   "group": "NEB",
+   "type": "RfN",
+   "con": "Ori"
+  },
+  {
+   "number": 66,
+   "kind": "dso",
+   "ident": "NGC 2022",
+   "name": "NGC 2022",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Ori"
+  },
+  {
+   "number": 67,
+   "kind": "dso",
+   "ident": "NGC 2024",
+   "name": "NGC 2024",
+   "common": "",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Ori"
+  },
+  {
+   "number": 68,
+   "kind": "dso",
+   "ident": "NGC 2126",
+   "name": "NGC 2126",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 69,
+   "kind": "dso",
+   "ident": "NGC 2129",
+   "name": "NGC 2129",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 70,
+   "kind": "dso",
+   "ident": "NGC 2158",
+   "name": "NGC 2158",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 71,
+   "kind": "dso",
+   "ident": "NGC 2169",
+   "name": "NGC 2169",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Ori"
+  },
+  {
+   "number": 72,
+   "kind": "dso",
+   "ident": "NGC 2185",
+   "name": "NGC 2185",
+   "common": "",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Mon"
+  },
+  {
+   "number": 73,
+   "kind": "dso",
+   "ident": "NGC 2186",
+   "name": "NGC 2186",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Ori"
+  },
+  {
+   "number": 74,
+   "kind": "dso",
+   "ident": "NGC 2194",
+   "name": "NGC 2194",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Ori"
+  },
+  {
+   "number": 75,
+   "kind": "dso",
+   "ident": "NGC 2204",
+   "name": "NGC 2204",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 76,
+   "kind": "dso",
+   "ident": "NGC 2215",
+   "name": "NGC 2215",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 77,
+   "kind": "dso",
+   "ident": "NGC 2232",
+   "name": "NGC 2232",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 78,
+   "kind": "dso",
+   "ident": "NGC 2239",
+   "name": "NGC 2244 (NGC 2239)",
+   "common": "",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Mon"
+  },
+  {
+   "number": 79,
+   "kind": "dso",
+   "ident": "NGC 2251",
+   "name": "NGC 2251",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 80,
+   "kind": "dso",
+   "ident": "NGC 2264",
+   "name": "NGC 2264",
+   "common": "Christmas Tree Cluster",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Mon"
+  },
+  {
+   "number": 81,
+   "kind": "dso",
+   "ident": "NGC 2266",
+   "name": "NGC 2266",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 82,
+   "kind": "dso",
+   "ident": "NGC 2281",
+   "name": "NGC 2281",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aur"
+  },
+  {
+   "number": 83,
+   "kind": "dso",
+   "ident": "NGC 2286",
+   "name": "NGC 2286",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 84,
+   "kind": "dso",
+   "ident": "NGC 2301",
+   "name": "NGC 2301",
+   "common": "Great Bird Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 85,
+   "kind": "dso",
+   "ident": "NGC 2304",
+   "name": "NGC 2304",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 86,
+   "kind": "dso",
+   "ident": "NGC 2311",
+   "name": "NGC 2311",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 87,
+   "kind": "dso",
+   "ident": "NGC 2324",
+   "name": "NGC 2324",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 88,
+   "kind": "dso",
+   "ident": "NGC 2335",
+   "name": "NGC 2335",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 89,
+   "kind": "dso",
+   "ident": "NGC 2343",
+   "name": "NGC 2343",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 90,
+   "kind": "dso",
+   "ident": "NGC 2353",
+   "name": "NGC 2353",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 91,
+   "kind": "dso",
+   "ident": "NGC 2354",
+   "name": "NGC 2354",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 92,
+   "kind": "dso",
+   "ident": "NGC 2355",
+   "name": "NGC 2355",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 93,
+   "kind": "dso",
+   "ident": "NGC 2360",
+   "name": "NGC 2360",
+   "common": "Caroline's Cluster",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 94,
+   "kind": "dso",
+   "ident": "NGC 2362",
+   "name": "NGC 2362",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "CMa"
+  },
+  {
+   "number": 95,
+   "kind": "dso",
+   "ident": "NGC 2371",
+   "name": "NGC 2371",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Gem"
+  },
+  {
+   "number": 96,
+   "kind": "dso",
+   "ident": "NGC 2371",
+   "name": "NGC 2372 (NGC 2371)",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Gem"
+  },
+  {
+   "number": 97,
+   "kind": "dso",
+   "ident": "NGC 2392",
+   "name": "NGC 2392",
+   "common": "Eskimo Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Gem"
+  },
+  {
+   "number": 98,
+   "kind": "dso",
+   "ident": "NGC 2395",
+   "name": "NGC 2395",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 99,
+   "kind": "dso",
+   "ident": "NGC 2403",
+   "name": "NGC 2403",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cam"
+  },
+  {
+   "number": 100,
+   "kind": "dso",
+   "ident": "NGC 2419",
+   "name": "NGC 2419",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Lyn"
+  },
+  {
+   "number": 101,
+   "kind": "dso",
+   "ident": "NGC 2420",
+   "name": "NGC 2420",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Gem"
+  },
+  {
+   "number": 102,
+   "kind": "dso",
+   "ident": "NGC 2421",
+   "name": "NGC 2421",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 103,
+   "kind": "dso",
+   "ident": "M 47",
+   "name": "NGC 2422 (M 47)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 104,
+   "kind": "dso",
+   "ident": "NGC 2423",
+   "name": "NGC 2423",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 105,
+   "kind": "dso",
+   "ident": "NGC 2438",
+   "name": "NGC 2438",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Pup"
+  },
+  {
+   "number": 106,
+   "kind": "dso",
+   "ident": "NGC 2440",
+   "name": "NGC 2440",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Pup"
+  },
+  {
+   "number": 107,
+   "kind": "dso",
+   "ident": "NGC 2479",
+   "name": "NGC 2479",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 108,
+   "kind": "dso",
+   "ident": "NGC 2482",
+   "name": "NGC 2482",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 109,
+   "kind": "dso",
+   "ident": "NGC 2489",
+   "name": "NGC 2489",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 110,
+   "kind": "dso",
+   "ident": "NGC 2506",
+   "name": "NGC 2506",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Mon"
+  },
+  {
+   "number": 111,
+   "kind": "dso",
+   "ident": "NGC 2509",
+   "name": "NGC 2509",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 112,
+   "kind": "dso",
+   "ident": "NGC 2520",
+   "name": "NGC 2527 (NGC 2520)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 113,
+   "kind": "dso",
+   "ident": "NGC 2539",
+   "name": "NGC 2539",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 114,
+   "kind": "dso",
+   "ident": "M 48",
+   "name": "NGC 2548 (M 48)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Hya"
+  },
+  {
+   "number": 115,
+   "kind": "dso",
+   "ident": "NGC 2567",
+   "name": "NGC 2567",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 116,
+   "kind": "dso",
+   "ident": "NGC 2571",
+   "name": "NGC 2571",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pup"
+  },
+  {
+   "number": 117,
+   "kind": "dso",
+   "ident": "NGC 2613",
+   "name": "NGC 2613",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Pyx"
+  },
+  {
+   "number": 118,
+   "kind": "dso",
+   "ident": "NGC 2627",
+   "name": "NGC 2627",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Pyx"
+  },
+  {
+   "number": 119,
+   "kind": "dso",
+   "ident": "NGC 2655",
+   "name": "NGC 2655",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cam"
+  },
+  {
+   "number": 120,
+   "kind": "dso",
+   "ident": "NGC 2681",
+   "name": "NGC 2681",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 121,
+   "kind": "dso",
+   "ident": "NGC 2683",
+   "name": "NGC 2683",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Lyn"
+  },
+  {
+   "number": 122,
+   "kind": "dso",
+   "ident": "NGC 2742",
+   "name": "NGC 2742",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 123,
+   "kind": "dso",
+   "ident": "NGC 2768",
+   "name": "NGC 2768",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 124,
+   "kind": "dso",
+   "ident": "NGC 2775",
+   "name": "NGC 2775",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cnc"
+  },
+  {
+   "number": 125,
+   "kind": "dso",
+   "ident": "NGC 2782",
+   "name": "NGC 2782",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Lyn"
+  },
+  {
+   "number": 126,
+   "kind": "dso",
+   "ident": "NGC 2787",
+   "name": "NGC 2787",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 127,
+   "kind": "dso",
+   "ident": "NGC 2811",
+   "name": "NGC 2811",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Hya"
+  },
+  {
+   "number": 128,
+   "kind": "dso",
+   "ident": "NGC 2841",
+   "name": "NGC 2841",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 129,
+   "kind": "dso",
+   "ident": "NGC 2859",
+   "name": "NGC 2859",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 130,
+   "kind": "dso",
+   "ident": "NGC 2903",
+   "name": "NGC 2903",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 131,
+   "kind": "dso",
+   "ident": "NGC 2950",
+   "name": "NGC 2950",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 132,
+   "kind": "dso",
+   "ident": "NGC 2964",
+   "name": "NGC 2964",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 133,
+   "kind": "dso",
+   "ident": "NGC 2974",
+   "name": "NGC 2974",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sex"
+  },
+  {
+   "number": 134,
+   "kind": "dso",
+   "ident": "NGC 2976",
+   "name": "NGC 2976",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 135,
+   "kind": "dso",
+   "ident": "NGC 2985",
+   "name": "NGC 2985",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 136,
+   "kind": "dso",
+   "ident": "M 82",
+   "name": "NGC 3034 (M 82)",
+   "common": "Cigar Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 137,
+   "kind": "dso",
+   "ident": "NGC 3077",
+   "name": "NGC 3077",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 138,
+   "kind": "dso",
+   "ident": "NGC 3079",
+   "name": "NGC 3079",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 139,
+   "kind": "dso",
+   "ident": "NGC 3115",
+   "name": "NGC 3115",
+   "common": "Spindle Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sex"
+  },
+  {
+   "number": 140,
+   "kind": "dso",
+   "ident": "NGC 3147",
+   "name": "NGC 3147",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 141,
+   "kind": "dso",
+   "ident": "NGC 3166",
+   "name": "NGC 3166",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sex"
+  },
+  {
+   "number": 142,
+   "kind": "dso",
+   "ident": "NGC 3169",
+   "name": "NGC 3169",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Sex"
+  },
+  {
+   "number": 143,
+   "kind": "dso",
+   "ident": "NGC 3184",
+   "name": "NGC 3184",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 144,
+   "kind": "dso",
+   "ident": "NGC 3189",
+   "name": "NGC 3190 (NGC 3189)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 145,
+   "kind": "dso",
+   "ident": "NGC 3193",
+   "name": "NGC 3193",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 146,
+   "kind": "dso",
+   "ident": "NGC 3198",
+   "name": "NGC 3198",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 147,
+   "kind": "dso",
+   "ident": "NGC 3226",
+   "name": "NGC 3226",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 148,
+   "kind": "dso",
+   "ident": "NGC 3227",
+   "name": "NGC 3227",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 149,
+   "kind": "dso",
+   "ident": "NGC 3242",
+   "name": "NGC 3242",
+   "common": "Jupiter's Ghost Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Hya"
+  },
+  {
+   "number": 150,
+   "kind": "dso",
+   "ident": "NGC 3245",
+   "name": "NGC 3245",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 151,
+   "kind": "dso",
+   "ident": "NGC 3277",
+   "name": "NGC 3277",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 152,
+   "kind": "dso",
+   "ident": "NGC 3294",
+   "name": "NGC 3294",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 153,
+   "kind": "dso",
+   "ident": "NGC 3310",
+   "name": "NGC 3310",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 154,
+   "kind": "dso",
+   "ident": "NGC 3344",
+   "name": "NGC 3344",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 155,
+   "kind": "dso",
+   "ident": "NGC 3377",
+   "name": "NGC 3377",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 156,
+   "kind": "dso",
+   "ident": "M 105",
+   "name": "NGC 3379 (M 105)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 157,
+   "kind": "dso",
+   "ident": "NGC 3384",
+   "name": "NGC 3384",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 158,
+   "kind": "dso",
+   "ident": "NGC 3395",
+   "name": "NGC 3395",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 159,
+   "kind": "dso",
+   "ident": "NGC 3412",
+   "name": "NGC 3412",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 160,
+   "kind": "dso",
+   "ident": "NGC 3414",
+   "name": "NGC 3414",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 161,
+   "kind": "dso",
+   "ident": "NGC 3432",
+   "name": "NGC 3432",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 162,
+   "kind": "dso",
+   "ident": "NGC 3486",
+   "name": "NGC 3486",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 163,
+   "kind": "dso",
+   "ident": "NGC 3489",
+   "name": "NGC 3489",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 164,
+   "kind": "dso",
+   "ident": "NGC 3504",
+   "name": "NGC 3504",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "LMi"
+  },
+  {
+   "number": 165,
+   "kind": "dso",
+   "ident": "NGC 3521",
+   "name": "NGC 3521",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 166,
+   "kind": "dso",
+   "ident": "M 108",
+   "name": "NGC 3556 (M 108)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 167,
+   "kind": "dso",
+   "ident": "NGC 3593",
+   "name": "NGC 3593",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 168,
+   "kind": "dso",
+   "ident": "NGC 3607",
+   "name": "NGC 3607",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 169,
+   "kind": "dso",
+   "ident": "NGC 3608",
+   "name": "NGC 3608",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 170,
+   "kind": "dso",
+   "ident": "NGC 3610",
+   "name": "NGC 3610",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 171,
+   "kind": "dso",
+   "ident": "NGC 3613",
+   "name": "NGC 3613",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 172,
+   "kind": "dso",
+   "ident": "NGC 3619",
+   "name": "NGC 3619",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 173,
+   "kind": "dso",
+   "ident": "NGC 3621",
+   "name": "NGC 3621",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Hya"
+  },
+  {
+   "number": 174,
+   "kind": "dso",
+   "ident": "NGC 3626",
+   "name": "NGC 3626",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 175,
+   "kind": "dso",
+   "ident": "NGC 3628",
+   "name": "NGC 3628",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 176,
+   "kind": "dso",
+   "ident": "NGC 3631",
+   "name": "NGC 3631",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 177,
+   "kind": "dso",
+   "ident": "NGC 3640",
+   "name": "NGC 3640",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 178,
+   "kind": "dso",
+   "ident": "NGC 3655",
+   "name": "NGC 3655",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 179,
+   "kind": "dso",
+   "ident": "NGC 3665",
+   "name": "NGC 3665",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 180,
+   "kind": "dso",
+   "ident": "NGC 3675",
+   "name": "NGC 3675",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 181,
+   "kind": "dso",
+   "ident": "NGC 3686",
+   "name": "NGC 3686",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 182,
+   "kind": "dso",
+   "ident": "NGC 3726",
+   "name": "NGC 3726",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 183,
+   "kind": "dso",
+   "ident": "NGC 3729",
+   "name": "NGC 3729",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 184,
+   "kind": "dso",
+   "ident": "NGC 3810",
+   "name": "NGC 3810",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 185,
+   "kind": "dso",
+   "ident": "NGC 3813",
+   "name": "NGC 3813",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 186,
+   "kind": "dso",
+   "ident": "NGC 3877",
+   "name": "NGC 3877",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 187,
+   "kind": "dso",
+   "ident": "NGC 3893",
+   "name": "NGC 3893",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 188,
+   "kind": "dso",
+   "ident": "NGC 3898",
+   "name": "NGC 3898",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 189,
+   "kind": "dso",
+   "ident": "NGC 3900",
+   "name": "NGC 3900",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 190,
+   "kind": "dso",
+   "ident": "NGC 3899",
+   "name": "NGC 3912 (NGC 3899)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Leo"
+  },
+  {
+   "number": 191,
+   "kind": "dso",
+   "ident": "NGC 3938",
+   "name": "NGC 3938",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 192,
+   "kind": "dso",
+   "ident": "NGC 3941",
+   "name": "NGC 3941",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 193,
+   "kind": "dso",
+   "ident": "NGC 3945",
+   "name": "NGC 3945",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 194,
+   "kind": "dso",
+   "ident": "NGC 3949",
+   "name": "NGC 3949",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 195,
+   "kind": "dso",
+   "ident": "NGC 3953",
+   "name": "NGC 3953",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 196,
+   "kind": "dso",
+   "ident": "NGC 3962",
+   "name": "NGC 3962",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Crt"
+  },
+  {
+   "number": 197,
+   "kind": "dso",
+   "ident": "NGC 3982",
+   "name": "NGC 3982",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 198,
+   "kind": "dso",
+   "ident": "M 109",
+   "name": "NGC 3992 (M 109)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 199,
+   "kind": "dso",
+   "ident": "NGC 3998",
+   "name": "NGC 3998",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 200,
+   "kind": "dso",
+   "ident": "NGC 4026",
+   "name": "NGC 4026",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 201,
+   "kind": "dso",
+   "ident": "NGC 4027",
+   "name": "NGC 4027",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Crv"
+  },
+  {
+   "number": 202,
+   "kind": "dso",
+   "ident": "NGC 4030",
+   "name": "NGC 4030",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 203,
+   "kind": "dso",
+   "ident": "NGC 4036",
+   "name": "NGC 4036",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 204,
+   "kind": "dso",
+   "ident": "NGC 4038",
+   "name": "NGC 4038",
+   "common": "Antennae Galaxies",
+   "group": "GAL",
+   "type": "G",
+   "con": "Crv"
+  },
+  {
+   "number": 205,
+   "kind": "dso",
+   "ident": "NGC 4041",
+   "name": "NGC 4041",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 206,
+   "kind": "dso",
+   "ident": "NGC 4051",
+   "name": "NGC 4051",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 207,
+   "kind": "dso",
+   "ident": "NGC 4085",
+   "name": "NGC 4085",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 208,
+   "kind": "dso",
+   "ident": "NGC 4088",
+   "name": "NGC 4088",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 209,
+   "kind": "dso",
+   "ident": "NGC 4102",
+   "name": "NGC 4102",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 210,
+   "kind": "dso",
+   "ident": "NGC 4111",
+   "name": "NGC 4111",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 211,
+   "kind": "dso",
+   "ident": "NGC 4143",
+   "name": "NGC 4143",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 212,
+   "kind": "dso",
+   "ident": "NGC 4147",
+   "name": "NGC 4147",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Com"
+  },
+  {
+   "number": 213,
+   "kind": "dso",
+   "ident": "NGC 4150",
+   "name": "NGC 4150",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 214,
+   "kind": "dso",
+   "ident": "NGC 4151",
+   "name": "NGC 4151",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 215,
+   "kind": "dso",
+   "ident": "NGC 4179",
+   "name": "NGC 4179",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 216,
+   "kind": "dso",
+   "ident": "NGC 4203",
+   "name": "NGC 4203",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 217,
+   "kind": "dso",
+   "ident": "NGC 4214",
+   "name": "NGC 4214",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 218,
+   "kind": "dso",
+   "ident": "NGC 4216",
+   "name": "NGC 4216",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 219,
+   "kind": "dso",
+   "ident": "NGC 4245",
+   "name": "NGC 4245",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 220,
+   "kind": "dso",
+   "ident": "NGC 4251",
+   "name": "NGC 4251",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 221,
+   "kind": "dso",
+   "ident": "M 106",
+   "name": "NGC 4258 (M 106)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 222,
+   "kind": "dso",
+   "ident": "NGC 4261",
+   "name": "NGC 4261",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 223,
+   "kind": "dso",
+   "ident": "NGC 4273",
+   "name": "NGC 4273",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 224,
+   "kind": "dso",
+   "ident": "NGC 4274",
+   "name": "NGC 4274",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 225,
+   "kind": "dso",
+   "ident": "NGC 4278",
+   "name": "NGC 4278",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 226,
+   "kind": "dso",
+   "ident": "NGC 4281",
+   "name": "NGC 4281",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 227,
+   "kind": "dso",
+   "ident": "NGC 4293",
+   "name": "NGC 4293",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 228,
+   "kind": "dso",
+   "ident": "M 61",
+   "name": "NGC 4303 (M 61)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 229,
+   "kind": "dso",
+   "ident": "NGC 4314",
+   "name": "NGC 4314",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 230,
+   "kind": "dso",
+   "ident": "NGC 4346",
+   "name": "NGC 4346",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 231,
+   "kind": "dso",
+   "ident": "NGC 4350",
+   "name": "NGC 4350",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 232,
+   "kind": "dso",
+   "ident": "NGC 4361",
+   "name": "NGC 4361",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Crv"
+  },
+  {
+   "number": 233,
+   "kind": "dso",
+   "ident": "NGC 4365",
+   "name": "NGC 4365",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 234,
+   "kind": "dso",
+   "ident": "NGC 4371",
+   "name": "NGC 4371",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 235,
+   "kind": "dso",
+   "ident": "NGC 4394",
+   "name": "NGC 4394",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 236,
+   "kind": "dso",
+   "ident": "NGC 4414",
+   "name": "NGC 4414",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 237,
+   "kind": "dso",
+   "ident": "NGC 4419",
+   "name": "NGC 4419",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 238,
+   "kind": "dso",
+   "ident": "NGC 4429",
+   "name": "NGC 4429",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 239,
+   "kind": "dso",
+   "ident": "NGC 4435",
+   "name": "NGC 4435",
+   "common": "Eyes",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 240,
+   "kind": "dso",
+   "ident": "NGC 4438",
+   "name": "NGC 4438",
+   "common": "Eyes",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 241,
+   "kind": "dso",
+   "ident": "NGC 4442",
+   "name": "NGC 4442",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 242,
+   "kind": "dso",
+   "ident": "NGC 4448",
+   "name": "NGC 4448",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 243,
+   "kind": "dso",
+   "ident": "NGC 4449",
+   "name": "NGC 4449",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 244,
+   "kind": "dso",
+   "ident": "NGC 4450",
+   "name": "NGC 4450",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 245,
+   "kind": "dso",
+   "ident": "NGC 4459",
+   "name": "NGC 4459",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 246,
+   "kind": "dso",
+   "ident": "NGC 4473",
+   "name": "NGC 4473",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 247,
+   "kind": "dso",
+   "ident": "NGC 4477",
+   "name": "NGC 4477",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 248,
+   "kind": "dso",
+   "ident": "NGC 4478",
+   "name": "NGC 4478",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 249,
+   "kind": "dso",
+   "ident": "NGC 4485",
+   "name": "NGC 4485",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 250,
+   "kind": "dso",
+   "ident": "NGC 4490",
+   "name": "NGC 4490",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 251,
+   "kind": "dso",
+   "ident": "NGC 4494",
+   "name": "NGC 4494",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 252,
+   "kind": "dso",
+   "ident": "NGC 4526",
+   "name": "NGC 4526",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 253,
+   "kind": "dso",
+   "ident": "NGC 4527",
+   "name": "NGC 4527",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 254,
+   "kind": "dso",
+   "ident": "NGC 4535",
+   "name": "NGC 4535",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 255,
+   "kind": "dso",
+   "ident": "NGC 4536",
+   "name": "NGC 4536",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 256,
+   "kind": "dso",
+   "ident": "NGC 4546",
+   "name": "NGC 4546",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 257,
+   "kind": "dso",
+   "ident": "M 91",
+   "name": "NGC 4548 (M 91)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 258,
+   "kind": "dso",
+   "ident": "NGC 4550",
+   "name": "NGC 4550",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 259,
+   "kind": "dso",
+   "ident": "NGC 4559",
+   "name": "NGC 4559",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 260,
+   "kind": "dso",
+   "ident": "NGC 4565",
+   "name": "NGC 4565",
+   "common": "Needle Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 261,
+   "kind": "dso",
+   "ident": "NGC 4570",
+   "name": "NGC 4570",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 262,
+   "kind": "dso",
+   "ident": "M 104",
+   "name": "NGC 4594 (M 104)",
+   "common": "Sombrero Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 263,
+   "kind": "dso",
+   "ident": "NGC 4596",
+   "name": "NGC 4596",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 264,
+   "kind": "dso",
+   "ident": "NGC 4618",
+   "name": "NGC 4618",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 265,
+   "kind": "dso",
+   "ident": "NGC 4631",
+   "name": "NGC 4631",
+   "common": "Whale Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 266,
+   "kind": "dso",
+   "ident": "NGC 4636",
+   "name": "NGC 4636",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 267,
+   "kind": "dso",
+   "ident": "NGC 4643",
+   "name": "NGC 4643",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 268,
+   "kind": "dso",
+   "ident": "NGC 4654",
+   "name": "NGC 4654",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 269,
+   "kind": "dso",
+   "ident": "NGC 4656",
+   "name": "NGC 4656",
+   "common": "",
+   "group": "GAL",
+   "type": "GPair",
+   "con": "CVn"
+  },
+  {
+   "number": 270,
+   "kind": "dso",
+   "ident": "NGC 4660",
+   "name": "NGC 4660",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 271,
+   "kind": "dso",
+   "ident": "NGC 4664",
+   "name": "NGC 4665 (NGC 4664)",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 272,
+   "kind": "dso",
+   "ident": "NGC 4666",
+   "name": "NGC 4666",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 273,
+   "kind": "dso",
+   "ident": "NGC 4689",
+   "name": "NGC 4689",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 274,
+   "kind": "dso",
+   "ident": "NGC 4697",
+   "name": "NGC 4697",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 275,
+   "kind": "dso",
+   "ident": "NGC 4698",
+   "name": "NGC 4698",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 276,
+   "kind": "dso",
+   "ident": "NGC 4699",
+   "name": "NGC 4699",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 277,
+   "kind": "dso",
+   "ident": "NGC 4725",
+   "name": "NGC 4725",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Com"
+  },
+  {
+   "number": 278,
+   "kind": "dso",
+   "ident": "NGC 4753",
+   "name": "NGC 4753",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 279,
+   "kind": "dso",
+   "ident": "NGC 4754",
+   "name": "NGC 4754",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 280,
+   "kind": "dso",
+   "ident": "NGC 4762",
+   "name": "NGC 4762",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 281,
+   "kind": "dso",
+   "ident": "NGC 4781",
+   "name": "NGC 4781",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 282,
+   "kind": "dso",
+   "ident": "NGC 4800",
+   "name": "NGC 4800",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 283,
+   "kind": "dso",
+   "ident": "NGC 4845",
+   "name": "NGC 4845",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 284,
+   "kind": "dso",
+   "ident": "NGC 4856",
+   "name": "NGC 4856",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 285,
+   "kind": "dso",
+   "ident": "NGC 4866",
+   "name": "NGC 4866",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 286,
+   "kind": "dso",
+   "ident": "NGC 4900",
+   "name": "NGC 4900",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 287,
+   "kind": "dso",
+   "ident": "NGC 4958",
+   "name": "NGC 4958",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 288,
+   "kind": "dso",
+   "ident": "NGC 4995",
+   "name": "NGC 4995",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 289,
+   "kind": "dso",
+   "ident": "NGC 5005",
+   "name": "NGC 5005",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 290,
+   "kind": "dso",
+   "ident": "NGC 5033",
+   "name": "NGC 5033",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 291,
+   "kind": "dso",
+   "ident": "NGC 5054",
+   "name": "NGC 5054",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 292,
+   "kind": "dso",
+   "ident": "NGC 5195",
+   "name": "NGC 5195",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 293,
+   "kind": "dso",
+   "ident": "NGC 5248",
+   "name": "NGC 5248",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Boo"
+  },
+  {
+   "number": 294,
+   "kind": "dso",
+   "ident": "NGC 5273",
+   "name": "NGC 5273",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "CVn"
+  },
+  {
+   "number": 295,
+   "kind": "dso",
+   "ident": "NGC 5322",
+   "name": "NGC 5322",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 296,
+   "kind": "dso",
+   "ident": "NGC 5363",
+   "name": "NGC 5363",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 297,
+   "kind": "dso",
+   "ident": "NGC 5364",
+   "name": "NGC 5364",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 298,
+   "kind": "dso",
+   "ident": "NGC 5466",
+   "name": "NGC 5466",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Boo"
+  },
+  {
+   "number": 299,
+   "kind": "dso",
+   "ident": "NGC 5473",
+   "name": "NGC 5473",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 300,
+   "kind": "dso",
+   "ident": "NGC 5474",
+   "name": "NGC 5474",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 301,
+   "kind": "dso",
+   "ident": "NGC 5557",
+   "name": "NGC 5557",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Boo"
+  },
+  {
+   "number": 302,
+   "kind": "dso",
+   "ident": "NGC 5566",
+   "name": "NGC 5566",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 303,
+   "kind": "dso",
+   "ident": "NGC 5576",
+   "name": "NGC 5576",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 304,
+   "kind": "dso",
+   "ident": "NGC 5631",
+   "name": "NGC 5631",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMa"
+  },
+  {
+   "number": 305,
+   "kind": "dso",
+   "ident": "NGC 5634",
+   "name": "NGC 5634",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Vir"
+  },
+  {
+   "number": 306,
+   "kind": "dso",
+   "ident": "NGC 5676",
+   "name": "NGC 5676",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Boo"
+  },
+  {
+   "number": 307,
+   "kind": "dso",
+   "ident": "NGC 5689",
+   "name": "NGC 5689",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Boo"
+  },
+  {
+   "number": 308,
+   "kind": "dso",
+   "ident": "NGC 5694",
+   "name": "NGC 5694",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Hya"
+  },
+  {
+   "number": 309,
+   "kind": "dso",
+   "ident": "NGC 5746",
+   "name": "NGC 5746",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 310,
+   "kind": "dso",
+   "ident": "NGC 5846",
+   "name": "NGC 5846",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Vir"
+  },
+  {
+   "number": 311,
+   "kind": "dso",
+   "ident": "NGC 5866",
+   "name": "NGC 5866",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 312,
+   "kind": "dso",
+   "ident": "NGC 5897",
+   "name": "NGC 5897",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Lib"
+  },
+  {
+   "number": 313,
+   "kind": "dso",
+   "ident": "NGC 5907",
+   "name": "NGC 5907",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 314,
+   "kind": "dso",
+   "ident": "NGC 5982",
+   "name": "NGC 5982",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Dra"
+  },
+  {
+   "number": 315,
+   "kind": "dso",
+   "ident": "NGC 6118",
+   "name": "NGC 6118",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Se1"
+  },
+  {
+   "number": 316,
+   "kind": "dso",
+   "ident": "NGC 6144",
+   "name": "NGC 6144",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sco"
+  },
+  {
+   "number": 317,
+   "kind": "dso",
+   "ident": "M 107",
+   "name": "NGC 6171 (M 107)",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 318,
+   "kind": "dso",
+   "ident": "NGC 6207",
+   "name": "NGC 6207",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Her"
+  },
+  {
+   "number": 319,
+   "kind": "dso",
+   "ident": "NGC 6217",
+   "name": "NGC 6217",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "UMi"
+  },
+  {
+   "number": 320,
+   "kind": "dso",
+   "ident": "NGC 6229",
+   "name": "NGC 6229",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Her"
+  },
+  {
+   "number": 321,
+   "kind": "dso",
+   "ident": "NGC 6235",
+   "name": "NGC 6235",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 322,
+   "kind": "dso",
+   "ident": "NGC 6284",
+   "name": "NGC 6284",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 323,
+   "kind": "dso",
+   "ident": "NGC 6287",
+   "name": "NGC 6287",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 324,
+   "kind": "dso",
+   "ident": "NGC 6293",
+   "name": "NGC 6293",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 325,
+   "kind": "dso",
+   "ident": "NGC 6304",
+   "name": "NGC 6304",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 326,
+   "kind": "dso",
+   "ident": "NGC 6316",
+   "name": "NGC 6316",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 327,
+   "kind": "dso",
+   "ident": "NGC 6342",
+   "name": "NGC 6342",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 328,
+   "kind": "dso",
+   "ident": "NGC 6355",
+   "name": "NGC 6355",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 329,
+   "kind": "dso",
+   "ident": "NGC 6356",
+   "name": "NGC 6356",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 330,
+   "kind": "dso",
+   "ident": "NGC 6369",
+   "name": "NGC 6369",
+   "common": "Little Ghost Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Oph"
+  },
+  {
+   "number": 331,
+   "kind": "dso",
+   "ident": "NGC 6401",
+   "name": "NGC 6401",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 332,
+   "kind": "dso",
+   "ident": "NGC 6426",
+   "name": "NGC 6426",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 333,
+   "kind": "dso",
+   "ident": "NGC 6440",
+   "name": "NGC 6440",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 334,
+   "kind": "dso",
+   "ident": "NGC 6445",
+   "name": "NGC 6445",
+   "common": "Little Gem",
+   "group": "PN",
+   "type": "PN",
+   "con": "Sgr"
+  },
+  {
+   "number": 335,
+   "kind": "dso",
+   "ident": "NGC 6451",
+   "name": "NGC 6451",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sco"
+  },
+  {
+   "number": 336,
+   "kind": "dso",
+   "ident": "M 20",
+   "name": "NGC 6514 (M 20)",
+   "common": "Trifid Nebula",
+   "group": "NEB",
+   "type": "Neb",
+   "con": "Sgr"
+  },
+  {
+   "number": 337,
+   "kind": "dso",
+   "ident": "NGC 6517",
+   "name": "NGC 6517",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Oph"
+  },
+  {
+   "number": 338,
+   "kind": "dso",
+   "ident": "NGC 6520",
+   "name": "NGC 6520",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 339,
+   "kind": "dso",
+   "ident": "NGC 6522",
+   "name": "NGC 6522",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 340,
+   "kind": "dso",
+   "ident": "NGC 6528",
+   "name": "NGC 6528",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 341,
+   "kind": "dso",
+   "ident": "NGC 6540",
+   "name": "NGC 6540",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 342,
+   "kind": "dso",
+   "ident": "NGC 6543",
+   "name": "NGC 6543",
+   "common": "Cat's Eye Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Dra"
+  },
+  {
+   "number": 343,
+   "kind": "dso",
+   "ident": "NGC 6544",
+   "name": "NGC 6544",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 344,
+   "kind": "dso",
+   "ident": "NGC 6553",
+   "name": "NGC 6553",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 345,
+   "kind": "dso",
+   "ident": "NGC 6568",
+   "name": "NGC 6568",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 346,
+   "kind": "dso",
+   "ident": "NGC 6569",
+   "name": "NGC 6569",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 347,
+   "kind": "dso",
+   "ident": "NGC 6583",
+   "name": "NGC 6583",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 348,
+   "kind": "dso",
+   "ident": "NGC 6624",
+   "name": "NGC 6624",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 349,
+   "kind": "dso",
+   "ident": "NGC 6629",
+   "name": "NGC 6629",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Sgr"
+  },
+  {
+   "number": 350,
+   "kind": "dso",
+   "ident": "NGC 6633",
+   "name": "NGC 6633",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Oph"
+  },
+  {
+   "number": 351,
+   "kind": "dso",
+   "ident": "NGC 6638",
+   "name": "NGC 6638",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 352,
+   "kind": "dso",
+   "ident": "NGC 6642",
+   "name": "NGC 6642",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 353,
+   "kind": "dso",
+   "ident": "NGC 6645",
+   "name": "NGC 6645",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sgr"
+  },
+  {
+   "number": 354,
+   "kind": "dso",
+   "ident": "NGC 6664",
+   "name": "NGC 6664",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Sct"
+  },
+  {
+   "number": 355,
+   "kind": "dso",
+   "ident": "NGC 6712",
+   "name": "NGC 6712",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Sct"
+  },
+  {
+   "number": 356,
+   "kind": "dso",
+   "ident": "NGC 6755",
+   "name": "NGC 6755",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aql"
+  },
+  {
+   "number": 357,
+   "kind": "dso",
+   "ident": "NGC 6756",
+   "name": "NGC 6756",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Aql"
+  },
+  {
+   "number": 358,
+   "kind": "dso",
+   "ident": "NGC 6781",
+   "name": "NGC 6781",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Aql"
+  },
+  {
+   "number": 359,
+   "kind": "dso",
+   "ident": "NGC 6802",
+   "name": "NGC 6802",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 360,
+   "kind": "dso",
+   "ident": "NGC 6818",
+   "name": "NGC 6818",
+   "common": "Little Gem Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Sgr"
+  },
+  {
+   "number": 361,
+   "kind": "dso",
+   "ident": "NGC 6823",
+   "name": "NGC 6823",
+   "common": "",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Vul"
+  },
+  {
+   "number": 362,
+   "kind": "dso",
+   "ident": "NGC 6826",
+   "name": "NGC 6826",
+   "common": "Blinking Planetary",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cyg"
+  },
+  {
+   "number": 363,
+   "kind": "dso",
+   "ident": "NGC 6830",
+   "name": "NGC 6830",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 364,
+   "kind": "dso",
+   "ident": "NGC 6834",
+   "name": "NGC 6834",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 365,
+   "kind": "dso",
+   "ident": "NGC 6866",
+   "name": "NGC 6866",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 366,
+   "kind": "dso",
+   "ident": "NGC 6882",
+   "name": "NGC 6882",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 367,
+   "kind": "dso",
+   "ident": "NGC 6882",
+   "name": "NGC 6885 (NGC 6882)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 368,
+   "kind": "dso",
+   "ident": "NGC 6905",
+   "name": "NGC 6905",
+   "common": "Blue Flash Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Del"
+  },
+  {
+   "number": 369,
+   "kind": "dso",
+   "ident": "NGC 6910",
+   "name": "NGC 6910",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 370,
+   "kind": "dso",
+   "ident": "NGC 6934",
+   "name": "NGC 6934",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Del"
+  },
+  {
+   "number": 371,
+   "kind": "dso",
+   "ident": "NGC 6939",
+   "name": "NGC 6939",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cep"
+  },
+  {
+   "number": 372,
+   "kind": "dso",
+   "ident": "NGC 6940",
+   "name": "NGC 6940",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Vul"
+  },
+  {
+   "number": 373,
+   "kind": "dso",
+   "ident": "NGC 6946",
+   "name": "NGC 6946",
+   "common": "Fireworks Galaxy",
+   "group": "GAL",
+   "type": "G",
+   "con": "Cyg"
+  },
+  {
+   "number": 374,
+   "kind": "dso",
+   "ident": "NGC 7000",
+   "name": "NGC 7000",
+   "common": "North America Nebula",
+   "group": "NEB",
+   "type": "HII",
+   "con": "Cyg"
+  },
+  {
+   "number": 375,
+   "kind": "dso",
+   "ident": "NGC 7006",
+   "name": "NGC 7006",
+   "common": "",
+   "group": "GC",
+   "type": "GCl",
+   "con": "Del"
+  },
+  {
+   "number": 376,
+   "kind": "dso",
+   "ident": "NGC 7008",
+   "name": "NGC 7008",
+   "common": "",
+   "group": "PN",
+   "type": "PN",
+   "con": "Cyg"
+  },
+  {
+   "number": 377,
+   "kind": "dso",
+   "ident": "NGC 7009",
+   "name": "NGC 7009",
+   "common": "Saturn Nebula",
+   "group": "PN",
+   "type": "PN",
+   "con": "Aqr"
+  },
+  {
+   "number": 378,
+   "kind": "dso",
+   "ident": "NGC 7044",
+   "name": "NGC 7044",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 379,
+   "kind": "dso",
+   "ident": "NGC 7062",
+   "name": "NGC 7062",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 380,
+   "kind": "dso",
+   "ident": "NGC 7086",
+   "name": "NGC 7086",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 381,
+   "kind": "dso",
+   "ident": "NGC 7128",
+   "name": "NGC 7128",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cyg"
+  },
+  {
+   "number": 382,
+   "kind": "dso",
+   "ident": "NGC 7142",
+   "name": "NGC 7142",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cep"
+  },
+  {
+   "number": 383,
+   "kind": "dso",
+   "ident": "NGC 7160",
+   "name": "NGC 7160",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cep"
+  },
+  {
+   "number": 384,
+   "kind": "dso",
+   "ident": "NGC 7209",
+   "name": "NGC 7209",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Lac"
+  },
+  {
+   "number": 385,
+   "kind": "dso",
+   "ident": "NGC 7217",
+   "name": "NGC 7217",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 386,
+   "kind": "dso",
+   "ident": "NGC 7243",
+   "name": "NGC 7243",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Lac"
+  },
+  {
+   "number": 387,
+   "kind": "dso",
+   "ident": "NGC 7295",
+   "name": "NGC 7296 (NGC 7295)",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Lac"
+  },
+  {
+   "number": 388,
+   "kind": "dso",
+   "ident": "NGC 7331",
+   "name": "NGC 7331",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 389,
+   "kind": "dso",
+   "ident": "NGC 7380",
+   "name": "NGC 7380",
+   "common": "",
+   "group": "NEB",
+   "type": "Cl+N",
+   "con": "Cep"
+  },
+  {
+   "number": 390,
+   "kind": "dso",
+   "ident": "NGC 7448",
+   "name": "NGC 7448",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 391,
+   "kind": "dso",
+   "ident": "NGC 7479",
+   "name": "NGC 7479",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  },
+  {
+   "number": 392,
+   "kind": "dso",
+   "ident": "NGC 7510",
+   "name": "NGC 7510",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cep"
+  },
+  {
+   "number": 393,
+   "kind": "dso",
+   "ident": "NGC 7606",
+   "name": "NGC 7606",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Aqr"
+  },
+  {
+   "number": 394,
+   "kind": "dso",
+   "ident": "NGC 7662",
+   "name": "NGC 7662",
+   "common": "Copeland's Blue Snowball",
+   "group": "PN",
+   "type": "PN",
+   "con": "And"
+  },
+  {
+   "number": 395,
+   "kind": "dso",
+   "ident": "NGC 7686",
+   "name": "NGC 7686",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "And"
+  },
+  {
+   "number": 396,
+   "kind": "dso",
+   "ident": "NGC 7723",
+   "name": "NGC 7723",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Aqr"
+  },
+  {
+   "number": 397,
+   "kind": "dso",
+   "ident": "NGC 7727",
+   "name": "NGC 7727",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Aqr"
+  },
+  {
+   "number": 398,
+   "kind": "dso",
+   "ident": "NGC 7789",
+   "name": "NGC 7789",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 399,
+   "kind": "dso",
+   "ident": "NGC 7790",
+   "name": "NGC 7790",
+   "common": "",
+   "group": "OC",
+   "type": "OCl",
+   "con": "Cas"
+  },
+  {
+   "number": 400,
+   "kind": "dso",
+   "ident": "NGC 7814",
+   "name": "NGC 7814",
+   "common": "",
+   "group": "GAL",
+   "type": "G",
+   "con": "Peg"
+  }
+ ]
+}
