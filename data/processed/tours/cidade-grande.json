@@ -37,6 +37,42 @@
    "text": "Em janeiro, a cidade tem o seu melhor céu: as **Três Marias** e o grande retângulo de Órion aparecem mesmo entre prédios, e em volta delas o **Hexágono de Verão** — Sirius, Procyon, Pollux, Capella, Aldebaran e Rigel, seis estrelas que vencem qualquer poste.\n\nComece sempre pelas Três Marias: dali se chega a Sirius de um lado e a Aldebaran do outro."
   },
   {
+   "title": "Órion em Bortle 3: céu de sítio",
+   "target": "const:Ori",
+   "time": "data:01-15 hora:21:30",
+   "fov": 60.0,
+   "bortle": 3,
+   "highlight": [
+    "asterism:tres-marias",
+    "asterism:espada-orion"
+   ],
+   "text": "Agora o mesmo Órion, a mesma hora, em quatro céus diferentes. Primeiro, **Bortle 3**: um sítio longe da cidade. Estrelas até a magnitude 6,5 ou mais; a Via Láctea passa ao lado, entre Betelgeuse e Sirius; a **Nebulosa de Órion** é uma mancha evidente na espada e o corpo do caçador se enche de estrelas fracas que nem parecem fazer parte da figura."
+  },
+  {
+   "title": "Órion em Bortle 5: subúrbio",
+   "target": "const:Ori",
+   "time": "data:01-15 hora:21:30",
+   "fov": 60.0,
+   "bortle": 5,
+   "text": "Em **Bortle 5**, um bairro afastado ou uma cidade pequena, a Via Láctea vira um rastro pálido, só visível no alto. As estrelas mais fracas de Órion somem, mas a figura continua cheia, e a nebulosa na espada ainda se vê a olho nu como uma estrela borrada. É um céu muito bom para quase tudo o que este tour mostra."
+  },
+  {
+   "title": "Órion em Bortle 7: periferia da metrópole",
+   "target": "const:Ori",
+   "time": "data:01-15 hora:21:30",
+   "fov": 60.0,
+   "bortle": 7,
+   "text": "**Bortle 7**: o céu fica cinza-claro, alaranjado perto do horizonte, e a Via Láctea desaparece. Sobram as sete estrelas principais, a espada reduzida a dois ou três pontos e, em noite boa, a nebulosa como uma mancha fraca. Repare como a figura de Órion fica **mais limpa**: menos estrelas, menos confusão."
+  },
+  {
+   "title": "Órion em Bortle 9: centro da cidade",
+   "target": "const:Ori",
+   "time": "data:01-15 hora:21:30",
+   "fov": 60.0,
+   "bortle": 9,
+   "text": "De volta ao **Bortle 9**, o do resto deste tour. Ficam Betelgeuse, Rigel, Bellatrix, Saiph e as Três Marias; a espada praticamente some. A diferença entre os quatro céus é quase toda de estrelas fracas: as brilhantes resistem a qualquer cidade. É por isso que o binóculo, que alcança as fracas, vale tanto aqui."
+  },
+  {
    "title": "Outono: o Cruzeiro e os Guardiões",
    "target": "const:Cru",
    "time": "data:04-15 hora:20:30",
@@ -171,6 +207,57 @@
    "fov": 8.0,
    "fov_circle": 6.0,
    "text": "Junto da Quilha, perto do Cruzeiro, um aglomerado de estrelas azuladas parecido com as Plêiades, mas maior: **IC 2602**, as **Plêiades do Sul**. Ao binóculo, a sensação é a de uma joia no meio da Via Láctea."
+  },
+  {
+   "title": "M 41, abaixo de Sirius",
+   "target": "dso:M 41",
+   "time": "data:01-25 hora:22:00",
+   "fov": 8.0,
+   "fov_circle": 6.0,
+   "image": "dss:M 41",
+   "text": "Os próximos alvos não dependem desta noite: o relógio vai à estação de cada um. A uns 4° de **Sirius**, o único objeto Messier do Cão Maior: **M 41**, um aglomerado aberto do tamanho da Lua cheia. Em céu escuro se vê a olho nu; na cidade, aponte o binóculo para Sirius e siga uns 4° para o sul.\n\nNum 10×50 urbano aparecem só algumas estrelas sobre um brilho difuso; num telescópio pequeno, dezenas, em cadeias, com uma estrela alaranjada perto do centro. Aqui o segredo é o aumento baixo: o charme está no conjunto."
+  },
+  {
+   "title": "M 47 e M 46, os gêmeos diferentes",
+   "target": "dso:M 47",
+   "time": "data:02-10 hora:22:00",
+   "fov": 8.0,
+   "fov_circle": 6.0,
+   "image": "dss:M 47",
+   "text": "A leste de Sirius, na Popa, dois aglomerados abertos a pouco mais de 1° um do outro — cabem juntos no campo do binóculo, e mostram como a cidade escolhe. **M 47** tem estrelas brilhantes e espaçadas: ao binóculo, mais de meia dúzia se separam fácil, mesmo com o céu claro. **M 46**, ao lado, tem estrelas mais fracas e apertadas: no binóculo urbano vira uma manchinha redonda, e só num telescópio de 10 cm se desfaz em dezenas de estrelas.\n\nMoral: na cidade, aglomerado de poucas estrelas brilhantes ganha de aglomerado rico de estrelas fracas."
+  },
+  {
+   "title": "M 4 e M 80, ao lado de Antares",
+   "target": "dso:M 4",
+   "time": "data:07-01 hora:21:00",
+   "fov": 8.0,
+   "fov_circle": 6.0,
+   "image": "dss:M 4",
+   "highlight": [
+    "const:Sco"
+   ],
+   "text": "Com Antares no campo do binóculo, procure uma mancha redonda a pouco mais de 1° a oeste: **M 4**, um globular dos mais próximos de nós. Ao binóculo é uma bola de luz de núcleo pouco mais claro. É um globular \"frouxo\": num telescópio de 10 a 15 cm se desfaz em dezenas de estrelas, com uma barra de estrelas atravessando o centro.\n\nUns 4,5° a noroeste de Antares fica **M 80**, o oposto: pequeno, muito concentrado, parece uma estrela desfocada. Na cidade, resolvê-lo pede uns 20 cm. Em 1860, uma nova explodiu dentro dele."
+  },
+  {
+   "title": "M 22, o globular do Bule",
+   "target": "dso:M 22",
+   "time": "data:07-25 hora:21:30",
+   "fov": 8.0,
+   "fov_circle": 6.0,
+   "image": "dss:M 22",
+   "highlight": [
+    "asterism:bule"
+   ],
+   "text": "Logo acima da tampa do **Bule de Sagitário**, a uns 2,5° da estrela do topo, brilha **M 22**, um dos globulares mais brilhantes do céu. Ao binóculo, é uma mancha clara com núcleo mais forte, com cara de cometa — e aguenta bem a luz urbana. Num telescópio de 7,5 a 10 cm, com aumento alto, as primeiras estrelas se separam até em céu poluído; com 20 cm, centenas.\n\nGlobulares são ótimos alvos de cidade: o brilho vem todo de estrelas concentradas, e filtro nenhum ajuda — só abertura e paciência."
+  },
+  {
+   "title": "M 8 e M 17: nebulosas na cidade",
+   "target": "dso:M 17",
+   "time": "data:08-01 hora:21:00",
+   "fov": 8.0,
+   "fov_circle": 6.0,
+   "image": "dss:M 17",
+   "text": "Nebulosas grandes sofrem na cidade: o brilho total se espalha por uma área enorme. A **Lagoa (M 8)**, vista de um céu escuro, ocupa mais que a Lua; na metrópole sobram só alguns minutos de arco de névoa, com o aglomerado **NGC 6530** fazendo o espetáculo.\n\nJá **M 17**, a **Nebulosa Ômega**, uns 9° ao norte, é menor e mais concentrada: ao binóculo, a barra brilhante aparece como um traço alongado mesmo com poluição. Num telescópio pequeno, um filtro UHC ou OIII escurece o fundo e faz surgir o arco em forma de cisne. Para nebulosa, o filtro é o melhor amigo do observador urbano."
   },
   {
    "title": "Bons céus, mesmo na cidade",

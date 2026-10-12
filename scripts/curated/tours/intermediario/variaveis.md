@@ -1,0 +1,114 @@
+---
+key: variaveis
+title: Estrelas que mudam de brilho
+subtitle: Gigantes que pulsam, pares que se eclipsam e uma estrela que quase explodiu — e como acompanhar tudo a olho nu
+category: intermediario
+level: 2
+minutes: 10
+when: inicio_da_noite
+lat_range: -40, 5
+tags: estrelas variáveis, Betelgeuse, Mira, Algol, cefeidas, Eta Carinae, AAVSO
+author: Carina / Astronomia no Quintal
+---
+
+## O céu não é fixo
+@kind: intro
+@target: altaz:180,60
+@fov: 120
+@layers: const_lines=1, const_names=1, asterisms=1, dso=0, grid_altaz=0
+@skip_if_below: -90
+
+Parece que as estrelas brilham sempre igual, mas muitas não: são **estrelas variáveis**. Algumas incham e encolhem como um coração batendo; outras são pares em que uma estrela passa na frente da outra; e há as que explodem ou soltam nuvens de poeira.
+
+O melhor: várias são brilhantes, e dá para acompanhar a variação **a olho nu**, comparando com as vizinhas. Este tour visita as mais famosas que se veem do Brasil, cada uma na noite em que passa alto, e ensina o método que os amadores usam há quase dois séculos.
+
+## Betelgeuse e o Grande Escurecimento
+@target: star:Betelgeuse
+@time: data:01-20 hora:22:00
+@fov: 30
+@highlight: const:Ori
+
+No ombro de Órion — embaixo, para quem olha do Brasil, onde o caçador aparece de cabeça para baixo —, **Betelgeuse** é uma supergigante vermelha tão grande que, no lugar do Sol, engoliria a órbita de Marte. Ela pulsa sem regularidade exata: é uma variável **semirregular**, com ciclos de pouco mais de um ano somados a um ciclo mais longo, de uns seis anos.
+
+No fim de 2019 ela caiu como nunca se tinha registrado, até perto da magnitude 1,6, em fevereiro de 2020: o **Grande Escurecimento**. Não era a explosão final — ela soltou uma nuvem de poeira que encobriu parte da sua luz, e depois voltou ao normal.
+
+## Como estimar o brilho
+@target: star:Betelgeuse
+@time: data:01-20 hora:22:00
+@fov: 65
+@highlight: asterism:hexagono
+
+Para medir uma variável sem instrumento, use estrelas vizinhas de brilho fixo como régua. Escolha uma um pouco **mais brilhante** e outra um pouco **mais fraca** que a variável e decida onde ela fica entre as duas — mais perto de uma, no meio, mais perto da outra. É o **método de Argelander**, do século XIX.
+
+Para Betelgeuse, use **Procyon** (0,4), **Aldebaran** (0,9) e **Pollux** (1,1). Olhe para elas na mesma altura, se possível: perto do horizonte toda estrela parece mais fraca. Anote data, hora e a estimativa. A **AAVSO**, associação de observadores de variáveis fundada em 1911, reúne dezenas de milhões de estimativas como a sua, usadas por astrônomos profissionais.
+
+## Beta Doradus, a cefeida do sul
+@target: star:bet Dor
+@time: data:01-25 hora:22:00
+@fov: 25
+@highlight: const:Dor
+
+Perto da Grande Nuvem de Magalhães, **Beta Doradus** é uma **cefeida**: uma supergigante amarela que pulsa com regularidade de relógio, entre as magnitudes 3,5 e 4,1, a cada 9,8 dias. Uma semana de noites limpas basta para ver um ciclo inteiro.
+
+As cefeidas mudaram a astronomia: estudando as da Pequena Nuvem, Henrietta Leavitt descobriu que quanto mais lento o ciclo, mais luminosa a estrela. Com isso, elas viraram réguas para medir distâncias de galáxias. Outra boa cefeida do sul é **l Carinae**, que vai de 3,3 a 4,2 num ciclo de 35 dias.
+
+## Eta Carinae, a estrela que quase explodiu
+@target: star:eta Car
+@time: data:03-20 hora:23:00
+@fov: 6
+@image: dss:NGC 3372
+@highlight: dso:NGC 3372
+
+No meio da Nebulosa de Carina, **Eta Carinae** é uma das estrelas mais pesadas da Galáxia — talvez cem vezes a massa do Sol, provavelmente com uma companheira. Em 1843, numa erupção gigantesca, virou a segunda estrela mais brilhante do céu, atrás só de Sirius.
+
+Depois, a nuvem de gás e poeira que ela expeliu a escondeu, e por décadas ela ficou invisível a olho nu. Hoje voltou: é uma estrelinha alaranjada por volta da 4ª magnitude, que vem ganhando brilho. Ao telescópio, a nuvem da erupção aparece como uma pequena mancha, o **Homúnculo**.
+
+## Antares, o coração inquieto
+@target: star:Antares
+@time: data:06-25 hora:22:00
+@fov: 30
+@highlight: const:Sco
+
+**Antares**, o coração do Escorpião, é outra supergigante vermelha e também uma **semirregular** — mas de amplitude pequena: varia algumas décimas de magnitude, em ciclos lentos e irregulares. Perceber isso a olho nu é um desafio para quem já pegou o jeito com Betelgeuse.
+
+Compare-a com **Spica** (1,0) e, no mesmo céu de inverno, com **Arcturus**, bem mais brilhante. A dificuldade aqui é a cor: estrelas vermelhas "enganam" o olho, que tende a superestimar o brilho delas quando você olha por muito tempo. Olhe rápido, de relance, e compare.
+
+## R Scuti, perto do Pato Selvagem
+@target: star:HIP 92202
+@time: data:08-01 hora:22:00
+@fov: 6
+@highlight: dso:M 11, const:Sct
+
+No Escudo, a cerca de 1° do aglomerado M 11, **R Scuti** é uma variável de binóculo com um comportamento curioso: vai da 4ª à 8ª magnitude, alternando mínimos rasos e mínimos fundos, num ritmo que nunca se repete exatamente.
+
+No máximo, ela aparece a olho nu em céu escuro; no mínimo, só ao binóculo. Use como comparação as estrelas do próprio Escudo, como **Beta Scuti**, de magnitude 4,2. É uma supergigante amarela instável, de um tipo raro, e uma das preferidas dos observadores de variáveis.
+
+## Mira, a maravilhosa
+@target: star:Mira
+@time: data:11-25 hora:22:00
+@fov: 25
+@highlight: const:Cet
+
+Na Baleia, **Mira** (Ômicron Ceti) foi a primeira variável periódica reconhecida. Em 1596, David Fabricius a viu brilhar e depois sumir; décadas mais tarde, notaram que ela voltava a cada uns 11 meses. Daí o nome: "a maravilhosa".
+
+É uma gigante vermelha que pulsa devagar: no máximo chega à 3ª magnitude, às vezes à 2ª; no mínimo cai abaixo da 9ª, invisível sem telescópio. Por isso, numa noite qualquer, ela pode estar lá ou não. Consulte a curva de luz da AAVSO para saber em que fase do ciclo ela está.
+
+## Algol, a estrela que pisca
+@target: star:Algol
+@time: data:12-10 hora:22:30
+@fov: 25
+@highlight: const:Per
+
+Baixa ao norte, em Perseu, **Algol** — "a cabeça do demônio", em árabe — fica na magnitude 2,1 por quase três dias e, de repente, cai para 3,4 em poucas horas, voltando ao normal cerca de dez horas depois. O ciclo se repete a cada 2 dias e 21 horas.
+
+Não é a estrela que muda: são duas estrelas em órbita, e a mais fraca passa na frente da mais brilhante — uma **binária eclipsante**. Compare-a com **Almach**, em Andrômeda, que fica perto da magnitude 2,1, e com **Épsilon Persei** (2,9). O horário dos mínimos está em qualquer efeméride atualizada.
+
+## Seu diário de variáveis
+@kind: fim
+@target: altaz:180,60
+@fov: 120
+@skip_if_below: -90
+
+Todas estas estrelas estão no botão **★ Guardar os objetos deste tour numa lista**. Escolha uma — Betelgeuse no verão, Antares no inverno — e estime o brilho uma vez por semana durante alguns meses. Ao fim, desenhe a sua própria curva de luz.
+
+Quando pegar o jeito, envie as estimativas à AAVSO: a ciência das variáveis ainda depende de olhos humanos espalhados pelo mundo, inclusive os do hemisfério sul, onde há menos observadores.

@@ -42,10 +42,13 @@ def test_player_runs_and_restores(win, qt_app):
     assert run.current.step.kind == "intro"
     # camadas do primeiro passo valem dali em diante
     assert sky.layers["asterisms"] and sky.layers["const_lines"] and not sky.layers["dso"]
+    player.next()                                   # "O método dos três passos" (v0.23)
     player.next()
     cur = run.current
+    assert cur.step.target == "const:Cru"
     assert eng.time.current_datetime() == cur.when and eng.time.speed == 0.0
     assert ("asterism", "cruzeiro") in sky.active_highlights()
+    assert ("alignment", "cruzeiro-polo") in sky.active_highlights()
     player.finish_animation()
     # câmera apontada para o alvo (dentro do campo)
     import math
@@ -57,7 +60,7 @@ def test_player_runs_and_restores(win, qt_app):
     fwd = sky.camera.forward_component(np.asarray([v / np.linalg.norm(v)]))[0]
     assert fwd > math.cos(math.radians(cur.fov))
     player.prev()
-    assert run.index == 0
+    assert run.index == 1
     player.stop(False)
     assert not player.isVisible() and win.info_dock.isVisible()
     assert before.same_as(SkyState.capture(sky, eng)) == []

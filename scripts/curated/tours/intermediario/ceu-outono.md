@@ -21,12 +21,59 @@ Este é o céu de **15 de abril às 20h30**, o meio do outono no Brasil. Órion 
 
 O outono costuma ter as noites mais secas e transparentes em boa parte do país — uma ótima estação para começar a observar.
 
+## Olhando para o leste
+@kind: intro
+@target: altaz:90,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Primeiro, uma volta completa no lugar. De frente para o **leste**, o destaque é **Spica**, branco-azulada, a estrela da Virgem, a uns 43° de altura — quatro punhos acima do horizonte, com o braço esticado. Bem acima dela, a uns 60°, o pequeno quadrilátero do **Corvo**.
+
+À esquerda, mais baixa (uns 17°), a alaranjada **Arcturus**, do Boieiro, acaba de subir. À direita de Spica, entre 20° e 30°, as duas estrelas de **Libra**; e no sudeste, rente ao horizonte, a avermelhada **Antares** começa a nascer: o Escorpião vem chegando. Mais acima, à direita, **Menkent**, do Centauro, a uns 38°.
+
+## Olhando para o norte
+@kind: intro
+@target: altaz:0,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Vire para a esquerda, até o **norte**: aqui reina o **Leão**. **Regulus** está quase no norte exato, a uns 55°, na ponta da **Foice** — um ponto de interrogação pendurado de cabeça para baixo. À direita, a cauda, **Denebola**, a uns 46°.
+
+No alto, à esquerda, a alaranjada **Alphard**, da Hidra, passa a uns 72°. Mais baixo, à esquerda, o **Presépio** de Câncer (uns 42°) e os Gêmeos, **Castor** e **Pollux**, entre 24° e 28°. Rente ao horizonte, quase no norte, o **Grande Carro** mal aparece, a uns 5° — só com o horizonte bem livre.
+
+## Olhando para o oeste
+@kind: intro
+@target: altaz:270,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Agora o **oeste**, onde o céu do verão se despede. **Sirius**, a mais brilhante de todas, ainda está a uns 41°, quase no oeste exato, com o Cão Maior em volta; à direita, um pouco mais alta, **Procyon**, a uns 43°.
+
+Abaixo de Sirius, **Órion** desce para o horizonte: as **Três Marias** a uns 20°, entre Betelgeuse e Rigel; Aldebaran já se pôs. À esquerda, no sudoeste, **Canopus** a uns 38°, e acima dela a Popa. Daqui a um mês, às 21h, Órion já terá ido embora.
+
+## Olhando para o sul
+@kind: intro
+@target: altaz:180,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+@highlight: alignment:cruzeiro-polo
+
+Por fim, o **sul** — o lado mais rico do outono. O **Cruzeiro do Sul** está alto, um pouco à esquerda do sul, entre 44° e 48°, ainda inclinado, com a alaranjada **Gacrux** em cima. Mais à esquerda, os **Guardiões**, **Hadar** e **Alfa Centauri**, a uns 31° a 35°.
+
+À direita, uma cruz maior e mais apagada, a **Falsa Cruz**, a uns 50°; acima dela, a Vela. Embaixo de tudo, o **polo sul celeste**, a uns 23°, num trecho vazio. A **Grande Nuvem** já está baixa (uns 27°), e a **Pequena**, quase no chão.
+
 ## O Cruzeiro do Sul
 @target: const:Cru
 @fov: 30
-@highlight: asterism:cruzeiro, asterism:apontadores
+@highlight: asterism:cruzeiro, asterism:apontadores, alignment:cruzeiro-polo
 
 Alto no sul, de pé, a cruz da bandeira. Além das quatro estrelas principais há uma quinta, menor, entre os braços: a **Intrometida**. Os **Guardiões**, ao lado, confirmam que é o Cruzeiro verdadeiro.
+
+Para achar o polo, prolongue o braço maior, de Gacrux para Acrux, umas quatro vezes e meia; a perpendicular ao meio dos Guardiões cai no mesmo ponto.
 
 {lore:short:Cru}
 
@@ -116,9 +163,9 @@ A leste, a estrela branco-azulada é **Spica**, a espiga da Virgem. Com Regulus 
 ## O Corvo
 @target: const:Crv
 @fov: 30
-@highlight: const:Crv, const:Crt
+@highlight: const:Crv, const:Crt, alignment:cruzeiro-corvo
 
-A sudoeste de Spica, quatro estrelas num quadrilátero inclinado: o **Corvo**. Ao lado, a **Taça**, apagada, e embaixo dos dois a Hidra.
+O Cruzeiro também leva até ele: siga o braço maior no sentido contrário, de Acrux para Gacrux, umas seis vezes e meia. A sudoeste de Spica, quatro estrelas num quadrilátero inclinado: o **Corvo**. Ao lado, a **Taça**, apagada, e embaixo dos dois a Hidra.
 
 {lore:short:Crv}
 

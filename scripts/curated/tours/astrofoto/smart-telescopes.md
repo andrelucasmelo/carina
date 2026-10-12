@@ -1,0 +1,116 @@
+---
+key: smart-telescopes
+title: O que o smart telescope alcança
+subtitle: Seestar, Dwarf, Vespera e Origin — o que cabe no quadro, o que pede mosaico e o que fica pequeno
+category: astrofoto
+level: 1
+minutes: 12
+when: data:01-15 hora:22:00
+lat_range: -40, 5
+tags: astrofotografia, smart telescope, Seestar, Dwarf, Vespera, campo de visão, mosaico
+author: Carina / Astronomia no Quintal
+---
+
+## Um quadro que não muda
+@kind: intro
+@target: altaz:180,60
+@fov: 120
+@layers: const_lines=1, const_names=0, asterisms=1, dso=1, dso_names=1, grid_altaz=0
+@skip_if_below: -90
+
+Um **smart telescope** — Seestar, Dwarf, Vespera, Celestron Origin — junta luneta, câmera e montagem numa caixa só, e por isso tem um **campo fixo**: não dá para trocar a ocular nem a lente. Saber o tamanho desse quadro é metade do planejamento. Em cada passo, o Carina desenha o retângulo de um aparelho sobre o alvo, na noite em que ele passa alto. Vamos ver o que cabe com folga, o que pede mosaico e o que fica pequeno demais para valer a noite.
+
+## M 42 no Seestar S50
+@target: dso:M 42
+@time: data:01-15 hora:22:00
+@fov: 2.5
+@fov_rect: 1.28x0.72 Seestar S50
+@image: dss:M 42
+
+A **Nebulosa de Órion** é o alvo perfeito para estrear: com cerca de 1,5° no total, a parte brilhante, com M 43, cabe no quadro do S50, de 1,28° por 0,72°. Em minutos a forma aparece; com uma a duas horas de empilhamento surgem as asas e a poeira. O problema é o núcleo estourar: faça uma sessão de subs curtas (10 s) para o Trapézio e outra mais longa para as bordas, e combine as duas. Num campo maior, como o do S30, cabe também o Homem Correndo, logo ao norte.
+
+## Carina: mosaico ou Dwarf 3
+@target: dso:NGC 3372
+@time: data:03-25 hora:22:00
+@fov: 5
+@fov_rect: 2.93x1.65 Dwarf 3
+@image: dss:NGC 3372
+
+A **Nebulosa de Carina** tem uns 2° de nebulosidade. No Seestar S50 ela não cabe: o quadro mostra o centro, com Eta Carinae e o Buraco da Fechadura, e a nebulosa inteira pede um mosaico. Já o **Dwarf 3**, com quase 3° por 1,65°, enquadra a parte principal de uma vez. Como o objeto é muito brilhante, uma a três horas com filtro de banda dupla rendem uma imagem que impressiona até sob céu de cidade. É um dos melhores alvos do hemisfério sul para esses aparelhos.
+
+## Os globulares gigantes
+@target: dso:NGC 5139
+@time: data:05-15 hora:21:30
+@fov: 2.5
+@fov_rect: 1.62x1.62 Vespera Pro
+@image: dss:NGC 5139
+
+**Ômega Centauri** ocupa uns 30 minutos de arco — cabe com folga em qualquer smart telescope, e o quadro quadrado do Vespera Pro o emoldura bem. Aglomerados não pedem filtro: use a posição sem filtro, porque a luz é das estrelas. Subs curtas de 10 s evitam estourar o centro, e uma hora já basta para resolver as bordas em estrelas. Na primavera, faça o mesmo com **47 Tucanae**, de tamanho parecido, ao lado da Pequena Nuvem. São dois alvos de sobra em céu urbano.
+
+## A Lagoa e a Trífida juntas
+@target: dso:M 8
+@time: data:07-15 hora:22:00
+@fov: 4
+@fov_rect: 2.55x1.44 Vespera II
+@image: dss:M 8
+
+**M 8**, a Lagoa, tem uns 1,5° por 0,7° e enche o quadro do S50 quase sozinha. **M 20**, a Trífida, fica a cerca de 1,3° ao norte. Para pegar as duas juntas é preciso um campo de uns 2° ou mais, como o do Vespera II, do Dwarf 3 ou do S50 Pro: desloque o enquadramento a meio caminho entre elas. No S50, faça um mosaico de dois painéis. O filtro de banda dupla realça o vermelho da Lagoa, mas apaga o azul da Trífida; o ideal é somar uma sessão com filtro e outra sem.
+
+## A Grande Nuvem pede mosaico
+@target: dso:ESO056-115
+@time: data:01-15 hora:23:00
+@fov: 16
+@fov_rect: 4.0x2.25 Seestar S30 Pro
+
+A **Grande Nuvem de Magalhães** tem mais de 10° de comprimento. Nem o quadro mais largo da lista, o do Seestar S30 Pro, com uns 4° por 2,25°, chega perto: seriam mais de uma dúzia de painéis. No S50, mais de cem. A saída é escolher um pedaço — a **Tarântula** sozinha é um belo alvo para qualquer smart telescope — ou deixar a Nuvem inteira para uma câmera com lente de 85 a 135 mm num rastreador.
+
+## Rho Ophiuchi e a lente
+@target: dso:IC 4604
+@time: data:06-25 hora:23:00
+@fov: 10
+@fov_rect: 2.93x1.65 Dwarf 3
+
+A região colorida entre **Antares** e **Rho Ophiuchi**, com nuvens azuis, amarelas e escuras, se espalha por uns 6°. O quadro do Dwarf 3 mostra só a nebulosa azul em volta de Rho Ophiuchi; a cena famosa pede um mosaico de vários painéis. Lembre também que reflexão e poeira escura não combinam com filtro de banda dupla: aqui vale céu escuro, sem Lua, e muito tempo total. É um projeto para várias noites, não para a primeira.
+
+## O Saco de Carvão
+@target: dso:C 99
+@time: data:04-25 hora:23:00
+@fov: 12
+@fov_rect: 2.13x1.20 Seestar S30
+
+O **Saco de Carvão**, a mancha escura junto do Cruzeiro, tem uns 7° por 5°. No quadro do Seestar S30 ele vira só um pedaço de céu sem estrelas — o que define o Saco é o contraste com a Via Láctea em volta. Para ver a forma, faça um mosaico grande ou use uma lente. Nebulosas escuras não emitem luz: não há filtro que ajude, e a Lua apaga o pouco contraste que existe. Guarde para uma noite escura longe da cidade.
+
+## A Hélice, grande o bastante
+@target: dso:NGC 7293
+@time: data:09-15 hora:22:30
+@fov: 2
+@fov_rect: 1.27x0.85 Celestron Origin
+@image: dss:NGC 7293
+
+Nem toda nebulosa planetária é pequena: a **Hélice**, em Aquário, tem uns 16 minutos de arco — cerca de um terço da altura do quadro do Celestron Origin ou do S50. Com filtro de banda dupla e uma a duas horas, aparece o anel verde-azulado com o halo avermelhado em volta. Ela passa quase pelo zênite nas noites de primavera, o que ajuda a vencer o brilho do céu. É a planetária ideal para esses aparelhos.
+
+## Pequenas demais
+@target: dso:NGC 3132
+@time: data:03-15 hora:22:00
+@fov: 2
+@fov_rect: 1.28x0.72 Seestar S50
+@image: dss:NGC 3132
+
+A **Nebulosa do Oito Estouros**, nas Velas, tem menos de 1 minuto de arco. No quadro do S50 ela ocupa poucas dezenas de pixels: dá para registrar, mas o resultado é um pontinho colorido. O mesmo vale para o **Anel**, M 57, na Lira, que além disso fica baixo no céu do Brasil. Esses alvos pedem distância focal longa, de 1.000 mm ou mais. Num smart telescope, prefira as planetárias grandes, como a Hélice.
+
+## As galáxias de Virgem
+@target: dso:M 86
+@time: data:04-25 hora:23:00
+@fov: 4
+@fov_rect: 2.45x1.38 Seestar S50 Pro
+@image: dss:M 86
+
+As galáxias do **aglomerado de Virgem** têm de 5 a 10 minutos de arco cada — uma a uma, ficam pequenas em qualquer smart telescope. Mas a **Cadeia de Markarian**, uma fila de galáxias que começa em M 84 e M 86, mede cerca de um grau e meio e cabe num quadro como o do S50 Pro ou do Dwarf 3. Galáxias pedem céu escuro, sem Lua e sem filtro de banda dupla, que corta a luz das estrelas delas. Conte com duas ou mais horas para ver os halos.
+
+## Antes de apontar
+@kind: fim
+@target: altaz:180,60
+@fov: 120
+@skip_if_below: -90
+
+Três regras resumem o tour. **Tempo total** conta mais que tudo: some subs curtas por uma, duas, três horas, em várias noites se preciso. **Filtro de banda dupla** só nas nebulosas de emissão (Órion, Carina, Lagoa, Hélice) — e são elas que dá para fotografar com Lua. Galáxias, aglomerados, reflexão e poeira escura pedem noite sem Lua e sem filtro. Os setups dos smart telescopes estão em **Planejar ▸ Campo de visão**: escolha o seu e veja o quadro em qualquer alvo antes de sair.

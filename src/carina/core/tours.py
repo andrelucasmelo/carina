@@ -51,21 +51,27 @@ STEP_KINDS = ("intro", "goto", "highlight", "object", "pause", "fim", "ui")
 # ordem sugerida: o "próximo tour" ao concluir um e a ordem na galeria
 SUGGESTED_ORDER = [
     # iniciantes
-    "como-se-orientar", "estrelas-brilhantes", "constelacoes-famosas", "famosos-ceu-profundo",
-    "lua-e-planetas", "conhecendo-o-carina",
+    "como-se-orientar", "estrelas-brilhantes", "constelacoes-famosas", "cruzeiro-polo",
+    "asterismos-sul", "orion-familia", "escorpiao-sagitario", "so-com-os-olhos",
+    "famosos-ceu-profundo", "lua-e-planetas", "conhecendo-o-carina",
     # intermediário
     "ceu-do-mes", "ceu-verao", "ceu-outono", "ceu-inverno", "ceu-primavera",
-    "ceu-binoculo", "cidade-grande", "historias-do-ceu", "historia-astronomia",
+    "constelacoes-verao", "constelacoes-outono", "constelacoes-inverno",
+    "constelacoes-primavera", "ceu-binoculo", "duplas", "variaveis", "aglomerados-sul",
+    "galaxias", "caldwell-sul", "maratona-messier", "cidade-grande", "historias-do-ceu",
+    "historia-astronomia",
     # astrofotografia
     "objetos-do-mes", "foto-verao", "foto-outono", "foto-inverno", "foto-primavera",
-    "mosaicos", "lua-fotografar",
+    "astrofoto-dificuldade", "smart-telescopes", "mosaicos", "lua-fotografar",
     # extras
-    "ceu-austral", "lua-10-noites", "planetas-ano", "ano-no-ceu", "ceu-de-uma-data",
+    "ceu-austral", "maratona-lacaille", "lua-10-noites", "lua-terminador", "planetas-ano",
+    "ano-no-ceu", "ceu-de-uma-data",
 ]
-TARGET_KINDS = ("star", "dso", "body", "const", "asterism", "altaz")
+TARGET_KINDS = ("star", "dso", "body", "const", "asterism", "altaz", "alignment")
 # graus: abaixo disso o alvo "não está no céu" para o passo (por tipo de alvo);
 # uma constelação a 3° do horizonte não serve para aprender a figura
-SKIP_BELOW = {"const": 10.0, "asterism": 10.0, "dso": 10.0, "star": 5.0, "body": 3.0}
+SKIP_BELOW = {"const": 10.0, "asterism": 10.0, "dso": 10.0, "star": 5.0, "body": 3.0,
+              "alignment": 5.0}
 DEFAULT_SKIP_BELOW = 2.0
 TOUR_DONE_KIND = "tour_done"      # perfil no carina.sqlite
 
@@ -91,6 +97,8 @@ class Step:
     optional: bool = True                 # pular (True) ou mostrar com aviso
     card: dict | None = None              # dados extras (tours gerados)
     fov_circle: float | None = None       # v0.21: campo circular (graus) desenhado — binóculo
+    moon_feature: str = ""                # v0.23: formação lunar marcada (passo com a Lua)
+    fov_rect: str = ""                    # v0.23: "1.29x0.73 Seestar S50" — quadro fixo desenhado
     setup_fov: bool = False               # v0.21: desenha o campo do setup ativo no alvo
     finder: bool = False                  # v0.21: acrescenta a rota a partir das estrelas
 
@@ -163,7 +171,20 @@ def validate(tour: Tour) -> list[str]:
             errs.append(f"{where}: campo {s.fov}")
         if s.bortle is not None and not 1 <= int(s.bortle) <= 9:
             errs.append(f"{where}: Bortle {s.bortle}")
+        if s.fov_rect and parse_fov_rect(s.fov_rect) is None:
+            errs.append(f"{where}: quadro {s.fov_rect!r}")
     return errs
+
+
+def parse_fov_rect(spec: str) -> tuple[float, float, str] | None:
+    """``"1.29x0.73 Seestar S50"`` → (largura°, altura°, rótulo)."""
+    m = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(.*)", spec or "")
+    if not m:
+        return None
+    w, h = (float(x.replace(",", ".")) for x in m.group(1, 2))
+    if not (0.01 <= w <= 60 and 0.01 <= h <= 60):
+        return None
+    return w, h, m.group(3).strip()
 
 
 _WHEN = re.compile(r"^(agora|inicio_da_noite|hora:\d{1,2}:\d{2}|data:\d{2}-\d{2} hora:\d{1,2}:\d{2})$")
@@ -186,6 +207,22 @@ def load_dir(path: Path) -> list[Tour]:
         except (ValueError, TypeError, KeyError):
             continue
     return tours
+
+
+def load_alignments(path: Path | None = None) -> list[dict]:
+    """Alinhamentos embarcados (``alignments.json``, v0.23): as "setas" do céu
+    — arcos já calculados em vetores ICRS e os rótulos das pontas."""
+    if path is None:
+        try:
+            from ..config import package_data_dir
+
+            path = package_data_dir() / "alignments.json"
+        except Exception:                      # noqa: BLE001 — sem dados, sem setas
+            return []
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
 
 
 def builtin_dir() -> Path:
@@ -230,13 +267,16 @@ class Resolver:
     """Converte os alvos textuais dos passos em direções no céu."""
 
     def __init__(self, stars, dso, const_info: list[dict] | None = None,
-                 asterisms: list[dict] | None = None, bodies=None) -> None:
+                 asterisms: list[dict] | None = None, bodies=None,
+                 alignments: list[dict] | None = None) -> None:
         from .engine import _BODIES
 
         self.stars = stars
         self.dso = dso
         self.const_info = {c["id"]: c for c in (const_info or [])}
         self.asterisms = {a["key"]: a for a in (asterisms or [])}
+        self.alignments = {a["key"]: a for a in
+                           (alignments if alignments is not None else load_alignments())}
         self.bodies = list(bodies) if bodies is not None else [b[0] for b in _BODIES]
         self._proper = {v.lower(): k for k, v in stars.proper.items()} if stars else {}
         self._cache: dict[str, Resolved | None] = {}
@@ -342,6 +382,18 @@ class Resolver:
                          for u in vecs)
             return Resolved(spec, "asterism", a["name"], icrs=v, key=name,
                             size_deg=2 * spread)
+        if kind == "alignment":
+            a = self.alignments.get(name)
+            vecs = [np.asarray(p, np.float64) for line in (a or {}).get("lines", [])
+                    for p in line]
+            if a is None or not vecs:
+                return None
+            v = np.mean(vecs, axis=0)
+            v /= np.linalg.norm(v)
+            spread = max(math.degrees(math.acos(max(-1.0, min(1.0, float(u @ v)))))
+                         for u in vecs)
+            return Resolved(spec, "alignment", a["name"], icrs=v, key=name,
+                            size_deg=2 * spread)
         if kind == "altaz":
             try:
                 az, alt = (float(x) for x in name.split(","))
@@ -386,7 +438,7 @@ def default_fov(target: Resolved | None) -> float:
         return 60.0
     if target.kind == "const":
         return 45.0
-    if target.kind == "asterism":
+    if target.kind in ("asterism", "alignment"):
         return max(15.0, min(100.0, 1.6 * target.size_deg))
     if target.kind == "dso":
         return max(1.0, min(30.0, 3.0 * target.size_deg)) if target.size_deg else 5.0

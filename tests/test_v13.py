@@ -272,3 +272,21 @@ def test_plan_settings_clamped():
     assert PlanSettings(minutes_per_object=99).clamp().minutes_per_object == 10
     assert PlanSettings(minutes_per_object=1).clamp().minutes_per_object == 3
     assert PlanSettings(min_altitude=99).clamp().min_altitude == 60.0
+
+
+def test_finder_triangulation_says_where_the_guide_is(catalogs):
+    """A frase de triangulação diz onde a GUIA fica em relação ao alvo — o
+    contrário da direção da caminhada (Alnitak fica ao norte de M 42)."""
+    import math
+
+    from carina.core.observing import _build_finder, _direction_from, _opposite
+
+    assert _opposite("sul") == "norte" and _opposite("sudeste") == "noroeste"
+    assert _opposite("leste") == "oeste" and _opposite("nordeste") == "sudoeste"
+    _dso, stars, _const = catalogs
+    ra, dec = math.radians(83.82), math.radians(-5.39)          # M 42
+    text, guides = _build_finder(stars, ra, dec, "Órion")
+    for g in guides[1:]:
+        # a guia está ao norte do alvo quando a sua declinação é maior
+        where = _direction_from(ra, dec, g["ra"], g["dec"])
+        assert f"{g['name']} ({g['mag']:.1f}) fica a {g['sep']:.1f}° do alvo, {where} dele" in text

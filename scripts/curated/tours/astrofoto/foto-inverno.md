@@ -39,6 +39,8 @@ Junto de Antares, a região de **Rho Ophiuchi** mistura nebulosas azuis de refle
 
 **M 8**, a Lagoa, e **M 20**, a Trífida, cabem juntas num campo de 2°. A Lagoa é brilhante e rende até sob céu urbano com filtro; a Trífida mistura o vermelho da emissão com o azul da reflexão e as faixas escuras que a dividem em três.
 
+**Ponto de partida:** 400 a 600 mm enquadram as duas. O dual-band é o melhor filtro para a Lagoa, de H-alfa forte; o azul da Trífida pede banda larga — o ideal é uma sessão de cada e misturar. Típico: 30 subs de 20 s para a Ampulheta e o aglomerado e 60 a 90 de 120 a 180 s (2 a 4 horas). Smart telescope: 10 a 20 s.
+
 ## A Águia e os Pilares da Criação
 @target: dso:M 16
 @time: data:07-15 hora:22:30
@@ -49,6 +51,8 @@ Junto de Antares, a região de **Rho Ophiuchi** mistura nebulosas azuis de refle
 
 Na Serpente, a **Nebulosa da Águia** guarda os **Pilares da Criação**, colunas de gás e poeira fotografadas pelo Hubble em 1995. Uma focal de 800 mm ou mais mostra os pilares; com banda estreita, o resultado lembra a foto famosa.
 
+**Ponto de partida:** 400 a 600 mm para a nebulosa e o aglomerado inteiros; 1000 mm para os Pilares. Em céu urbano, câmera colorida com dual-band; câmera mono com H-alfa, OIII e SII dá a paleta clássica, com muito mais tempo. Típico: 30 subs de 30 s para as estrelas do aglomerado e 60 de 180 s — 3 horas — guiados. Smart telescope: 20 s com dual-band.
+
 ## O Cisne
 @target: dso:M 17
 @time: data:07-15 hora:22:30
@@ -58,6 +62,8 @@ Na Serpente, a **Nebulosa da Águia** guarda os **Pilares da Criação**, coluna
 @image: dss:M 17
 
 Logo abaixo da Águia, **M 17** — a Nebulosa Ômega, do Cisne ou da Lagosta — é uma das nebulosas mais brilhantes do céu, fácil de fotografar e cheia de detalhes. A Águia e o Cisne juntos dão um belo par num campo de 3°.
+
+**Ponto de partida:** 400 a 1000 mm; com 1000 mm, a barra e o arco enchem o quadro. É um dos alvos mais fáceis do inverno, e o dual-band entrega ótimo contraste mesmo em céu de cidade. Típico: 30 subs de 20 s para não estourar a barra e 60 de 180 s — 3 horas — para a nuvem em volta. Smart telescope: 10 a 20 s.
 
 ## Os Dragões de Ara
 @target: dso:NGC 6188

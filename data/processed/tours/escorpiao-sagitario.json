@@ -1,0 +1,143 @@
+{
+ "steps": [
+  {
+   "title": "Uma viagem ao centro",
+   "kind": "intro",
+   "target": "altaz:135,75",
+   "fov": 120.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": true,
+    "asterisms": true,
+    "dso": false,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "Este é o céu de **15 de julho às 21h**, com a cabeça bem inclinada para trás. No inverno brasileiro, o **Escorpião** passa quase sobre a nossa cabeça, e logo a leste dele vem **Sagitário**. Livros escritos na Europa tratam os dois como figuras de horizonte; daqui, eles estão no alto.\n\nÉ ali que a Via Láctea fica mais larga e brilhante, porque olhamos na direção do **centro da nossa galáxia**. Este tour vai do coração do Escorpião até lá, passando pelos aglomerados e nebulosas do caminho. Uma espreguiçadeira poupa o pescoço."
+  },
+  {
+   "title": "O Escorpião inteiro",
+   "target": "const:Sco",
+   "fov": 50.0,
+   "highlight": [
+    "asterism:cabeca-escorpiao",
+    "asterism:ferrao"
+   ],
+   "text": "A oeste, a **cabeça**: um arco curto de três estrelas, com **Acrab** e **Dschubba**. No meio, o coração alaranjado, **Antares**. Dele desce a **cauda**, que se curva para leste e termina no ferrão, duas estrelas bem juntas: **Shaula** e **Lesath**.\n\nAs duas estrelas de Libra, a oeste, já foram as garras do Escorpião.\n\n{lore:short:Sco}\n\nE é verdade: quando o Escorpião está alto, Órion está escondido abaixo do horizonte."
+  },
+  {
+   "title": "Antares e M 4",
+   "target": "star:Antares",
+   "fov": 5.0,
+   "fov_circle": 6.0,
+   "highlight": [
+    "const:Sco"
+   ],
+   "text": "O nome **Antares** quer dizer \"rival de Marte\", por causa da cor. Ela é uma **supergigante vermelha**, a cerca de 550 anos-luz: no lugar do Sol, engoliria Mercúrio, Vênus, a Terra e Marte. \"Vermelha\" aqui quer dizer mais fria que o Sol na superfície — e mesmo assim ela brilha como milhares de sóis.\n\nAponte um binóculo para Antares. No mesmo campo, a pouco mais de 1° a oeste, aparece uma mancha redonda e apagada: **M 4**, um **aglomerado globular**, uma bola de centenas de milhares de estrelas muito antigas. É um dos globulares mais próximos da Terra, a uns 6 mil anos-luz."
+  },
+  {
+   "title": "O falso cometa",
+   "target": "dso:NGC 6231",
+   "fov": 5.0,
+   "image": "dss:NGC 6231",
+   "fov_circle": 6.0,
+   "text": "Na curva da cauda, junto às estrelas **Zeta** do Escorpião, há uma manchinha brilhante: **NGC 6231**, um aglomerado de estrelas muito jovens e quentes, a uns 5.500 anos-luz. Com o aglomerado vizinho Trumpler 24, ao norte, o conjunto lembra a cabeça e a cauda de um cometa — já houve observador experiente que o confundiu com o cometa Halley.\n\nRepare também no par **Zeta-1 e Zeta-2**, e, um pouco acima na cauda, no par **Mu**: num céu escuro, muita gente separa as duas estrelas de cada par a olho nu. É um bom teste de vista."
+  },
+  {
+   "title": "M 6 e M 7, junto ao ferrão",
+   "target": "dso:M 7",
+   "fov": 9.0,
+   "image": "dss:M 7",
+   "fov_circle": 7.0,
+   "text": "A uns 5° do ferrão, para o lado de Sagitário, fica **M 7**, o Aglomerado de Ptolomeu — o astrônomo grego já o anotava como uma \"nuvenzinha\". A olho nu, num céu razoável, é uma mancha clara; no binóculo, um campo largo de estrelas, maior que duas Luas cheias. Está a menos de mil anos-luz.\n\nUns 4° a noroeste, **M 6**, o Aglomerado da Borboleta, é menor e mais distante. Com o binóculo apoiado, os dois cabem quase no mesmo campo.\n\nM 7 é o objeto mais ao sul do catálogo de Messier: na Europa, mal sobe acima do horizonte."
+  },
+  {
+   "title": "O Bule de Sagitário",
+   "target": "asterism:bule",
+   "time": "data:08-10 hora:21:00",
+   "fov": 30.0,
+   "highlight": [
+    "asterism:bule",
+    "const:Sgr"
+   ],
+   "text": "O tour avança para agosto, quando Sagitário passa mais alto. Do ferrão do Escorpião, vá um punho para leste: a estrela brilhante é **Kaus Australis**, o fundo do **Bule**. Em volta dela, oito estrelas desenham um bule de chá — corpo, tampa, cabo (com **Nunki**) e bico (**Alnasl**).\n\nO bule é um **asterismo**, um desenho popular dentro da constelação do **Arqueiro** — um centauro cuja flecha aponta para o coração do Escorpião. Num céu escuro, a Via Láctea parece sair do bico como vapor de chaleira, e não por acaso: é ali que ela fica mais densa."
+  },
+  {
+   "title": "A Lagoa e a Trífida",
+   "target": "dso:M 8",
+   "time": "data:08-05 hora:21:00",
+   "fov": 3.0,
+   "image": "dss:M 8",
+   "fov_circle": 5.0,
+   "text": "Uns 5° a oeste da tampa do Bule mora a rainha da região: a **Nebulosa da Lagoa**, **M 8**. Num céu escuro ela aparece a olho nu como uma mancha clara; no binóculo, uma nuvem com um aglomerado de estrelas jovens dentro. Ela é maior que a Lua cheia e está a uns 4.300 anos-luz.\n\nLogo ao norte, cabendo no mesmo campo do binóculo, fica a **Trífida**, **M 20**, menor e mais fraca, cortada por faixas escuras de poeira. Ela pede céu bem escuro e visão desviada.\n\nAs cores vermelhas das fotos não aparecem ao olho: ao vivo, as duas são cinzentas."
+  },
+  {
+   "title": "A Nuvem Estelar de Sagitário",
+   "target": "dso:M 24",
+   "time": "data:08-05 hora:21:00",
+   "fov": 6.0,
+   "image": "dss:M 24",
+   "fov_circle": 6.0,
+   "text": "Uns 7° ao norte da tampa do Bule, a Via Láctea forma uma mancha mais clara, do tamanho de algumas Luas cheias: **M 24**, a **Nuvem Estelar de Sagitário**.\n\nEla não é aglomerado nem nebulosa. É uma janela: um trecho em que a poeira se abre e deixa ver milhares de estrelas muito distantes, umas atrás das outras, num braço da Galáxia mais perto do centro.\n\nA olho nu, num céu escuro, é fácil. Varra a região devagar com o binóculo apoiado: o campo fica literalmente coalhado de estrelas. É a melhor maneira de \"sentir\" que estamos dentro de um disco de bilhões de sóis."
+  },
+  {
+   "title": "M 22",
+   "target": "dso:M 22",
+   "time": "data:08-05 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:M 22",
+   "fov_circle": 5.0,
+   "text": "Volte à tampa do Bule e desloque o binóculo uns 2° para nordeste: uma bola de luz redonda e brilhante aparece. É **M 22**, um dos aglomerados globulares mais brilhantes do céu inteiro, com centenas de milhares de estrelas, a uns 10 mil anos-luz.\n\nCompare com M 4, que você viu ao lado de Antares: os dois estão entre os globulares mais próximos de nós. M 22 é o mais fácil de achar, justamente por ficar colado a uma estrela do Bule.\n\nNum telescópio pequeno, a borda começa a se desfazer em estrelinhas soltas."
+  },
+  {
+   "title": "Rumo ao centro da Galáxia",
+   "target": "alignment:escorpiao-centro",
+   "time": "data:07-25 hora:21:30",
+   "fov": 45.0,
+   "highlight": [
+    "alignment:escorpiao-centro",
+    "asterism:bule",
+    "asterism:ferrao"
+   ],
+   "text": "Agora junte tudo: de **Antares** ao ferrão, do ferrão ao Bule. O centro da Via Láctea fica entre eles, a uns 17° de Antares e a cerca de meio punho do bico do Bule — a uns 26 mil anos-luz.\n\nNão há nada para ver ali: a poeira bloqueia a luz do centro. Ele foi descoberto com ondas de rádio, e a fonte ganhou o nome de **Sagitário A\\***. É um buraco negro com uns 4 milhões de vezes a massa do Sol, revelado pelas estrelas que giram rapidíssimo à sua volta. Em 2022, o Telescópio Horizonte de Eventos divulgou a primeira imagem da sombra dele."
+  },
+  {
+   "title": "A Via Láctea e o Cachimbo",
+   "target": "dso:B 78",
+   "time": "data:07-20 hora:21:30",
+   "fov": 14.0,
+   "highlight": [
+    "dso:B 59"
+   ],
+   "text": "Num lugar escuro, sem Lua, repare que a Via Láctea não é uniforme: tem rachaduras e manchas escuras. Não são buracos — são **nebulosas escuras**, nuvens de poeira que escondem as estrelas de trás. É a mesma poeira que esconde o centro da Galáxia.\n\nEntre Antares e o centro da Galáxia, já em Ofiúco, fica uma das mais bonitas: o **Cachimbo**. O fornilho é a nuvem larga **B 78**; o cabo, uma faixa fina que termina em **B 59**. Num céu escuro, ele aparece a olho nu.\n\nNa cidade, a Via Láctea e as faixas escuras somem no clarão: isso não é defeito do seu olho."
+  },
+  {
+   "title": "O inverno é a estação da Via Láctea",
+   "kind": "fim",
+   "target": "altaz:135,75",
+   "fov": 120.0,
+   "skip_if_below": -90.0,
+   "text": "Por que o inverno? Entre junho e agosto, o Sol está do outro lado do céu, em Gêmeos e Leão; à noite, ficamos de frente para Sagitário e o centro da Galáxia, que passam quase no zênite no Brasil. As noites são as mais longas do ano e, em boa parte do país, secas. No hemisfério norte, a mesma região se arrasta rente ao horizonte.\n\nEscolha a semana da Lua nova, saia da cidade e dê uns 20 minutos aos olhos. Os objetos deste tour ficam no botão **★ Guardar os objetos deste tour numa lista**; para ir além, siga o tour **O céu de inverno**."
+  }
+ ],
+ "key": "escorpiao-sagitario",
+ "title": "Escorpião e Sagitário: rumo ao centro da Galáxia",
+ "subtitle": "Do coração vermelho do Escorpião ao Bule de Sagitário, e à direção do buraco negro da Via Láctea",
+ "category": "iniciante",
+ "level": 1,
+ "minutes": 10,
+ "when": "data:07-15 hora:21:00",
+ "lat_range": [
+  -40.0,
+  5.0
+ ],
+ "tags": [
+  "Escorpião",
+  "Sagitário",
+  "Via Láctea",
+  "centro da Galáxia",
+  "inverno",
+  "binóculo"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

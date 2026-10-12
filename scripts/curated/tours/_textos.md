@@ -113,19 +113,19 @@ No Cão Maior, uma supergigante amarela muito luminosa a cerca de 1.600 anos-luz
 A ponta do chifre do Touro, emprestada também ao pentágono do Cocheiro.
 
 ## planeta:Mercúrio
-O planeta mais próximo do Sol nunca se afasta muito dele: aparece baixo no horizonte, logo depois do pôr do Sol ou antes do nascer. Vê-lo já é uma pequena conquista.
+O planeta mais próximo do Sol nunca se afasta muito dele: aparece baixo no horizonte, logo depois do pôr do Sol ou antes do nascer. Vê-lo já é uma pequena conquista. **Como reconhecer:** um ponto rosado, de brilho firme, a dois ou três punhos do Sol, no crepúsculo ainda claro; dura uns poucos dias bons a cada elongação.
 
 ## planeta:Vênus
-O objeto mais brilhante do céu depois do Sol e da Lua — a "Estrela-d'Alva" ou "Estrela Vespertina". Num telescópio pequeno ou bom binóculo mostra fases, como uma Lua pequena.
+O objeto mais brilhante do céu depois do Sol e da Lua — a "Estrela-d'Alva" ou "Estrela Vespertina". Num telescópio pequeno ou bom binóculo mostra fases, como uma Lua pequena. **Como reconhecer:** é o primeiro "ponto" a aparecer no crepúsculo, branco e fortíssimo, e nunca se afasta mais de uns quatro punhos do Sol: só anoitecer ou madrugada, nunca à meia-noite.
 
 ## planeta:Marte
-Alaranjado e sem cintilar. O brilho varia muito: perto da oposição fica mais brilhante que quase todas as estrelas; longe dela, modesto.
+Alaranjado e sem cintilar. O brilho varia muito: perto da oposição fica mais brilhante que quase todas as estrelas; longe dela, modesto. **Como reconhecer:** não confunda com Antares e Aldebaran, também alaranjadas e na mesma faixa do céu — Marte não pisca e, de semana para semana, muda de lugar em relação a elas.
 
 ## planeta:Júpiter
-Brilhante e de luz firme. Um binóculo apoiado já mostra até quatro pontinhos em linha — as luas descobertas por Galileu em 1610 —, que mudam de posição de uma noite para a outra.
+Brilhante e de luz firme. Um binóculo apoiado já mostra até quatro pontinhos em linha — as luas descobertas por Galileu em 1610 —, que mudam de posição de uma noite para a outra. **Como reconhecer:** depois de Vênus, é o "astro" mais brilhante da noite; branco-creme, alto no meio da madrugada nos meses perto da oposição, que se repete a cada 13 meses.
 
 ## planeta:Saturno
-Amarelado, de brilho tranquilo. Um telescópio pequeno, a partir de 30 vezes de aumento, já mostra os anéis — a visão que mais encanta quem olha pela primeira vez.
+Amarelado, de brilho tranquilo. Um telescópio pequeno, a partir de 30 vezes de aumento, já mostra os anéis — a visão que mais encanta quem olha pela primeira vez. **Como reconhecer:** um ponto amarelo-palha, de brilho parecido com o das estrelas mais brilhantes, mas firme, sozinho numa região do zodíaco sem estrelas fortes; anda tão devagar que fica quase dois anos e meio em cada constelação.
 
 ## planeta:Urano
 No limite da visão a olho nu em céu muito escuro; ao binóculo é um ponto esverdeado. Foi o primeiro planeta descoberto com telescópio, por William Herschel, em 1781.
@@ -165,3 +165,61 @@ Na Lua gibosa minguante, o terminador do pôr do Sol passa pelos grandes mares d
 
 ## lua:26
 Uma Lua fina de madrugada, baixa no leste antes do nascer do Sol, de novo com a **luz cinérea** na parte escura. O terminador passa pelo **Oceanus Procellarum** e pela cratera escura **Grimaldi**, quase na borda.
+
+## lua-feicao:Mare Crisium
+O Mar das Crises, uma planície de lava escura e oval de 550 km, isolada perto da borda leste. É uma das primeiras formações a aparecer na Lua crescente e parece achatada por estar perto da borda — na verdade, é mais larga de leste a oeste.
+
+## lua-feicao:Petavius
+Cratera de 180 km com um pico central e uma rachadura (uma rima) que vai do pico até a parede. Com o Sol rasante, as paredes em terraços e a rachadura aparecem num telescópio pequeno.
+
+## lua-feicao:Vallis Rheita
+Um "risco" de 500 km na região montanhosa do sudeste: na verdade, uma cadeia de crateras que se tocam, abertas por material lançado na formação do Mar do Néctar. Só aparece bem com o terminador por perto.
+
+## lua-feicao:Posidonius
+Cratera de 95 km na borda do Mar da Serenidade, com o fundo cheio de rachaduras e cristas. É uma cratera "inundada": a lava do mar subiu por baixo e ergueu o fundo.
+
+## lua-feicao:Theophilus
+A mais bonita de um trio de grandes crateras (Theophilus, Cyrillus e Catharina), na borda do Mar do Néctar. Tem 100 km, paredes em degraus e um grupo de picos centrais que pegam o Sol antes do fundo.
+
+## lua-feicao:Rima Hyginus
+Uma rachadura de 200 km que dobra no meio, na cratera pequena Hyginus, perto do centro do disco. Ao longo dela há pequenos poços sem borda — talvez colapsos sobre canais de lava. Pede telescópio de 10 cm e Sol baixo.
+
+## lua-feicao:Montes Apenninus
+A maior cordilheira da Lua, 600 km de picos que formam a borda sudeste do Mar das Chuvas. Perto do quarto crescente, as sombras compridas dos picos (alguns com 5 km de altura) se estendem sobre o mar. A Apollo 15 pousou no pé desses montes.
+
+## lua-feicao:Vallis Alpes
+O Vale dos Alpes, um corte reto de 160 km que atravessa os Alpes lunares, como se tivesse sido feito com uma faca. Com bom seeing, um telescópio de 15 cm mostra o fino canal no fundo do vale.
+
+## lua-feicao:Ptolemaeus
+A maior de uma fileira de três crateras no centro do disco — Ptolemaeus, Alphonsus e Arzachel —, de 150 km, com o fundo liso e plano. Com o Sol bem baixo, pequenas depressões aparecem no fundo como "fantasmas".
+
+## lua-feicao:Rupes Recta
+O Muro Reto: uma escarpa de 110 km e uns 300 m de altura no Mar das Nuvens. Na Lua crescente aparece como uma linha **escura** (a sombra da escarpa); na minguante, como uma linha **clara** — a face iluminada.
+
+## lua-feicao:Plato
+Cratera de 100 km com o fundo escuro e liso, de lava, na borda norte do Mar das Chuvas, logo acima dos Alpes. É fácil de achar em qualquer telescópio; o desafio é ver as craterinhas de 1 a 2 km no fundo.
+
+## lua-feicao:Tycho
+Cratera jovem (uns 100 milhões de anos) de 85 km, perto do polo sul. Com o terminador por perto, mostra paredes altas e pico central; na Lua cheia, quase some no relevo, mas vira o centro de **raios** claros que se espalham por metade da face visível.
+
+## lua-feicao:Clavius
+Uma das maiores crateras da face visível, com 230 km, no sul. Dentro dela há um arco de crateras menores, em ordem decrescente de tamanho — um teste clássico para o telescópio.
+
+## lua-feicao:Copernicus
+A "monarca da Lua": 93 km, paredes em terraços, picos centrais e um manto de material e crateras secundárias em volta. Perto do terminador, a sombra da parede preenche metade do fundo.
+
+## lua-feicao:Sinus Iridum
+A Baía do Arco-Íris, uma meia-lua de 250 km na borda do Mar das Chuvas. Quando o Sol nasce sobre os Montes Jura, que a cercam, os picos se acendem antes do chão e formam a **Alça Dourada**, um arco de luz na escuridão.
+
+## lua-feicao:Gassendi
+Cratera de 110 km na borda norte do Mar dos Humores, com o fundo cortado por uma rede de rachaduras e picos centrais. Um dos alvos mais ricos para um telescópio de 15 cm.
+
+## lua-feicao:Aristarchus
+A formação mais brilhante da Lua: uma cratera jovem de 40 km que reflete tanto que aparece até na parte iluminada pela luz cinérea. Ao lado, o Vale de Schröter serpenteia por 160 km.
+
+## lua-feicao:Schickard
+Uma planície murada de 210 km perto da borda sudoeste, muito achatada pela perspectiva. O fundo tem duas manchas escuras de lava separadas por uma faixa clara.
+
+## lua-feicao:Grimaldi
+A mancha mais escura da Lua, quase na borda oeste: uma bacia de 230 km com o fundo de lava. Aparece nos últimos dias da Lua crescente, perto da cheia, e marca a borda do Oceano das Tempestades.
+

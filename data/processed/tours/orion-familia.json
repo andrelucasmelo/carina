@@ -1,0 +1,152 @@
+{
+ "steps": [
+  {
+   "title": "O caçador do verão",
+   "kind": "intro",
+   "target": "altaz:0,60",
+   "fov": 120.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": true,
+    "asterisms": true,
+    "dso": false,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "Este é o céu de **15 de janeiro às 21h**, olhando para o **norte**. Entre dezembro e fevereiro, Órion domina o começo da noite no Brasil: se você aprender só uma constelação, aprenda esta.\n\nÓrion fica sobre o **equador celeste**, então aparece nos dois hemisférios — e serve de âncora. A partir das Três Marias você chega ao Touro, a Gêmeos, ao Cão Maior e ao Cão Menor, a família inteira do caçador. Não precisa de nada além dos olhos e do braço esticado: um punho fechado cobre uns 10° de céu."
+  },
+  {
+   "title": "Órion de cabeça para baixo",
+   "target": "const:Ori",
+   "fov": 40.0,
+   "highlight": [
+    "const:Ori",
+    "asterism:tres-marias"
+   ],
+   "text": "Procure três estrelas iguais, em fila, quase igualmente espaçadas: as **Três Marias**, o cinturão do caçador. Elas se chamam **Mintaka**, **Alnilam** e **Alnitak** e cabem em uns dois dedos com o braço esticado.\n\nNos livros europeus, Órion aparece com Betelgeuse em cima. Do Brasil, olhando para o norte, a figura chega **girada meia-volta**: Rigel no alto, Betelgeuse embaixo. Ninguém está errado — nós e um europeu olhamos em direções opostas.\n\nUma dica de orientação: Mintaka está quase em cima do equador celeste, então nasce quase exatamente no **leste** e se põe quase exatamente no **oeste**."
+  },
+  {
+   "title": "Os quatro cantos do caçador",
+   "target": "star:Betelgeuse",
+   "fov": 30.0,
+   "highlight": [
+    "const:Ori"
+   ],
+   "text": "Em volta do Cinturão, quatro estrelas fecham um grande quadrilátero. **Betelgeuse** é alaranjada; **Rigel**, branco-azulada — compare as duas: a cor conta a temperatura da superfície. **Bellatrix** e **Saiph**, mais fracas, completam os cantos.\n\nBetelgeuse é uma **supergigante vermelha**: no lugar do Sol, engoliria a Terra e Marte. Ela é variável — em 2019 e 2020 escureceu como não se via havia décadas, e depois voltou. Um dia vai explodir como supernova, mas ninguém sabe quando: pode levar milhares de anos.\n\nO contraste de cores resiste até ao céu de cidade. É o primeiro exercício da noite."
+  },
+  {
+   "title": "A Espada e a Nebulosa de Órion",
+   "target": "dso:M 42",
+   "fov": 6.0,
+   "image": "dss:M 42",
+   "fov_circle": 6.0,
+   "highlight": [
+    "asterism:espada-orion"
+   ],
+   "text": "Do lado dos pés do caçador pende uma linha curta de estrelas fracas: a **Espada de Órion** — do Brasil, ela fica *acima* do Cinturão. A \"estrela\" do meio parece borrada. Não é uma estrela: é a **Nebulosa de Órion**, **M 42**, uma nuvem de gás onde estrelas estão nascendo agora, a cerca de 1.300 anos-luz.\n\nA olho nu, num céu escuro, ela é uma mancha leitosa; na cidade, uma estrela um pouco borrada. Com um binóculo, a mancha cresce e ganha forma. No centro, um telescópio pequeno separa o **Trapézio**, quatro estrelas jovens que fazem o gás brilhar. As cores das fotos, porém, o olho não vê: ao vivo a nebulosa é cinza."
+  },
+  {
+   "title": "Órion, a bússola do céu",
+   "target": "alignment:orion-sirius-aldebaran",
+   "fov": 75.0,
+   "highlight": [
+    "alignment:orion-sirius-aldebaran",
+    "alignment:orion-pleiades",
+    "asterism:tres-marias"
+   ],
+   "text": "As Três Marias apontam para os dois lados. Siga a linha a partir de **Alnitak** e, depois de uns dois punhos, chega a **Sirius**, a estrela mais brilhante do céu noturno — à direita, bem alta. No sentido contrário, a partir de **Mintaka**, outros dois punhos levam a **Aldebaran**, alaranjada, à esquerda e mais baixa.\n\nContinue de Aldebaran na mesma direção, mais um punho e meio, e você encontra um cachinho de estrelas: as **Plêiades**.\n\nUma linha, três âncoras. Com elas você não se perde mais no céu de verão."
+  },
+  {
+   "title": "O olho do Touro e as Híades",
+   "target": "dso:Mel 25",
+   "fov": 14.0,
+   "highlight": [
+    "asterism:hiades",
+    "const:Tau"
+   ],
+   "fov_circle": 6.0,
+   "text": "**Aldebaran** é o olho do **Touro**: uma gigante alaranjada a uns 65 anos-luz. Em volta dela, um **V** de estrelas desenha a cara do animal: são as **Híades**, um aglomerado de estrelas que nasceram juntas.\n\nSó que Aldebaran não faz parte dele. As Híades estão a uns 150 anos-luz — mais que o dobro da distância. Aldebaran está na frente, na mesma direção, como um poste diante de uma multidão distante. É a lição de toda constelação: um desenho de direções, não de vizinhança.\n\nNa ponta de um dos chifres, perto de Tianguan (Zeta do Touro), fica **M 1**, a Nebulosa do Caranguejo: o resto da supernova registrada por astrônomos chineses em 1054. Ela pede telescópio e céu escuro."
+  },
+  {
+   "title": "As Plêiades",
+   "target": "dso:M 45",
+   "fov": 4.0,
+   "image": "dss:M 45",
+   "fov_circle": 6.0,
+   "text": "As **Plêiades** (**M 45**), as Sete-Estrelas, parecem uma minúscula concha de estrelas azuladas, do tamanho da ponta do dedo mínimo com o braço esticado. O aglomerado é jovem e está a cerca de 440 anos-luz.\n\nO truque é **não olhar direto**: olhe um pouquinho ao lado, e a visão periférica, mais sensível, revela estrelas que somem quando você as encara. Na cidade aparecem de três a cinco; num céu bem escuro, seis ou sete. Conte as suas — é um bom teste do seu céu.\n\nNo binóculo, as Plêiades viram dezenas de estrelas: um dos espetáculos mais bonitos para quem está começando."
+  },
+  {
+   "title": "Gêmeos: Castor e Pollux",
+   "target": "const:Gem",
+   "time": "data:02-05 hora:22:30",
+   "fov": 35.0,
+   "highlight": [
+    "const:Gem"
+   ],
+   "text": "Agora a noite vai para o começo de fevereiro, quando Gêmeos está mais alto. Olhe para o norte, um pouco à direita de Órion, baixo: duas estrelas brilhantes, a uns três dedos uma da outra, são **Castor** e **Pollux**, as cabeças dos gêmeos.\n\nElas não são iguais. **Pollux** é amarelo-alaranjada e a mais brilhante; **Castor**, branca, é uma estrela múltipla — um telescópio pequeno já a separa em duas.\n\nPerto dos pés dos gêmeos, um binóculo mostra uma mancha salpicada de estrelas: **M 35**, um aglomerado aberto a uns 2.900 anos-luz. Foi em Gêmeos que Herschel descobriu Urano, em 1781."
+  },
+  {
+   "title": "Sirius e o Cão Maior",
+   "target": "star:Sirius",
+   "time": "data:01-25 hora:22:00",
+   "fov": 20.0,
+   "highlight": [
+    "const:CMa"
+   ],
+   "text": "**Sirius**, o coração do **Cão Maior**, é a estrela mais brilhante do céu noturno. Boa parte desse brilho vem da proximidade: ela está a só 8,6 anos-luz. Perto do horizonte, Sirius cintila e troca de cor — já foi confundida com avião e até com disco voador. É só a atmosfera mexendo com a luz.\n\nSirius é dupla: a companheira, **Sirius B**, é uma anã branca do tamanho de um planeta, fraca demais para olhos e binóculos.\n\nUns 4° ao sul de Sirius, o binóculo mostra **M 41**, um aglomerado aberto que, num céu escuro, já aparece como uma mancha fraca a olho nu."
+  },
+  {
+   "title": "Procyon, o Cão Menor e o Unicórnio",
+   "target": "star:Procyon",
+   "time": "data:02-05 hora:22:00",
+   "fov": 45.0,
+   "highlight": [
+    "const:CMi",
+    "const:Mon"
+   ],
+   "text": "O segundo cão de Órion é pequeno: o **Cão Menor** tem só duas estrelas fáceis, e uma delas brilha muito — **Procyon**, branca, meio cremosa, a 11,4 anos-luz.\n\nLigue Betelgeuse, Sirius e Procyon: sai um triângulo quase equilátero, com lados de uns dois punhos e meio. No hemisfério norte ele se chama Triângulo de Inverno; aqui, é uma figura de verão.\n\nDentro do triângulo fica o **Unicórnio**, uma constelação discreta, sem nenhuma estrela brilhante, mas rica para o binóculo e o telescópio: a nebulosa Roseta e o aglomerado M 50 moram ali."
+  },
+  {
+   "title": "A Lebre, sob os pés de Órion",
+   "target": "const:Lep",
+   "time": "data:01-10 hora:21:30",
+   "fov": 30.0,
+   "highlight": [
+    "const:Lep"
+   ],
+   "text": "Cerca de um punho além de Rigel, o pé do caçador, um pequeno grupo de estrelas médias forma a **Lebre**, o animal que Órion persegue com os seus dois cães. As mais brilhantes são **Arneb** e **Nihal**.\n\nNo Rio de Janeiro, a Lebre passa quase sobre a cabeça; incline bem o pescoço, ou use uma espreguiçadeira. Ela é discreta e some fácil na luz da cidade, mas, de um lugar escuro, o desenho aparece inteiro.\n\nPara quem tem telescópio, a Lebre guarda **M 79**, um aglomerado globular pequeno e compacto."
+  },
+  {
+   "title": "O Hexágono de Verão",
+   "kind": "fim",
+   "target": "asterism:hexagono",
+   "time": "data:01-25 hora:22:00",
+   "fov": 100.0,
+   "highlight": [
+    "asterism:hexagono",
+    "const:Ori"
+   ],
+   "text": "Para fechar, ligue seis estrelas brilhantes em volta de Órion: **Rigel**, **Aldebaran**, **Capella**, **Pollux**, **Procyon** e **Sirius**. É o **Hexágono de Verão** (no norte, Hexágono de Inverno), com Betelgeuse quase no centro. Ele é tão grande que você precisa virar a cabeça para vê-lo inteiro. Do Brasil, Capella fica baixa, ao norte; Sirius, quase sobre a cabeça.\n\nPróximo passo: numa noite limpa de verão, refaça o caminho a olho nu, das Três Marias a Sirius e Aldebaran. Os objetos deste tour ficam no botão **★ Guardar os objetos deste tour numa lista**; para mais, siga o tour **Famosos do céu profundo**."
+  }
+ ],
+ "key": "orion-familia",
+ "title": "Órion e a família",
+ "subtitle": "As Três Marias como ponto de partida para o Touro, Gêmeos, os dois Cães e o Hexágono de Verão",
+ "category": "iniciante",
+ "level": 1,
+ "minutes": 10,
+ "when": "data:01-15 hora:21:00",
+ "lat_range": [
+  -40.0,
+  5.0
+ ],
+ "tags": [
+  "Órion",
+  "constelações",
+  "verão",
+  "Três Marias",
+  "alinhamentos",
+  "Sirius"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

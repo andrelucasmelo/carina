@@ -4,7 +4,7 @@ title: O céu austral profundo
 subtitle: O que o hemisfério norte não vê — as maravilhas que são privilégio de quem mora no sul
 category: extra
 level: 2
-minutes: 12
+minutes: 20
 when: inicio_da_noite
 lat_range: -40, 5
 tags: hemisfério sul, céu profundo, Magalhães
@@ -20,7 +20,7 @@ author: Carina / Astronomia no Quintal
 
 Os grandes observatórios do mundo estão no Chile por um motivo: o céu do sul tem o centro da Via Láctea alto, as duas Nuvens de Magalhães e alguns dos objetos mais espetaculares do céu — que da Europa e da maior parte dos Estados Unidos nunca nascem. Para quem mora no Brasil, eles estão no quintal.
 
-Cada passo vai à noite do ano em que o objeto passa mais alto.
+Cada passo vai à noite do ano em que o objeto passa mais alto. Quase todos aparecem bem num binóculo; para cada um, o texto diz o que esperar a olho nu, no binóculo e num telescópio pequeno.
 
 ## As Nuvens de Magalhães
 @target: dso:ESO056-115
@@ -30,21 +30,17 @@ Cada passo vai à noite do ano em que o objeto passa mais alto.
 
 Duas galáxias satélites da Via Láctea, visíveis a olho nu como pedaços soltos da Via Láctea: a **Grande** e a **Pequena Nuvem**. Os navegadores portugueses chamavam-nas de "Nuvens do Cabo". Nenhum europeu as tinha descrito antes das grandes navegações — a não ser por relatos de viajantes árabes.
 
-## Eta Carinae
-@target: dso:NGC 3372
-@time: data:03-15 hora:22:00
-@fov: 4
-@image: dss:NGC 3372
+A Grande Nuvem ocupa uns 11° por 9° do céu, entre Dourado e Mesa; a Pequena fica em Tucano, mais compacta. Precisam de céu escuro e sem Lua: da cidade, somem. Ao binóculo, as duas se enchem de grumos, aglomerados e nebulosas — cada mancha ali é um objeto inteiro de outra galáxia.
 
-A **Nebulosa de Carina**, maior e mais brilhante que a de Órion, guarda **Eta Carinae**, uma das estrelas mais massivas conhecidas — talvez cem vezes a massa do Sol. Em 1843 ela teve uma erupção gigantesca e virou a segunda estrela mais brilhante do céu. Um dia vai explodir como supernova.
+## A Tarântula, em outra galáxia
+@target: dso:NGC 2070
+@time: data:01-15 hora:22:30
+@fov: 3
+@image: dss:NGC 2070
 
-## Ômega Centauri
-@target: dso:NGC 5139
-@time: data:05-15 hora:21:00
-@fov: 2
-@image: dss:NGC 5139
+Na borda da Grande Nuvem há um nó brilhante que se vê a olho nu: a **Nebulosa da Tarântula**, a maior região de formação de estrelas de todo o Grupo Local. Se estivesse tão perto quanto a Nebulosa de Órion, projetaria sombras. Flamsteed a anotou como estrela, "30 Doradus"; Lacaille, observando do Cabo em 1751, percebeu que era uma nebulosa.
 
-O maior aglomerado globular da Via Láctea — e um dos únicos visíveis a olho nu. Para muitos astrônomos, é o núcleo de uma galáxia anã engolida pela nossa.
+Ao binóculo, a Nuvem toma forma de L, com a Tarântula como mancha alongada no lado curto. Num telescópio de 10 cm, com filtro UHC, aparecem laços e filamentos — as "pernas" da aranha. Foi na periferia dela que surgiu, em 1987, a supernova vista a olho nu.
 
 ## 47 Tucanae
 @target: dso:NGC 104
@@ -53,6 +49,48 @@ O maior aglomerado globular da Via Láctea — e um dos únicos visíveis a olho
 @image: dss:NGC 104
 
 O segundo globular mais brilhante do céu, ao lado da Pequena Nuvem. Ao telescópio, o núcleo concentrado parece explodir em estrelas. Ômega Centauri e 47 Tucanae, os dois maiores globulares do céu, são ambos do sul.
+
+A olho nu é uma "estrela" difusa; ao binóculo, um disco felpudo de núcleo bem mais claro que a borda. Com 7,5 a 10 cm, as primeiras estrelas soltas aparecem na periferia; com 20 cm, ele se resolve quase até o centro. O miolo é tão apertado que ali se contam mais de vinte pulsares de milissegundo — estrelas mortas girando centenas de vezes por segundo.
+
+## NGC 362, o vizinho enganoso
+@target: dso:NGC 362
+@time: data:11-01 hora:22:30
+@fov: 6
+@image: dss:NGC 362
+
+Na borda norte da Pequena Nuvem, a uns 3° de 47 Tucanae, mora outro globular: **NGC 362**. Parece fazer parte da Nuvem, mas é ilusão de perspectiva. A Pequena Nuvem está a cerca de 200 mil anos-luz; NGC 362, a uns 28 mil — sete vezes mais perto, no primeiro plano da nossa Galáxia.
+
+Ao binóculo, é uma bolinha difusa de centro mais claro, bem menor e mais fraca que 47 Tucanae. Num telescópio de 10 a 15 cm, um disco pequeno com núcleo quase estelar; com 20 cm, as bordas se desfazem em estrelas, mas o centro resiste. Os três cabem num campo de uns 5°.
+
+## NGC 253
+@target: dso:NGC 253
+@time: data:10-15 hora:22:30
+@fov: 2
+@image: dss:NGC 253
+
+A Galáxia do Escultor, quase de perfil, passa pelo zênite nas noites de primavera no Brasil. Descoberta por Caroline Herschel em 1783, é uma das galáxias mais brilhantes do céu.
+
+Fica numa região pobre em estrelas, o que ajuda a achar o seu traço de luz. Ao binóculo, em céu escuro, é uma faixa alongada e tênue; num telescópio de 10 a 15 cm, um fuso comprido com núcleo mais claro. Com 20 cm, a 80–120 vezes, o disco fica manchado de poeira e de nós brilhantes. O centro é um "starburst": ali nascem estrelas num ritmo frenético. Filtro de nebulosa não ajuda em galáxia.
+
+## Eta Carinae
+@target: dso:NGC 3372
+@time: data:03-15 hora:22:00
+@fov: 4
+@image: dss:NGC 3372
+
+A **Nebulosa de Carina**, maior e mais brilhante que a de Órion, guarda **Eta Carinae**, uma das estrelas mais massivas conhecidas — talvez cem vezes a massa do Sol. Em 1843 ela teve uma erupção gigantesca e virou a segunda estrela mais brilhante do céu. Um dia vai explodir como supernova.
+
+A olho nu, em céu escuro, é o trecho mais brilhante da Via Láctea austral, cortado por uma fenda escura. Ao binóculo, Eta Carinae brilha alaranjada sobre a nuvem, entre aglomerados jovens. Num telescópio pequeno, abaixo de 50 vezes, a fenda vira um V nítido e, perto da estrela, surge o **Buraco da Fechadura**, uma mancha de poeira.
+
+## As Plêiades do Sul e o Poço dos Desejos
+@target: dso:IC 2602
+@time: data:03-25 hora:22:30
+@fov: 12
+@image: dss:IC 2602
+
+A leste da Nebulosa de Carina, dois aglomerados abertos que pedem binóculo. **IC 2602** reúne-se em torno da azulada Theta Carinae; Lacaille o encontrou em 1752 e o comparou às Plêiades — daí o apelido **Plêiades do Sul**. A olho nu se veem a estrela e algumas companheiras; ao binóculo, mais de vinte.
+
+Um pouco ao norte fica **NGC 3532**, o **Poço dos Desejos**, maior que duas Luas cheias. A olho nu é só um brilho; ao binóculo, dezenas de estrelas numa figura quase retangular, com uma estrela azulada e outra avermelhada numa das pontas. Num telescópio de 10 cm, mais de cem estrelas. Use sempre o menor aumento.
 
 ## A Caixinha de Joias e o Saco de Carvão
 @target: dso:NGC 4755
@@ -63,6 +101,28 @@ O segundo globular mais brilhante do céu, ao lado da Pequena Nuvem. Ao telescó
 
 Junto do Cruzeiro do Sul, a **Caixinha de Joias**, colorida, e o **Saco de Carvão**, a nebulosa escura mais famosa do céu, visível a olho nu como um buraco na Via Láctea.
 
+O Saco de Carvão é uma nuvem de poeira a uns 550 a 600 anos-luz, de 7° por 5°, que apaga as estrelas de trás. É objeto de olho nu: no binóculo e no telescópio o contraste se perde. Já a Caixinha pede instrumento: ao binóculo, um punhado de estrelas brilhantes com a alaranjada Kappa Crucis entre as azuis; num telescópio de 10 a 15 cm, dezenas de estrelas coloridas sobre um fundo de centenas.
+
+## A Galinha Correndo
+@target: dso:IC 2944
+@time: data:04-15 hora:22:30
+@fov: 3
+@image: dss:IC 2944
+
+Ao lado de Lambda Centauri fica uma grande nebulosa com aglomerado, **IC 2944**, apelidada de **Galinha Correndo**. Dentro dela, sombras pequenas e densas — os **glóbulos de Thackeray**, descobertos em 1950 — são nuvens de poeira sendo corroídas pela luz das estrelas jovens.
+
+Aqui, a honestidade manda: a olho nu, só a estrela; ao binóculo, um grupo de estrelas junto a ela, numa faixa de meio grau. A nebulosa pede telescópio de 10 cm em céu escuro, e com 20 cm e filtro de nebulosa ela fica evidente. Os glóbulos são assunto para a câmera, não para o olho.
+
+## Ômega Centauri
+@target: dso:NGC 5139
+@time: data:05-15 hora:21:00
+@fov: 2
+@image: dss:NGC 5139
+
+O maior aglomerado globular da Via Láctea — e um dos únicos visíveis a olho nu. Para muitos astrônomos, é o núcleo de uma galáxia anã engolida pela nossa.
+
+A olho nu, mesmo de cidade, é uma "estrela" grande e difusa quando está alta. Ao binóculo, um disco felpudo maior que a Lua cheia. Num telescópio de 10 a 15 cm, a periferia se desfaz em estrelas de 13ª e 14ª magnitude; com 20 cm, são quase mil pontos — procure as regiões mais escuras no meio do aglomerado. No hemisfério norte, ele mal sobe acima da bruma do horizonte; no Brasil, passa alto nas noites de outono.
+
 ## Centaurus A
 @target: dso:NGC 5128
 @time: data:05-15 hora:22:00
@@ -70,13 +130,29 @@ Junto do Cruzeiro do Sul, a **Caixinha de Joias**, colorida, e o **Saco de Carv�
 
 Uma galáxia elíptica atravessada por uma faixa de poeira: **Centaurus A**, uma das fontes de rádio mais fortes do céu, alimentada por um buraco negro de 55 milhões de massas solares. A 12 milhões de anos-luz, aparece até num telescópio pequeno.
 
-## NGC 253
-@target: dso:NGC 253
-@time: data:10-15 hora:22:30
-@fov: 2
-@image: dss:NGC 253
+Fica a uns 4,5° ao norte de Ômega Centauri. Ao binóculo, é uma mancha oval de centro mais claro. A faixa escura que corta a galáxia pede uns 20 cm e 100 a 150 vezes em céu escuro. Cuidado com as fotos: elas estouram o núcleo, e a galáxia real é bem maior do que parece.
 
-A Galáxia do Escultor, quase de perfil, passa pelo zênite nas noites de primavera no Brasil. Descoberta por Caroline Herschel em 1783, é uma das galáxias mais brilhantes do céu.
+## O Falso Cometa: NGC 6231
+@target: dso:NGC 6231
+@time: data:07-01 hora:21:00
+@fov: 5
+@image: dss:NGC 6231
+@highlight: const:Sco
+
+Na curva da cauda do Escorpião, perto de Zeta Scorpii, uma manchinha brilhante: **NGC 6231**. A olho nu, ela e um grupo de estrelas a nor-nordeste lembram um cometa parado — o **Falso Cometa**, nome dado por John Herschel, que observou do Cabo na década de 1830. Hodierna já o tinha listado em 1654.
+
+São estrelas azuis, jovens e muito quentes, a uns 5.500 anos-luz. Ao binóculo, cerca de dez estrelas brilhantes num triângulo; num telescópio de 10 cm, mais de cem, com um nó no centro. Um observador australiano comparou-o a diamantes sobre veludo negro.
+
+## NGC 6752, o globular do Pavão
+@target: dso:NGC 6752
+@time: data:08-15 hora:21:30
+@fov: 2
+@image: dss:NGC 6752
+@highlight: const:Pav
+
+Em Pavão, constelação pouco conhecida do céu sul, mora um dos globulares mais bonitos do céu: **NGC 6752**, a uns 13 mil anos-luz — perto, para um globular, e por isso suas estrelas são mais brilhantes. Tem cerca de 11 bilhões de anos.
+
+Ao binóculo, uma bola difusa e evidente, de centro claro. Um telescópio de 7,5 cm já resolve as estrelas mais brilhantes; com 15 cm aparecem centenas, em fileiras que partem do centro — há quem veja nelas uma estrela-do-mar. Perto do núcleo brilha uma estrela que não pertence ao aglomerado: está dezesseis vezes mais perto de nós.
 
 ## O céu é nosso
 @kind: fim
@@ -85,3 +161,5 @@ A Galáxia do Escultor, quase de perfil, passa pelo zênite nas noites de primav
 @skip_if_below: -90
 
 Todos estes objetos estão no botão **★ Guardar os objetos deste tour numa lista**. Para muitos observadores do hemisfério norte, ver o céu austral é a viagem de uma vida — para nós, basta uma noite escura.
+
+Comece pelos fáceis — a Caixinha de Joias, Ômega Centauri, 47 Tucanae — e deixe a Galinha Correndo e a Tarântula para uma noite de céu bem escuro, longe da cidade.

@@ -30,6 +30,8 @@ Com o centro da Via Láctea se pondo, a primavera abre a janela para o céu "de 
 
 **NGC 253** passa quase pelo zênite em outubro: uma espiral grande, vista quase de perfil, cheia de poeira e de regiões de formação de estrelas. É uma das galáxias mais brilhantes do céu e rende bem a partir de 400 mm.
 
+**Ponto de partida:** 400 a 1000 mm; com 1000 mm e sensor de 4/3", ela ocupa boa parte do quadro. Banda larga com anti-poluição leve ou UV/IR-cut — o dual-band não ajuda no disco. Típico: 40 subs de 30 s para o núcleo starburst e 90 de 120 s — 3 horas — para o disco e a poeira. No zênite, a rotação de campo de um smart telescope incomoda menos: 10 a 20 s.
+
 ## NGC 300
 @target: dso:NGC 300
 @time: data:10-15 hora:23:00
@@ -49,6 +51,8 @@ Também no Escultor, **NGC 300** é uma espiral vista de frente, de brilho super
 @image: dss:NGC 7293
 
 Em Aquário, a **Hélice** é uma das nebulosas planetárias mais próximas — e a maior em tamanho aparente, com metade do diâmetro da Lua cheia. O "olho" azul e vermelho fica ótimo com filtros de oxigênio e hidrogênio.
+
+**Ponto de partida:** 600 a 1200 mm. Na cidade, o dual-band é quase obrigatório: sem ele, o fundo do céu engole o halo; com câmera mono, SHO ou HOO. Típico: 30 subs de 60 s para o anel interno e 60 de 180 s — 3 horas — para o halo avermelhado. Smart telescope: 10 a 20 s com o filtro ligado. No processamento, não clareie demais o halo.
 
 ## A Pequena Nuvem e 47 Tucanae
 @target: dso:NGC 292

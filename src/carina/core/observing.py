@@ -516,7 +516,20 @@ def _direction_from(ra0: float, dec0: float, ra1: float, dec1: float) -> str:
         return ew
     if abs(ddec) > 2.5 * abs(dra) * math.cos(dec0):
         return ns
-    return f"{ns}{ew}"
+    return _COMPOUND[(ns, ew)]
+
+
+_COMPOUND = {("norte", "leste"): "nordeste", ("norte", "oeste"): "noroeste",
+             ("sul", "leste"): "sudeste", ("sul", "oeste"): "sudoeste"}
+_OPPOSITE_DIR = {"norte": "sul", "sul": "norte", "leste": "oeste", "oeste": "leste",
+             "nordeste": "sudoeste", "sudoeste": "nordeste",
+             "noroeste": "sudeste", "sudeste": "noroeste"}
+
+
+def _opposite(direction: str) -> str:
+    """Direção contrária ("sudeste" → "noroeste"), para dizer onde a guia
+    fica em relação ao alvo quando ``direction`` é da guia para o alvo."""
+    return _OPPOSITE_DIR.get(direction, direction)
 
 
 MIN_GUIDES = 2            # sempre mais de uma referência (pedido do usuário)
@@ -601,7 +614,7 @@ def _build_finder(stars, ra: float, dec: float, const_name: str,
         else:
             parts.append(
                 f"{name} ({stars.mag[idx]:.1f}) fica a {sep:.1f}° do alvo, "
-                f"{direction} dele"
+                f"{_opposite(direction)} dele"
             )
     text = parts[0] + "."
     if len(parts) > 1:

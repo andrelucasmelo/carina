@@ -1,0 +1,162 @@
+{
+ "steps": [
+  {
+   "title": "O catálogo de Patrick Moore",
+   "kind": "intro",
+   "target": "altaz:180,50",
+   "fov": 120.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": true,
+    "dso": true,
+    "dso_names": true,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "Charles Messier observava de Paris, e quase nada abaixo da declinação −35° entrou na lista dele. Em 1995, o astrônomo inglês **Patrick Moore** — apresentador do programa *The Sky at Night*, da BBC, por mais de cinquenta anos — publicou na revista *Sky & Telescope* uma lista complementar de 109 objetos que não estavam no Messier. Para não confundir com o \"M\", usou a outra metade do sobrenome, Caldwell-Moore: nasceu o **catálogo Caldwell**.\n\nOs números seguem a declinação, de C 1, perto do polo norte, a C 109, perto do polo sul. Para o Brasil, a segunda metade é um tesouro."
+  },
+  {
+   "title": "A Tarântula (C 103)",
+   "target": "dso:NGC 2070",
+   "time": "data:01-30 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:NGC 2070",
+   "text": "Na Grande Nuvem de Magalhães, uma \"estrela\" difusa a olho nu é, na verdade, uma nebulosa em outra galáxia: a **Tarântula**, a uns 160 mil anos-luz. Nenhuma região de formação de estrelas do Grupo Local é maior — tem mais de mil anos-luz de diâmetro.\n\nNum telescópio de 15 cm, um filtro UHC ou OIII mostra as alças de gás que lembram as pernas da aranha, em volta de um núcleo brilhante: o aglomerado central, cheio de algumas das estrelas mais massivas conhecidas. Lacaille percebeu que era uma nebulosa em 1751. Bem perto dela explodiu a supernova de 1987."
+  },
+  {
+   "title": "O Anel do Sul (C 74)",
+   "target": "dso:NGC 3132",
+   "time": "data:03-20 hora:21:00",
+   "fov": 0.5,
+   "image": "dss:NGC 3132",
+   "text": "Na Vela, uns 7° a leste de Gama, está **NGC 3132**, o **Anel do Sul**, uma nebulosa planetária a uns 2.000 anos-luz: a casca de gás soprada por uma estrela parecida com o Sol no fim da vida.\n\nCom 15 cm e aumento alto, é um oval cinza-azulado com uma estrela no meio — e um filtro OIII ajuda. A pegadinha: essa estrela visível não é a que acende o gás. Quem faz isso é uma companheira fraca e quentíssima, colada a ela. Em julho de 2022, o Anel do Sul esteve entre as primeiras imagens divulgadas do Telescópio Espacial James Webb."
+  },
+  {
+   "title": "O último da lista (C 109)",
+   "target": "dso:NGC 3195",
+   "time": "data:03-20 hora:21:00",
+   "fov": 0.5,
+   "image": "dss:NGC 3195",
+   "text": "O catálogo termina perto do polo sul, no Camaleão: **NGC 3195**, outra planetária, a uns 81° de declinação sul. Do Rio e de Porto Alegre ela nunca se põe; em Fortaleza, mal passa de 12° de altura.\n\nÉ o desafio do tour: magnitude 11,6 e menos de um minuto de arco. Com 20 a 30 cm, um filtro OIII e mais de 100 aumentos, parece uma estrela \"inchada\", que não entra em foco. Fica uns 2° a oeste de Delta do Camaleão. Perto do polo, o céu gira devagar — o objeto quase não sai do campo."
+  },
+  {
+   "title": "A Pérola do Centauro (C 97)",
+   "target": "dso:NGC 3766",
+   "time": "data:04-20 hora:21:00",
+   "fov": 3.0,
+   "image": "dss:NGC 3766",
+   "text": "A oeste do Cruzeiro, uns 1,5° ao norte de **Lambda do Centauro**, um aglomerado compacto e brilhante: **NGC 3766**, a **Pérola**. No binóculo é uma mancha concentrada; num telescópio de 10 a 15 cm, dezenas de estrelas brancas e azuladas, com um par de estrelas alaranjadas que dão contraste.\n\nEstá a uns 5.800 anos-luz e tem só uns 15 milhões de anos. É um vizinho perfeito da Caixinha de Joias e da Nebulosa de Carina: dá para ver os três na mesma noite de outono."
+  },
+  {
+   "title": "A Galinha Correndo (C 100)",
+   "target": "dso:IC 2944",
+   "time": "data:04-20 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:IC 2944",
+   "text": "Logo a sudeste de Lambda do Centauro, uns 2° ao sul da Pérola, fica um grupo de estrelas envolto em nebulosa: **IC 2944**, apelidada de **Galinha Correndo** pelo desenho que o gás forma nas fotografias.\n\nAo telescópio, o que se vê é uma cadeia de estrelas azuis; a nebulosa é fraca e pede céu escuro e filtro — é um alvo melhor para a câmera. Nas imagens do Hubble aparecem os **glóbulos de Thackeray**, nuvenzinhas escuras recortadas contra o brilho. Curiosidade de catálogo: há tanta confusão entre IC 2944, IC 2948 e Collinder 249 que nem as listas concordam sobre qual é o C 100."
+  },
+  {
+   "title": "O Saco de Carvão e o aglomerado atrás dele (C 99 e C 98)",
+   "target": "dso:C 99",
+   "time": "data:05-10 hora:21:00",
+   "fov": 10.0,
+   "highlight": [
+    "asterism:cruzeiro"
+   ],
+   "text": "O **Saco de Carvão** (C 99), a mancha escura ao lado do Cruzeiro, não é um buraco: é uma nuvem de poeira a uns 600 anos-luz, que esconde as estrelas de trás. Ela se espalha por três constelações — Cruzeiro, Centauro e Mosca — e é o objeto Caldwell mais fácil de todos: dispensa instrumento.\n\nMas a nuvem não é totalmente opaca. Uns 2° a leste de Acrux, o pequeno aglomerado **NGC 4609** (C 98), a uns 4.000 anos-luz, brilha através dela, com as estrelas avermelhadas pela poeira — como o Sol num fim de tarde enfumaçado. Num telescópio de 10 cm, uma dúzia de estrelas fracas."
+  },
+  {
+   "title": "Os globulares da Mosca (C 105 e C 108)",
+   "target": "dso:NGC 4833",
+   "time": "data:05-12 hora:21:00",
+   "fov": 5.0,
+   "image": "dss:NGC 4833",
+   "text": "Abaixo do Cruzeiro, na **Mosca**, dois aglomerados globulares a uns 3° um do outro. **NGC 4833** (C 105), perto de Alfa da Mosca, a uns 20 mil anos-luz, é uma bola de luz no binóculo e começa a mostrar estrelas num telescópio de 20 cm.\n\n**NGC 4372** (C 108) é o oposto: grande, frouxo e de brilho tão espalhado que pede céu escuro. Ao lado dele passa uma faixa estreita de poeira, a **Dark Doodad**, que aparece no binóculo como um risco escuro na Via Láctea. Do Rio para o sul, os dois nunca se põem."
+  },
+  {
+   "title": "Uma Cefeida num aglomerado (C 89)",
+   "target": "dso:NGC 6087",
+   "time": "data:07-01 hora:21:00",
+   "fov": 4.0,
+   "fov_circle": 6.0,
+   "image": "dss:NGC 6087",
+   "text": "No Esquadro, a constelação pequena entre o Escorpião e o Triângulo Austral, está **NGC 6087**, um aglomerado aberto bom para binóculo, a uns 3.300 anos-luz. No meio dele, a estrela mais brilhante é **S Normae**, uma **Cefeida**: ela pulsa e varia de brilho a cada 9,8 dias.\n\nIsso é ouro para os astrônomos. O ritmo de uma Cefeida diz quanto ela brilha de verdade; se sabemos a distância do aglomerado, calibramos a régua que mede distâncias até outras galáxias. Acompanhe S Normae por duas semanas e veja a variação comparando-a com as vizinhas."
+  },
+  {
+   "title": "A Nebulosa do Inseto (C 69)",
+   "target": "dso:NGC 6302",
+   "time": "data:07-15 hora:21:00",
+   "fov": 0.5,
+   "image": "dss:NGC 6302",
+   "text": "Uns 4° a oeste de **Shaula**, no ferrão do Escorpião, uma planetária que o Messier nunca viu: **NGC 6302**, o **Inseto**, ou **Borboleta**. Do Brasil ela passa bem alto, perto do zênite.\n\nNum telescópio de 15 a 20 cm, com aumento alto e filtro OIII, é uma barrinha cinza e brilhante. As fotografias mostram duas asas de gás simétricas: a estrela que morre lá dentro, escondida por um anel de poeira, tem uma das superfícies mais quentes conhecidas, mais de 200 mil graus. As asas são o gás que ela expulsou nos últimos milhares de anos."
+  },
+  {
+   "title": "NGC 6397, um globular vizinho (C 86)",
+   "target": "dso:NGC 6397",
+   "time": "data:07-20 hora:21:00",
+   "fov": 1.0,
+   "image": "dss:NGC 6397",
+   "text": "No Altar, uns 4° ao sul de Alfa, está **NGC 6397**, um dos dois globulares mais próximos de nós, ao lado de M 4: uns 8 mil anos-luz. Com magnitude 5,7, aparece no binóculo como uma bola grande e difusa.\n\nPor estar tão perto, é generoso: num telescópio de 10 cm já se separam as estrelas mais brilhantes, e com 20 cm o campo se enche delas. O núcleo é muito apertado — os astrônomos dizem que ele \"colapsou\". O Hubble apontou para cá para achar as anãs brancas mais fracas do aglomerado e, com elas, estimar a sua idade."
+  },
+  {
+   "title": "NGC 6541, na Coroa Austral (C 78)",
+   "target": "dso:NGC 6541",
+   "time": "data:07-28 hora:21:00",
+   "fov": 1.0,
+   "image": "dss:NGC 6541",
+   "text": "Na **Coroa Austral**, a leste da cauda do Escorpião, outro globular: **NGC 6541**, a mais de 20 mil anos-luz. No binóculo é uma estrela borrada; num telescópio de 15 cm, uma bola com núcleo compacto e brilhante, que começa a granular nas bordas com 20 cm.\n\nOs globulares estão entre os objetos mais velhos da Galáxia, com uns 12 bilhões de anos. Já houve um tempo em que as estimativas os faziam mais velhos que o próprio universo — um paradoxo que se resolveu quando as medidas de distância melhoraram."
+  },
+  {
+   "title": "A Estrela-do-Mar (C 93)",
+   "target": "dso:NGC 6752",
+   "time": "data:08-12 hora:21:00",
+   "fov": 1.5,
+   "image": "dss:NGC 6752",
+   "text": "No Pavão, uns 10° a oés-sudoeste de **Peacock**, está **NGC 6752**, um dos globulares mais brilhantes do céu: só Ômega Centauri, 47 Tucanae e M 22 o superam com folga. Num céu escuro, chega a ser visível a olho nu; no binóculo, uma bola de luz evidente.\n\nNum telescópio de 15 a 20 cm, o núcleo concentrado se cerca de fileiras de estrelas resolvidas — há quem veja nelas os braços de uma estrela-do-mar, origem do apelido. Está a uns 13 mil anos-luz. Uma estrela brilhante junto ao centro não pertence ao aglomerado: está muito mais perto, na frente."
+  },
+  {
+   "title": "Uma Via Láctea vista de fora (C 101)",
+   "target": "dso:NGC 6744",
+   "time": "data:08-12 hora:21:00",
+   "fov": 1.0,
+   "image": "dss:NGC 6744",
+   "text": "Uns 4° ao sul da Estrela-do-Mar, uma das maiores espirais próximas: **NGC 6744**, a uns 30 milhões de anos-luz. Com núcleo alongado e braços largos, é considerada uma das galáxias mais parecidas com a nossa — é assim que a Via Láctea seria vista de longe.\n\nAo olho, porém, ela é tímida: num telescópio de 15 a 20 cm, em céu escuro, aparece um oval com o centro mais brilhante, menor do que nas fotos; os braços são um desafio até para telescópios grandes. Na cidade, só o núcleo. É uma galáxia para a câmera, e quase desconhecida do hemisfério norte."
+  },
+  {
+   "title": "Três distâncias num campo (C 104)",
+   "target": "dso:NGC 362",
+   "time": "data:11-20 hora:21:00",
+   "fov": 8.0,
+   "image": "dss:NGC 362",
+   "text": "Ao norte da Pequena Nuvem de Magalhães, um globular discreto: **NGC 362**. No binóculo, uma estrelinha borrada; num telescópio de 15 cm, uma bola compacta que se granula nas bordas com 20 cm.\n\nO encanto está no campo. Num binóculo de campo largo, mirando entre eles, cabem três distâncias: NGC 362, a uns 28 mil anos-luz; **47 Tucanae**, ali ao lado, mais perto, a uns 15 mil; e a **Pequena Nuvem**, ao fundo, uma galáxia inteira a uns 200 mil. Parecem vizinhos, mas é uma ilusão de perspectiva."
+  },
+  {
+   "title": "Agora é com você",
+   "kind": "fim",
+   "target": "altaz:180,50",
+   "fov": 120.0,
+   "skip_if_below": -90.0,
+   "text": "Estes foram dezesseis dos 109 objetos. Para seguir, abra **Planejar ▸ Programas de observação** e escolha o programa **Caldwell**: o Carina marca o que você já observou e mostra o progresso num anel.\n\nOs objetos deste tour também estão no botão **★ Guardar os objetos deste tour numa lista**. Do Brasil, os Caldwell do sul ficam altos; já os primeiros números, perto do polo norte celeste, ficam baixos demais ou nem chegam a nascer."
+  }
+ ],
+ "key": "caldwell-sul",
+ "title": "Caldwell do sul: o que o Messier não tem",
+ "subtitle": "Globulares, planetárias, nebulosas e galáxias do catálogo de Patrick Moore que só o hemisfério sul mostra bem",
+ "category": "intermediario",
+ "level": 2,
+ "minutes": 18,
+ "when": "data:05-10 hora:21:00",
+ "lat_range": [
+  -40.0,
+  5.0
+ ],
+ "tags": [
+  "Caldwell",
+  "céu profundo",
+  "telescópio",
+  "globulares",
+  "planetárias",
+  "hemisfério sul"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

@@ -15,13 +15,22 @@
    "text": "Quem aprende meia dúzia de constelações nunca mais se perde no céu: cada uma vira ponto de partida para as vizinhas. Neste tour o relógio vai, para cada figura, à **melhor hora desta noite** — quando ela está mais alta no seu céu. As que não aparecem nesta época do ano são puladas, e o tour avisa.\n\nAs linhas das constelações e os nomes ficam ligados durante o passeio; ao sair, o céu volta como estava."
   },
   {
+   "title": "O método dos três passos",
+   "kind": "intro",
+   "target": "altaz:180,35",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "text": "Para reconhecer qualquer constelação, faça sempre a mesma coisa:\n\n1. **A estrela mais brilhante.** Procure primeiro a que se destaca — a que aparece mesmo com a cidade acesa. Ela é o ponto de partida.\n2. **O desenho.** A partir dela, ligue mentalmente as vizinhas até formar a figura: uma cruz, uma fila de três, um anzol.\n3. **A vizinhança.** Confira o que há em volta: outra constelação, uma estrela brilhante, uma mancha da Via Láctea. Se combina com o mapa, você acertou.\n\nPara medir, use a mão com o braço esticado: o punho fechado cobre uns 10°, o palmo aberto, uns 20°."
+  },
+  {
    "title": "O Cruzeiro do Sul",
    "target": "const:Cru",
    "time": "melhor",
    "fov": 30.0,
    "highlight": [
     "asterism:cruzeiro",
-    "asterism:apontadores"
+    "asterism:apontadores",
+    "alignment:cruzeiro-polo"
    ],
    "text": "A cruz de quatro estrelas da bandeira do Brasil é pequena — cabe atrás da mão com o braço esticado. Para não confundir com a Falsa Cruz, procure as duas estrelas brilhantes ao lado, os **Guardiões** (Alfa e Beta do Centauro): eles apontam para o Cruzeiro.\n\nO braço maior aponta para o **polo sul celeste**. Prolongue-o umas quatro vezes e meia e você está no ponto em volta do qual todo o céu do sul gira — e, descendo dali até o horizonte, no sul."
   },
@@ -32,9 +41,10 @@
    "fov": 40.0,
    "highlight": [
     "const:Ori",
-    "asterism:tres-marias"
+    "asterism:tres-marias",
+    "alignment:orion-sirius-aldebaran"
    ],
-   "text": "As **Três Marias**, três estrelas alinhadas e de brilho igual, são o cinturão de Órion. Em volta delas, quatro estrelas formam um grande retângulo: **Betelgeuse**, avermelhada, e **Rigel**, azulada, nos cantos opostos. Do Brasil, Órion aparece \"de cabeça para baixo\" em relação aos desenhos dos livros feitos no hemisfério norte.\n\nLogo abaixo das Três Marias (ou acima, conforme a hora), uma fileira de estrelas fracas forma a espada — e nela está a **Nebulosa de Órion**, uma mancha que já se vê a olho nu."
+   "text": "As **Três Marias**, três estrelas alinhadas e de brilho igual, são o cinturão de Órion. Em volta delas, quatro estrelas formam um grande retângulo: **Betelgeuse**, avermelhada, e **Rigel**, azulada, nos cantos opostos. Do Brasil, Órion aparece \"de cabeça para baixo\" em relação aos desenhos dos livros feitos no hemisfério norte.\n\nLogo abaixo das Três Marias (ou acima, conforme a hora), uma fileira de estrelas fracas forma a espada — e nela está a **Nebulosa de Órion**, uma mancha que já se vê a olho nu.\n\nAs Três Marias também são uma ponte: prolongue a fila para um lado, uns dois punhos, e chega a **Sirius**, a mais brilhante do céu; para o outro, à mesma distância, a **Aldebaran**, do Touro."
   },
   {
    "title": "O Escorpião",
@@ -45,7 +55,7 @@
     "const:Sco",
     "asterism:ferrao"
    ],
-   "text": "É uma das poucas constelações que parecem de verdade com o que representam: uma cabeça de três estrelas, o coração vermelho — **Antares** — e uma cauda longa que termina num ferrão curvado.\n\nNa mitologia, foi o escorpião que matou Órion. Por isso os dois foram postos em lados opostos do céu: quando o Escorpião nasce, Órion se põe. No inverno brasileiro ele passa bem alto, quase sobre a cabeça."
+   "text": "É uma das poucas constelações que parecem de verdade com o que representam: uma cabeça de três estrelas, o coração vermelho — **Antares** — e uma cauda longa que termina num ferrão curvado.\n\nNa mitologia, foi o escorpião que matou Órion. Por isso os dois foram postos em lados opostos do céu: quando o Escorpião nasce, Órion se põe. No inverno brasileiro ele passa bem alto, quase sobre a cabeça.\n\nPara chegar a ele a partir do Cruzeiro, vá aos Guardiões e salte uns quatro punhos (cerca de 39°) para longe da cruz: a primeira estrela avermelhada e brilhante é Antares."
   },
   {
    "title": "O Touro e as Plêiades",
@@ -53,7 +63,8 @@
    "time": "melhor",
    "fov": 40.0,
    "highlight": [
-    "asterism:hiades"
+    "asterism:hiades",
+    "alignment:orion-pleiades"
    ],
    "text": "Siga a linha das Três Marias para o lado oposto ao de Sirius e você chega a **Aldebaran**, alaranjada, no meio de um **V** de estrelas: é a cara do Touro, formada pelo aglomerado das Híades.\n\nContinue na mesma direção e aparece um grupinho apertado de estrelas azuladas: as **Plêiades** (M 45), as \"Sete Irmãs\". Quantas você consegue contar a olho nu? Seis é o normal; em céu escuro, oito ou nove."
   },
@@ -64,9 +75,10 @@
    "fov": 40.0,
    "highlight": [
     "asterism:foice",
-    "asterism:triangulo-outono"
+    "asterism:triangulo-outono",
+    "alignment:cruzeiro-corvo"
    ],
-   "text": "Do Brasil o Leão aparece ao norte, deitado de costas. A cabeça é a **Foice**, um ponto de interrogação invertido de estrelas, com **Regulus** na ponta; o corpo termina num triângulo, com **Denebola** na cauda.\n\nRegulus, Spica (na Virgem) e Arcturus (no Boieiro) formam um triângulo enorme, bom para se orientar nas noites de outono."
+   "text": "Do Brasil o Leão aparece ao norte, deitado de costas. A cabeça é a **Foice**, um ponto de interrogação invertido de estrelas, com **Regulus** na ponta; o corpo termina num triângulo, com **Denebola** na cauda.\n\nRegulus, Spica (na Virgem) e Arcturus (no Boieiro) formam um triângulo enorme, bom para se orientar nas noites de outono. O Cruzeiro também leva até essa região: o braço maior, de Acrux para Gacrux, prolongado umas seis vezes e meia, chega ao Corvo; e do Corvo, a linha segue para Spica."
   },
   {
    "title": "Sagitário e o centro da Galáxia",
@@ -74,9 +86,18 @@
    "time": "melhor",
    "fov": 40.0,
    "highlight": [
-    "asterism:bule"
+    "asterism:bule",
+    "alignment:escorpiao-centro"
    ],
-   "text": "As estrelas de Sagitário desenham um **bule de chá**, com tampa, alça e bico. O \"vapor\" que sai do bico é a parte mais brilhante da Via Láctea: ali, a 26 mil anos-luz, está o **centro da nossa galáxia**.\n\nNum céu escuro, longe das luzes da cidade, essa região é o melhor lugar para passear com um binóculo — nebulosas e aglomerados aparecem por toda parte."
+   "text": "Vizinho do Escorpião, a leste dele: do coração, Antares, siga a cauda até o ferrão, e do ferrão continue até o Bule. As estrelas de Sagitário desenham um **bule de chá**, com tampa, alça e bico. O \"vapor\" que sai do bico é a parte mais brilhante da Via Láctea: ali, a 26 mil anos-luz, está o **centro da nossa galáxia**.\n\nNum céu escuro, longe das luzes da cidade, essa região é o melhor lugar para passear com um binóculo — nebulosas e aglomerados aparecem por toda parte."
+  },
+  {
+   "title": "Como elas se ligam",
+   "kind": "intro",
+   "target": "altaz:180,40",
+   "fov": 110.0,
+   "skip_if_below": -90.0,
+   "text": "Depois de achar uma figura, use-a de ponte para a seguinte. Do **Cruzeiro** aos **Guardiões** são uns 16°, um palmo e meio; dos Guardiões até **Antares**, no Escorpião, uns 39°, quatro punhos. Do Escorpião, a cauda leva ao Bule de **Sagitário**.\n\n**Órion** fica do lado oposto do céu, com o **Touro** ao lado: quando Órion está alto ao anoitecer (verão), o Escorpião não aparece; quando o Escorpião está alto (inverno), Órion só surge de madrugada. Em meados de abril, por volta das 21h, Betelgeuse e Antares ficam ambas a uns 13° de altura, uma a oeste e a outra a leste — a gangorra do céu."
   },
   {
    "title": "Agora é com você",

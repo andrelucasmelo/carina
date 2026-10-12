@@ -109,6 +109,8 @@ Foram publicadas por Plancius e pelo atlas **Uranometria** de Johann Bayer, em 1
 
 Em 1751 e 1752, **Nicolas-Louis de Lacaille** mapeou quase dez mil estrelas do céu austral a partir da Cidade do Cabo. Preencheu os vazios com **14** constelações que homenageiam instrumentos da ciência e das artes: o Telescópio, o Microscópio, o Relógio, o Compasso, o Esquadro, o Octante (que contém o polo sul) e a Mesa — a montanha do Cabo, de onde observava.
 
+A caminho do Cabo, em 1751, Lacaille parou no **Rio de Janeiro**: montou um observatório na Rua do Rosário e mediu a latitude e a longitude da cidade — que, pelo diário publicado depois da sua morte, ele não achou lá muito agradável.
+
 ## Hevelius, Plancius e as últimas figuras
 @target: const:Mon
 @time: data:01-15 hora:22:00
@@ -126,6 +128,37 @@ Dezenas de outras propostas — a Gata, o Balão, a Máquina de Imprimir — nã
 @highlight: asterism:cruzeiro, asterism:apontadores
 
 {lore:short:Cru}
+
+## O céu que o Brasil nomeou: o Cruzeiro
+@target: asterism:cruzeiro
+@time: data:05-15 hora:21:00
+@fov: 40
+@highlight: asterism:cruzeiro, asterism:apontadores
+@layers: dso=1, dso_names=1
+
+Ao lado dos nomes oficiais, o Brasil deu ao céu os seus. A quinta estrela do Cruzeiro, fraca e alaranjada, é a **Intrometida** — nome brasileiro, porque ela "se mete" no desenho; a menos brilhante das quatro grandes, a do braço direito, é a **Pálida**.
+
+No rio Negro, segundo o registro de Temístocles de Souza Brasil, o Cruzeiro é **Juaraua**, um peixe-boi em fuga eterna, perseguido por Alfa e Beta do Centauro; a mancha escura ao lado é **Juaraná**. E o próprio nome **Saco de Carvão** vem dos navegantes: já aparece em 1510, num relato do italiano Pietro Martire d'Anghiera sobre Vicente Yáñez Pinzón, que a teria visto em 1500.
+
+## O céu que o Brasil nomeou: o Sete-Estrelo
+@target: dso:M 45
+@time: data:12-15 hora:22:30
+@fov: 40
+@highlight: asterism:tres-marias, alignment:orion-pleiades
+
+As **Plêiades** são o astro com mais apelidos no Brasil: **Sete-Estrelo**, **Sete-Cabrinhas** e **Olhinhos de Santa Luzia**, nome ouvido no interior do Espírito Santo e registrado pelo cronista Rubem Braga. Na Amazônia, Barbosa Rodrigues anotou o nome tupi **Ceuci**. As Três Marias, ali perto, também viram **Três Reis Magos**.
+
+O dicionário de Ronaldo Mourão conta que povos da América do Sul e do Brasil marcavam o início do ano pelo dia em que as Plêiades reaparecem a leste, pouco antes do amanhecer — no Brasil, por volta de junho. Um calendário sem papel: quando elas voltam, a estação mudou.
+
+## O céu que o Brasil nomeou: a cobra e a Ema
+@target: const:Sco
+@time: data:07-15 hora:21:00
+@fov: 90
+@highlight: const:Sco, const:Oph, asterism:cruzeiro
+
+Onde os gregos viram um escorpião, no rio Negro se viu uma cobra: **Boianaçu**, a "grande cobra preta", segundo Temístocles de Souza Brasil. O Ofiúco, ao lado, era **Boiaçu**, a "cobra grande", no registro de Barbosa Rodrigues. Os nomes vieram de coletores dos séculos XIX e XX, que nem sempre disseram de qual povo os ouviram.
+
+Entre o Cruzeiro e o Escorpião se estende a **Ema** (Guirá Nhandu), feita das manchas escuras da Via Láctea — figura estudada pelo astrônomo Germano Afonso entre povos tupi-guarani. O Carina não a desenha: procure-a a olho nu, num céu bem escuro de inverno, lendo o escuro em vez das estrelas. O próximo passo mostra onde fica a cabeça.
 
 ## Outros céus
 @target: dso:C 99

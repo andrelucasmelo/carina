@@ -1,0 +1,170 @@
+{
+ "steps": [
+  {
+   "title": "Ilhas de estrelas",
+   "kind": "intro",
+   "target": "altaz:0,60",
+   "fov": 120.0,
+   "layers": {
+    "const_lines": true,
+    "const_names": true,
+    "dso": true,
+    "dso_names": true,
+    "grid_altaz": false
+   },
+   "skip_if_below": -90.0,
+   "text": "Quase tudo o que se vê a olho nu pertence à Via Láctea. As galáxias ficam além: outras ilhas de bilhões de estrelas, a milhões de anos-luz. Para vê-las, precisamos olhar **para fora** do plano da nossa galáxia. No Brasil, isso acontece duas vezes por ano: no outono, para o lado do Leão e de Virgem, e na primavera, para o lado do Escultor.\n\nCada passo vai à noite em que a galáxia passa alta. A referência é um telescópio de 15 a 20 cm. Num céu de cidade, quase toda galáxia é só um núcleo; os detalhes dependem de um céu escuro."
+  },
+  {
+   "title": "O Trio do Leão",
+   "target": "dso:M 66",
+   "time": "data:04-10 hora:21:30",
+   "fov": 3.0,
+   "highlight": [
+    "alignment:leao-trio"
+   ],
+   "image": "dss:M 66",
+   "text": "Comece pelo Leão. Entre Regulus e Denebola, logo ao sul de Chertan, três galáxias cabem no mesmo campo de baixo aumento: **M 65**, **M 66** e **NGC 3628**, a uns 35 milhões de anos-luz. Com 15 cm, M 65 e M 66 são dois fusos de luz com o núcleo mais brilhante, e a cidade não os apaga; NGC 3628, vista de perfil, pede céu escuro e 20 cm.\n\nAs três já se esbarraram: a gravidade de uma passagem próxima entortou os braços de M 66 e arrancou de NGC 3628 uma cauda de estrelas tão tênue que só as fotografias profundas registram."
+  },
+  {
+   "title": "O Sombreiro, a partir do Corvo",
+   "target": "dso:M 104",
+   "time": "data:05-15 hora:21:00",
+   "fov": 8.0,
+   "highlight": [
+    "asterism:corvo"
+   ],
+   "image": "dss:M 104",
+   "text": "Ache o quadrilátero do **Corvo**, a oeste de Spica, e suba a partir de Delta, o canto nordeste: a pouco mais de dois campos de binóculo fica **M 104**, o **Sombreiro**. Do Brasil, ela passa quase no zênite — algo que o observador europeu não tem.\n\nCom 15 a 20 cm aparece a marca registrada: uma faixa escura de poeira cortando o bojo luminoso, como a aba de um chapéu. Na cidade, o bojo e o núcleo continuam fáceis. Está a uns 50 milhões de anos-luz, e foi uma das primeiras galáxias a mostrar que se afastava de nós, em 1912."
+  },
+  {
+   "title": "M 87, M 49 e o buraco negro fotografado",
+   "target": "dso:M 87",
+   "time": "data:05-10 hora:21:00",
+   "fov": 6.0,
+   "image": "dss:M 87",
+   "text": "Entre Denebola e Vindemiatrix começa o **Aglomerado de Virgem**: mais de mil galáxias a uns 55 milhões de anos-luz. No meio dele está **M 87**, uma elíptica gigante: com 15 cm, uma bola de luz redonda e uniforme, visível até de um subúrbio. O que ela esconde impressiona: um jato de partículas com milhares de anos-luz e um buraco negro de bilhões de massas solares — o primeiro a ser fotografado, na imagem divulgada em 2019 pelo Event Horizon Telescope.\n\nUns 4° ao sul, **M 49**, outra elíptica gigante, é a galáxia mais brilhante do aglomerado (magnitude 8,4): um oval com centro forte, fácil mesmo na cidade."
+  },
+  {
+   "title": "A Cadeia de Markarian",
+   "target": "dso:M 86",
+   "time": "data:05-10 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:M 86",
+   "text": "Pouco mais de 1° a noroeste de M 87, duas manchas ovais lado a lado: **M 84** e **M 86**. Elas abrem a **Cadeia de Markarian**, uma fileira curva de galáxias que segue para nordeste — com 20 cm e céu escuro, meia dúzia num campo de 1°. O difícil aqui não é achar galáxias, é saber qual é qual: use uma carta.\n\nM 86 tem uma particularidade rara: está vindo em nossa direção. Mergulhando para o centro do aglomerado, ela vence a expansão do universo. Logo a leste, um par de galáxias em colisão ganhou o apelido de **Os Olhos**."
+  },
+  {
+   "title": "M 64, o Olho Negro",
+   "target": "dso:M 64",
+   "time": "data:05-20 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:M 64",
+   "text": "Na Cabeleira de Berenice, a nordeste de Virgem, mora uma galáxia solitária: **M 64**, o **Olho Negro**, a uns 19 milhões de anos-luz. Ao telescópio pequeno é um oval com núcleo brilhante, que resiste bem ao céu urbano. Com 20 cm e uma noite firme, aparece o \"olho\": uma mancha escura de poeira ao lado do núcleo.\n\nO curioso é o que não se vê: o gás da parte interna gira num sentido, e o da parte externa, no sentido contrário. A explicação mais aceita é que M 64 engoliu uma galáxia menor no passado."
+  },
+  {
+   "title": "M 83, o Cata-vento do Sul",
+   "target": "dso:M 83",
+   "time": "data:05-30 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:M 83",
+   "text": "Na cauda da Hidra, a sudoeste de Spica, está **M 83**, uma espiral barrada vista de frente, a uns 15 milhões de anos-luz. Nicolas-Louis de Lacaille a encontrou em 1752, da África do Sul — foi uma das primeiras galáxias descobertas.\n\nCom 15 cm, em céu escuro, aparecem a barra e o começo de um braço; com 25 cm, os nós de estrelas nascendo. Na cidade, fica o núcleo cercado por um brilho tênue. Do Rio, ela passa a uns 7° do zênite, enquanto de boa parte da Europa mal sobe acima das árvores."
+  },
+  {
+   "title": "Centaurus A e Ômega no mesmo binóculo",
+   "target": "dso:NGC 5128",
+   "time": "data:05-25 hora:21:00",
+   "fov": 10.0,
+   "image": "dss:NGC 5128",
+   "text": "Ache **Ômega Centauri** e suba uns 4,5° para o norte: ali está **Centaurus A** (NGC 5128). Num binóculo 7x50 ou 10x50, de campo largo, os dois cabem juntos se você mirar entre eles — uma bola de estrelas da nossa galáxia e uma galáxia a uns 12 milhões de anos-luz.\n\nCentaurus A já aparece no binóculo como uma mancha oval; com 15 cm, a faixa escura que a corta ao meio fica evidente, mesmo de um céu razoável. É uma elíptica gigante que engoliu uma espiral cheia de poeira, e uma das fontes de rádio mais fortes do céu."
+  },
+  {
+   "title": "NGC 4945, a galáxia da supernova brasileira",
+   "target": "dso:NGC 4945",
+   "time": "data:05-20 hora:21:00",
+   "fov": 2.0,
+   "image": "dss:NGC 4945",
+   "text": "Uns 7° a sudoeste de Centaurus A, perto de Gama do Centauro, uma espiral vista de perfil: **NGC 4945**, a uns 17 milhões de anos-luz. É um traço comprido e fino de luz, com uma ponta mais brilhante — alvo para 20 cm em céu escuro; na cidade, só o miolo.\n\nEm fevereiro de 2005, dois amadores brasileiros, Cristóvão Jacques e Eduardo Pimentel, descobriram uma supernova nela com um telescópio de 30 cm, numa busca sistemática feita aqui no Brasil. É uma prova de que o quintal também faz ciência."
+  },
+  {
+   "title": "NGC 253, a Moeda de Prata",
+   "target": "dso:NGC 253",
+   "time": "data:11-15 hora:21:30",
+   "fov": 3.0,
+   "image": "dss:NGC 253",
+   "text": "Na primavera, as galáxias voltam pelo outro lado. Uns 7° ao sul de Diphda, na Baleia, fica **NGC 253**, a **Galáxia do Escultor**, quase de perfil e a uns 10 milhões de anos-luz.\n\nEla é das poucas que impressionam mesmo de um céu urbano: um charuto de luz de meio grau, visível até em binóculo pequeno. Com 15 a 20 cm, o disco parece manchado, com faixas escuras e nós claros — sinal de estrelas nascendo em ritmo acelerado. Caroline Herschel a descobriu em 1783, enquanto procurava cometas."
+  },
+  {
+   "title": "NGC 55, o charuto torto",
+   "target": "dso:NGC 55",
+   "time": "data:11-10 hora:21:00",
+   "fov": 3.0,
+   "image": "dss:NGC 55",
+   "text": "Um campo e meio de binóculo a noroeste de Alfa da Fênix está **NGC 55**, outra galáxia do grupo do Escultor, também de perfil e mais perto: uns 6 milhões de anos-luz. É mais longa que NGC 253 e mais fraca por área.\n\nCom 15 a 20 cm, vê-se uma faixa afilada com o brilho concentrado de um lado só: a galáxia é torta, com o núcleo deslocado para oeste. É uma das poucas galáxias que melhoram com um filtro de nebulosa, que realça as nuvens de hidrogênio ao longo do disco. Em céu de cidade, sobra a parte mais brilhante, como um traço curto."
+  },
+  {
+   "title": "NGC 300 e NGC 7793, cata-ventos pálidos",
+   "target": "dso:NGC 300",
+   "time": "data:11-10 hora:21:00",
+   "fov": 20.0,
+   "image": "dss:NGC 300",
+   "highlight": [
+    "const:Scl"
+   ],
+   "text": "Ainda no Escultor, duas espirais vistas de frente. **NGC 300**, a uns 6 milhões de anos-luz, é parente de M 33: grande, mas de brilho tão espalhado que é um teste de céu escuro. Com 20 cm, aparece um oval pálido; os braços pedem mais.\n\nUns 13° a oeste, **NGC 7793** é menor, a uns 12 milhões de anos-luz, mas de brilho mais concentrado: aguenta aumento e, com 20 cm, mostra um oval com manchas. As duas são do sul — quase desconhecidas de quem observa da Europa — e na cidade costumam sumir."
+  },
+  {
+   "title": "Andrômeda e o Triângulo, baixas no norte",
+   "target": "dso:M 31",
+   "time": "data:11-18 hora:21:00",
+   "fov": 25.0,
+   "image": "dss:M 31",
+   "highlight": [
+    "alignment:quadrado-andromeda"
+   ],
+   "text": "Olhe para o norte: baixinhas, as duas grandes vizinhas do **Grupo Local**. **M 31**, a Galáxia de Andrômeda, a uns 2,5 milhões de anos-luz, é a coisa mais distante que se vê a olho nu — num céu escuro, uma mancha alongada; no Rio, só o núcleo, com binóculo. **M 33**, no Triângulo, a uns 2,7 milhões, é grande e pálida: o binóculo em céu escuro mostra uma oval tênue, e a cidade a apaga.\n\nDo Brasil elas nunca sobem muito — em Porto Alegre, M 31 não passa de uns 19°. Andrômeda e a Via Láctea devem se fundir daqui a alguns bilhões de anos."
+  },
+  {
+   "title": "A Fornalha: NGC 1365 e NGC 1316",
+   "target": "dso:NGC 1365",
+   "time": "data:12-30 hora:22:00",
+   "fov": 4.0,
+   "image": "dss:NGC 1365",
+   "text": "Na Fornalha mora outro aglomerado de galáxias, a uns 60 milhões de anos-luz. **NGC 1365** é uma das espirais barradas mais bonitas do céu: com 20 cm e céu escuro aparece a barra reta, com sinais dos braços; na cidade, só o miolo. A barra funciona como uma esteira que leva gás para o centro.\n\nUns 2,5° a sudoeste, **NGC 1316**, ou **Fornax A**, é uma radiogaláxia que cresceu engolindo galáxias menores. Ao telescópio de 15 cm é um oval com núcleo brilhante e firme, e o halo se perde no céu urbano."
+  },
+  {
+   "title": "A Grande Nuvem, uma galáxia a olho nu",
+   "target": "dso:ESO056-115",
+   "time": "data:01-25 hora:21:30",
+   "fov": 25.0,
+   "image": "dss:ESO056-115",
+   "text": "Para fechar, uma galáxia que dispensa telescópio: a **Grande Nuvem de Magalhães**, a uns 160 mil anos-luz, satélite da Via Láctea. A olho nu, num céu escuro, parece um pedaço solto da Via Láctea; na cidade, some.\n\nCom binóculo ou telescópio de 15 cm, ela vira um mundo: aglomerados, nebulosas e a **Tarântula**, uma nebulosa tão grande que, se estivesse no lugar da de Órion, faria sombras no chão. Em 1987, uma estrela explodiu ali como supernova e foi vista a olho nu."
+  },
+  {
+   "title": "Uma lista para o ano todo",
+   "kind": "fim",
+   "target": "altaz:0,60",
+   "fov": 120.0,
+   "skip_if_below": -90.0,
+   "text": "Do outono à primavera, você visitou galáxias de 160 mil a 60 milhões de anos-luz. Guarde-as no botão **★ Guardar os objetos deste tour numa lista** e vá riscando conforme a estação: Leão e Virgem de março a junho, Escultor e Fornalha de outubro a janeiro.\n\nUma dica de observador: galáxia é questão de céu escuro. Uma noite longe da cidade, com a galáxia perto do meridiano, vale mais que um telescópio maior no quintal."
+  }
+ ],
+ "key": "galaxias",
+ "title": "Passeio de galáxias: de Virgem ao Escultor",
+ "subtitle": "Um ano de galáxias vistas do Brasil — do Leão e de Virgem, no outono, ao Escultor e à Fornalha, na primavera e no verão",
+ "category": "intermediario",
+ "level": 2,
+ "minutes": 18,
+ "when": "data:05-10 hora:21:00",
+ "lat_range": [
+  -40.0,
+  5.0
+ ],
+ "tags": [
+  "galáxias",
+  "céu profundo",
+  "Virgem",
+  "Escultor",
+  "telescópio"
+ ],
+ "author": "Carina / Astronomia no Quintal"
+}

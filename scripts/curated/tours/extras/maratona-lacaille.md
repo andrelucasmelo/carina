@@ -1,0 +1,153 @@
+---
+key: maratona-lacaille
+title: Maratona Lacaille: o desafio do céu do sul
+subtitle: As "nebulosas" que o abade Lacaille anotou no Cabo da Boa Esperança, todas numa noite de outono
+category: extra
+level: 3
+minutes: 20
+when: data:05-10 hora:19:00
+lat_range: -40, 5
+tags: maratona, Lacaille, céu profundo, hemisfério sul, aglomerados, história
+author: Carina / Astronomia no Quintal
+---
+
+## O abade que mapeou o sul
+@kind: intro
+@target: altaz:180,45
+@fov: 120
+@layers: const_lines=1, const_names=1, asterisms=1, dso=1, dso_names=1, grid_altaz=0
+@skip_if_below: -90
+
+Em 1750 o francês **Nicolas-Louis de Lacaille** partiu para o **Cabo da Boa Esperança**, na ponta da África, para medir as estrelas do sul. No caminho, em 1751, parou no **Rio de Janeiro** e montou seus instrumentos para medir a posição da cidade. No Cabo, entre 1751 e 1752, com lunetas pequenas, mediu cerca de 10 mil estrelas, criou 14 constelações novas e anotou **42 "nebulosas"** — o primeiro catálogo de céu profundo do hemisfério sul. Alguns itens são só grupinhos de estrelas; sobram três dezenas e pouco de objetos reais. Vamos caçá-los numa noite de maio, do oeste ao anoitecer até o leste de madrugada.
+
+## Regras da maratona
+@kind: intro
+@target: altaz:225,40
+@fov: 100
+@skip_if_below: -90
+
+A **Maratona Messier** é famosa no hemisfério norte; a de Lacaille é a nossa. Ao sul do paralelo 20°S, todos os objetos reais da lista cabem numa única noite em boa parte do ano, do fim de janeiro ao começo de outubro. Mais ao norte a janela encolhe, e perto do equador sobram poucas semanas. O segredo é a ordem: comece pelo que se põe primeiro, a oeste, e termine pelo que nasce por último, a leste. Leve um binóculo 10x50 e, se puder, um telescópio pequeno — Lacaille usou lunetas modestas.
+
+## A Grande Nuvem e a Tarântula
+@target: dso:NGC 2070
+@time: data:05-10 hora:18:45
+@fov: 8
+@highlight: const:Dor
+@image: dss:NGC 2070
+
+Comece logo ao fim do crepúsculo, olhando para o sul-sudoeste: a **Grande Nuvem de Magalhães** já está descendo. Dentro dela brilha a **Tarântula** (NGC 2070), uma nebulosa tão grande que, se estivesse à distância da de Órion, projetaria sombras à noite. Lacaille a viu como uma manchinha parecida com um cometa fraco. Por perto ficam duas "pegadinhas" da lista: uma estrela fraca no Pintor e um grupinho de estrelas no Relógio, que ele tomou por nebulosidade. Anote e siga em frente, porque a Nuvem não espera. No Norte e no Nordeste ela já está bem baixa nesta hora: lá, o horizonte sul precisa estar livre.
+
+## Popa e o Cão Maior
+@target: dso:NGC 2477
+@time: data:05-10 hora:19:15
+@fov: 10
+@highlight: const:Pup
+@image: dss:NGC 2477
+
+Ainda a oeste, perto da cauda do Cão Maior, está a primeira sequência de aglomerados. **NGC 2477**, na Popa, é um dos abertos mais ricos do céu: no binóculo, um brilho redondo e granulado; no telescópio, centenas de estrelas fracas. Não muito longe ficam **NGC 2546**, dois grupos esparsos, e **Collinder 140**, o "tufo na cauda do Cão", visível a olho nu. Já na Quilha, mais ao sul, **NGC 2516** é tão brilhante que se vê sem instrumento.
+
+## As Velas
+@target: dso:IC 2391
+@time: data:05-10 hora:19:45
+@fov: 12
+@highlight: const:Vel
+@image: dss:IC 2391
+
+Subindo pela Via Láctea, chegamos às **Velas**. **IC 2391**, em volta da estrela Ômicron Velorum, é um aglomerado de estrelas brilhantes que se vê a olho nu, um dos mais próximos de nós. A uns cinco graus aparece **IC 2395**, e um pouco a oeste **NGC 2547**, que Lacaille descreveu como cinco estrelas em forma de T. Mais adiante, **Trumpler 10** é grande e esparso, e **IC 2488**, já perto da Quilha, pede céu escuro.
+
+## A Quilha e Eta Carinae
+@target: dso:NGC 3372
+@time: data:05-10 hora:20:15
+@fov: 6
+@highlight: const:Car
+@image: dss:NGC 3372
+
+A **Nebulosa de Carina** (NGC 3372) é o ponto alto da noite: maior e mais brilhante que a de Órion, visível a olho nu como uma mancha na Via Láctea. Lacaille anotou duas entradas para ela. A uns dois graus fica a **Plêiade do Sul** (IC 2602), em volta de Theta Carinae, que ele comparou às Plêiades. Completam o bloco **NGC 3293**, pequeno e brilhante, e **NGC 3228**, já nas Velas. Curiosidade: foi Lacaille quem dividiu a antiga constelação do navio Argo em Quilha, Popa e Velas.
+
+## Um poço de estrelas
+@target: dso:NGC 3532
+@time: data:05-10 hora:20:45
+@fov: 6
+@image: dss:NGC 3532
+
+Logo a leste de Eta Carinae, **NGC 3532** é um dos aglomerados abertos mais bonitos do céu: no binóculo, uma nuvem oval de estrelas, que Lacaille chamou de "prodigiosa". Siga para leste, já no Centauro, até **NGC 3766**, compacto e com algumas estrelas alaranjadas. Entre os dois, Lacaille anotou uma fileira de sete ou oito estrelas fracas em linha reta — um asterismo, não um aglomerado de verdade. Ache-a para marcar o ponto, mas não perca tempo.
+
+## O Cruzeiro e a Mosca
+@target: dso:NGC 4755
+@time: data:05-10 hora:21:15
+@fov: 8
+@highlight: asterism:cruzeiro
+@image: dss:NGC 4755
+
+O Cruzeiro do Sul vai alto. Ao lado de Beta Crucis, a **Caixinha de Joias** (NGC 4755) cabe no campo de qualquer binóculo, com uma estrela alaranjada no meio das azuis. Desça uns dez graus, para dentro da Mosca, até **NGC 4833**, um globular pequeno que Lacaille comparou a um cometa fraco. Aproveite e olhe o **Saco de Carvão**, a mancha escura junto do Cruzeiro: a descrição de Lacaille está entre as mais antigas dessa nebulosa escura, embora ela não conte entre as 42.
+
+## Ômega Centauri e a única galáxia
+@target: dso:NGC 5139
+@time: data:05-10 hora:21:45
+@fov: 4
+@highlight: const:Cen
+@image: dss:NGC 5139
+
+**Ômega Centauri** é o maior globular da Via Láctea. Lacaille escreveu que, a olho nu, ele parece uma estrela de 3ª magnitude vista através de uma névoa — descrição perfeita até hoje. Ao sul, perto da Via Láctea, **NGC 5281** é um aglomerado aberto pequeno. E bem mais ao norte, já na Hidra, está **M 83**, a única galáxia da lista: uma espiral vista de frente que o abade descreveu como uma nebulosidade pequena e sem forma, quase trinta anos antes de Messier incluí-la em seu catálogo.
+
+## O Compasso e o Triângulo Austral
+@target: dso:NGC 6025
+@time: data:05-10 hora:22:30
+@fov: 10
+@highlight: const:TrA
+@image: dss:NGC 6025
+
+Este bloco é o mais discreto. Comece em **NGC 5662**, um aberto solto no Centauro, a meio caminho entre Alfa Centauri e o Lobo. Depois, no Compasso, Lacaille anotou um grupinho de estrelas com "nebulosidade" que não passa de um asterismo. Termine em **NGC 6025**, no Triângulo Austral, um aglomerado alongado e fácil no binóculo, perto da borda da Via Láctea. Bom momento para descansar os olhos: a parte mais rica da noite vem a seguir.
+
+## O Escorpião
+@target: dso:NGC 6231
+@time: data:05-10 hora:23:30
+@fov: 10
+@highlight: const:Sco
+@image: dss:NGC 6231
+
+O Escorpião já subiu. Junto de Antares, **M 4** é um globular grande e próximo, fácil no binóculo. Na cauda, perto de Zeta Scorpii, **NGC 6231** parece uma Plêiade em miniatura, com estrelas jovens muito quentes. A poucos graus estão **NGC 6242**, pequeno e alongado, e **NGC 6124**, um aberto grande e rico, já para o lado do Lobo. São quatro objetos em pouco céu — o bloco mais produtivo da maratona.
+
+## Os aglomerados do Ferrão
+@target: dso:M 7
+@time: data:05-10 hora:00:30
+@fov: 8
+@highlight: asterism:ferrao
+@image: dss:M 7
+
+Acima do Ferrão do Escorpião, dois aglomerados brilham a olho nu: **M 7**, o Aglomerado de Ptolomeu, grande e espalhado, e **M 6**, a Borboleta, mais compacto, a uns quatro graus. Lacaille os registrou antes de Messier. Desça agora para o sul, até o Altar, e procure **NGC 6397**, um dos globulares mais próximos de nós, grande e de estrelas soltas — no binóculo, uma bola de algodão no meio da Via Láctea.
+
+## Sagitário
+@target: dso:M 8
+@time: data:05-10 hora:01:30
+@fov: 6
+@highlight: asterism:bule
+@image: dss:M 8
+
+Agora o centro da Galáxia está alto. Acima do bico do Bule de Sagitário, a **Nebulosa da Lagoa** (M 8) aparece a olho nu como um borrão; Lacaille anotou o aglomerado que fica dentro dela. Junto da tampa do Bule, **M 22** é um dos globulares mais brilhantes do céu. E perto do pé do Bule, a lista traz um grupinho de estrelas (NGC 6634) que hoje é considerado só um asterismo — encontre-o no telescópio para riscar da lista.
+
+## M 55 e o Pavão
+@target: dso:M 55
+@time: data:05-10 hora:02:30
+@fov: 6
+@highlight: const:Sgr
+@image: dss:M 55
+
+Na ponta leste de Sagitário, **M 55** é um globular grande e pouco concentrado, que no binóculo parece uma mancha redonda e pálida — Lacaille o comparou ao núcleo fraco de um cometa grande. Bem ao sul, no Pavão, ele anotou NGC 6777, outro grupinho sem nebulosa nenhuma, e no Índio, mais a leste, um par de estrelas fracas (Dunlop 329). São as últimas "pegadinhas". Faltam umas duas horas para o céu clarear, e o primeiro da lista ainda não apareceu.
+
+## 47 Tucanae, o número um
+@target: dso:NGC 104
+@time: data:05-10 hora:04:45
+@fov: 4
+@highlight: const:Tuc
+@image: dss:NGC 104
+
+O primeiro objeto do catálogo é o último da maratona. Antes do amanhecer, **47 Tucanae** sobe a sul-sudeste, junto da Pequena Nuvem de Magalhães. Lacaille o descreveu como o núcleo de um cometa pequeno e bem brilhante. É o segundo globular mais brilhante do céu, depois de Ômega Centauri, e ao telescópio mostra um núcleo muito denso que se desfaz em estrelas. Perto do equador ele mal passa de dez graus de altura antes do dia clarear; quanto mais ao sul, mais fácil. Se você chegou até aqui marcando cada bloco, completou a maratona de Lacaille.
+
+## Guarde a lista
+@kind: fim
+@target: altaz:135,40
+@fov: 120
+@skip_if_below: -90
+
+A noite de maio é só uma das opções: quem mora no Sul e no Sudeste pode tentar a maratona em outras noites entre fevereiro e setembro, ajustando o começo e o fim. Mais perto do equador, escolha abril ou maio. Para não se perder, use **★ Guardar os objetos deste tour numa lista**: você leva a sequência inteira para a noite e vai riscando cada objeto que encontrar. Depois, experimente o tour **O céu austral profundo** para rever os destaques com calma.

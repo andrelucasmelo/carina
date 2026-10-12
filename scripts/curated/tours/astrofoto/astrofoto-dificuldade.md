@@ -1,0 +1,146 @@
+---
+key: astrofoto-dificuldade
+title: Alvos de astrofoto por dificuldade
+subtitle: Do primeiro clique em Órion às nebulosas que pedem dez horas — por que cada alvo é fácil ou difícil
+category: astrofoto
+level: 2
+minutes: 15
+when: data:01-15 hora:22:00
+lat_range: -40, 5
+tags: astrofotografia, iniciante, intermediário, avançado, filtros, integração, distância focal
+author: Carina / Astronomia no Quintal
+---
+
+## Do fácil ao difícil
+@kind: intro
+@target: altaz:180,60
+@fov: 120
+@layers: const_lines=1, const_names=0, asterisms=1, dso=1, dso_names=1, grid_altaz=0
+@skip_if_below: -90
+
+O que torna um alvo fácil de fotografar não é ser famoso: é o **brilho de superfície** (quanta luz cai em cada pixel), o **tamanho** em relação ao seu campo, a necessidade de **filtro** e o quanto ele cobra de **foco e guiagem**. Este tour passa por três blocos — iniciante, intermediário e avançado. Cada passo vai à noite em que o alvo passa alto, com o campo do seu setup ativo desenhado e a rota a partir das estrelas. Os tempos de integração são referências para uma câmera colorida comum sob céu de subúrbio.
+
+## Iniciante: a Nebulosa de Órion
+@target: dso:M 42
+@time: data:01-15 hora:22:00
+@fov: 3
+@setup_fov: sim
+@finder: sim
+@image: dss:M 42
+
+**M 42** é o primeiro alvo de quase todo mundo, e com razão: é tão brilhante que aparece em segundos, até na cidade. Uma distância focal de **400 a 1.000 mm** mostra o núcleo e as asas; um refrator curto, de 300 a 500 mm, inclui também o Homem Correndo. O único cuidado é o núcleo, que estoura fácil: faça subs curtas (5 a 30 s) para o Trapézio e outras de 2 minutos para as bordas, e combine. **Uma a duas horas** bastam. Funciona sem filtro; com banda dupla, até com Lua.
+
+## Iniciante: a Nebulosa de Carina
+@target: dso:NGC 3372
+@time: data:03-25 hora:22:00
+@fov: 5
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 3372
+
+A **Nebulosa de Carina** é a resposta do sul a Órion: brilhante, colorida e enorme, com uns 2°. Com **200 a 400 mm** ela cabe inteira; com 1.000 mm, escolha uma região, como o Buraco da Fechadura, ou monte um mosaico. É de iniciante porque o sinal é forte: **uma a três horas** com filtro de **banda dupla** rendem uma imagem rica mesmo sob céu claro. Como em Órion, Eta Carinae satura rápido, então guarde algumas subs curtas para o centro.
+
+## Iniciante: Ômega Centauri
+@target: dso:NGC 5139
+@time: data:05-15 hora:21:30
+@fov: 2
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 5139
+
+Aglomerados globulares são ótimos para começar: **Ômega Centauri** é brilhante, compacto e não precisa de filtro nenhum — é luz de estrelas, então vá **sem filtro** ou só com UV/IR. Com uns 30 minutos de arco, pede **600 a 1.000 mm** para encher o quadro. **Uma hora** de subs curtas já resolve as bordas em estrelas. O desafio é outro: **foco preciso** (use uma máscara de Bahtinov) e não deixar o centro estourar. Céu urbano não atrapalha muito.
+
+## Iniciante: a Lagoa
+@target: dso:M 8
+@time: data:07-15 hora:22:00
+@fov: 3
+@setup_fov: sim
+@finder: sim
+@image: dss:M 8
+
+A **Lagoa** (M 8) é a grande nebulosa do inverno: brilhante e cheia de hidrogênio, ela responde muito bem ao filtro de **banda dupla**, que derruba a poluição luminosa. Com **300 a 800 mm** cabe inteira; entre 400 e 600 mm, a **Trífida** (M 20) entra no mesmo quadro. **Uma a três horas** de integração mostram a faixa escura e a Ampulheta. Ela passa quase pelo zênite no Brasil, com pouca atmosfera no caminho. Só a Trífida, com seu azul de reflexão, pede uma sessão extra sem filtro.
+
+## Iniciante: as Plêiades
+@target: dso:M 45
+@time: data:12-10 hora:22:30
+@fov: 4
+@setup_fov: sim
+@finder: sim
+@image: dss:M 45
+
+As **Plêiades** são fáceis de achar e de enquadrar — as estrelas aparecem em minutos. Com uns 2°, pedem **200 a 500 mm**. Mas atenção: o véu azul em volta delas é uma nebulosa de **reflexão**, de luz comum, e o filtro de banda dupla o apaga. Vá **sem filtro**, em noite sem Lua, e conte com **duas a três horas** para a nebulosidade aparecer. Elas estão no limite do bloco iniciante: as estrelas são de primeira noite, o véu já é um primeiro desafio.
+
+## Intermediário: Centaurus A e M 83
+@target: dso:NGC 5128
+@time: data:05-01 hora:22:00
+@fov: 2
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 5128
+
+Galáxias abrem o bloco intermediário. Seu brilho de superfície é baixo, e o filtro de banda dupla corta a luz das estrelas que as formam: vá **sem filtro**, em noite **sem Lua**. **Centaurus A**, com sua faixa de poeira, e **M 83**, a espiral vista de frente na Hidra, têm uns 25 e 13 minutos de arco: pedem **600 a 1.000 mm**, e aí a **guiagem** precisa ser boa. Conte com **duas a três horas** cada para ver o halo de Centaurus A e os braços de M 83.
+
+## Intermediário: a Águia e o Cisne
+@target: dso:M 16
+@time: data:07-20 hora:22:30
+@fov: 3
+@setup_fov: sim
+@finder: sim
+@image: dss:M 16
+
+**M 17**, o Cisne, é brilhante e quase um alvo de iniciante. Sua vizinha **M 16**, a **Águia**, sobe de nível por causa dos **Pilares da Criação**: são pequenos dentro da nebulosa e pedem **800 a 1.000 mm** e boa guiagem para aparecer com detalhe. Com 400 a 600 mm, a nebulosa inteira cabe. Use **banda dupla** e planeje **duas a quatro horas**. Quem tem câmera monocromática pode tentar a paleta de banda estreita da foto famosa do Hubble.
+
+## Intermediário: NGC 253 e a Hélice
+@target: dso:NGC 253
+@time: data:10-15 hora:22:30
+@fov: 2
+@setup_fov: sim
+@finder: sim
+@image: dss:NGC 253
+
+Na primavera, dois alvos passam quase pelo zênite e ensinam a escolher o filtro. **NGC 253**, a Galáxia do Escultor, quase de perfil, pede **400 a 1.000 mm**, **sem filtro** e umas **três horas** para o disco e a poeira. Ao lado, em Aquário, a **Hélice** (NGC 7293) é uma nebulosa planetária grande e fraca: com **600 a 1.200 mm** e **banda dupla**, o anel aparece em uma hora, mas o halo avermelhado de fora pede **três horas ou mais**. Mesmo céu, filtros opostos.
+
+## Avançado: a Cabeça de Cavalo
+@target: dso:B 33
+@time: data:01-20 hora:22:30
+@fov: 2.5
+@setup_fov: sim
+@finder: sim
+
+A **Cabeça de Cavalo** (B 33) é uma nuvem escura recortada contra **IC 434**, uma faixa de gás vermelho fraco. Por isso ela é avançada: o fundo tem pouco brilho, e ao lado está **Alnitak**, a estrela do Cinturão de Órion, que espalha reflexos e halos pelo quadro. Com **400 a 800 mm** cabem a Cabeça, IC 434 e a **Chama** (NGC 2024). Use **H-alfa** ou banda dupla e planeje **três a cinco horas**, com subs curtas o bastante para não estourar Alnitak.
+
+## Avançado: o Saco de Carvão em mosaico
+@target: dso:C 99
+@time: data:04-25 hora:23:00
+@fov: 12
+@setup_fov: sim
+@finder: sim
+
+O **Saco de Carvão** parece fácil — vê-se a olho nu —, mas fotografá-lo bem é difícil. Com uns 7° por 5°, pede uma lente de **50 a 135 mm** ou um **mosaico** de vários painéis com um refrator curto. Nebulosa escura não emite luz: **nenhum filtro ajuda**, e o que conta é céu escuro de verdade, sem Lua, e **várias horas por painel** para mostrar a poeira contra a Via Láctea. O processamento também cobra: juntar painéis sem emendas e remover gradientes num campo tão grande.
+
+## Avançado: as galáxias de Virgem
+@target: dso:M 87
+@time: data:04-25 hora:23:00
+@fov: 3
+@setup_fov: sim
+@finder: sim
+@image: dss:M 87
+
+O **aglomerado de Virgem** tem milhares de galáxias a uns 60 milhões de anos-luz, mas quase todas medem só de 2 a 10 minutos de arco. Para mostrar alguma estrutura, pedem **1.000 mm ou mais**, guiagem afinada, foco perfeito e uma noite de céu firme. Com **400 a 600 mm**, a **Cadeia de Markarian**, de M 84 e M 86 em diante, cabe num quadro — mas cada galáxia vira uma manchinha. Vá **sem filtro**, longe da cidade, com **quatro horas ou mais**. Do Brasil, Virgem passa a uns 50° de altura no outono.
+
+## Avançado: a Cabeça de Golfinho
+@target: dso:Sh2-308
+@time: data:02-05 hora:22:00
+@fov: 2
+@setup_fov: sim
+@finder: sim
+
+No **Cão Maior**, **Sh2-308** é uma bolha de gás soprada pelo vento de uma estrela Wolf-Rayet, apelidada de **Cabeça de Golfinho**. Na foto, é um arco azul-esverdeado fraquíssimo, do oxigênio ionizado, quase invisível numa subexposição comum. Com uns 35 minutos de arco, pede **400 a 800 mm**. Filtro de **OIII** (ou banda dupla) é obrigatório, e o tempo total passa de **dez horas**, em várias noites. A boa notícia: no verão ela passa quase pelo zênite no Brasil.
+
+## Monte sua escada
+@kind: fim
+@target: altaz:180,60
+@fov: 120
+@skip_if_below: -90
+
+Suba um degrau por vez: quando M 42 e Carina saírem limpas, tente as galáxias brilhantes; quando a guiagem a 1.000 mm estiver confiável, encare os Pilares e Virgem. Use **Objetos do mês para fotografar** para ver o que fica alto por mais tempo, a **Sessão de astrofoto** para dividir a noite entre alvos e **Planejar ▸ Campo de visão** para conferir o enquadramento do seu setup. Os tours **Mosaicos e grandes campos** e **O que o smart telescope alcança** continuam daqui.

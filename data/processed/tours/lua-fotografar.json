@@ -24,6 +24,14 @@
    "text": "- **Crescente e minguante (25% a 85%)**: relevo no terminador — crateras, montanhas, escarpas.\n- **Lua cheia**: os mares escuros e os raios claros; ótima para a Lua **nascendo sobre a paisagem**.\n- **Lua fina (até 3 dias)**: a **luz cinérea**, a parte escura iluminada pela Terra — uma exposição mais longa, com a parte iluminada estourada."
   },
   {
+   "title": "Cada formação tem o seu dia",
+   "kind": "pause",
+   "target": "altaz:270,30",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "text": "O terminador anda uns 12° por dia: cada cratera fica dramática só uma ou duas noites por mês. Pela idade da Lua (dias depois da nova; erro de cerca de 1 dia), o que está amanhecendo:\n\n- **2–3 dias**: Mar da Crise, Langrenus\n- **4–5**: Mar da Tranquilidade, Mar do Néctar\n- **6**: Mar da Serenidade\n- **7–8**: Ptolemaeus, Apeninos, Muralha Reta\n- **8–9**: Platão, Tycho, Clavius\n- **9–10**: Copernicus\n- **10–12**: Kepler, Aristarchus\n- **13**: Grimaldi\n- **14–16** (cheia): os raios de Tycho e de Copernicus\n\nNa minguante, uns 15 dias depois, os mesmos alvos voltam com a sombra do outro lado."
+  },
+  {
    "title": "Exposição e foco",
    "kind": "pause",
    "target": "altaz:270,30",

@@ -137,6 +137,7 @@ def _when_rule(when: dt.datetime) -> str:
 def _const_name(cid: str) -> str:
     from ..catalogs.constnames import CONSTELLATIONS
 
+    cid = {"Se1": "Ser", "Se2": "Ser"}.get(cid, cid)     # Serpens em duas partes
     return CONSTELLATIONS.get(cid, (cid, cid))[1]
 
 
@@ -981,6 +982,233 @@ def lua_10_noites(ctx: GenContext) -> Tour:
                 level=1, minutes=10, when="agora", generated=True, steps=steps)
 
 
+# formações do tour "A Lua: alvos do terminador" (v0.23), de leste para oeste —
+# a ordem em que o Sol nasce sobre elas na Lua crescente
+LUNAR_FEATURES = (
+    "Mare Crisium", "Petavius", "Vallis Rheita", "Posidonius", "Theophilus",
+    "Rima Hyginus", "Montes Apenninus", "Vallis Alpes", "Ptolemaeus", "Rupes Recta",
+    "Plato", "Tycho", "Clavius", "Copernicus", "Sinus Iridum", "Gassendi",
+    "Aristarchus", "Schickard", "Grimaldi",
+)
+TERMINATOR_SUN = (1.0, 10.0)        # Sol rasante sobre a formação (graus)
+TERMINATOR_IDEAL = 4.0
+
+
+def terminator_nights(engine, start: dt.datetime, days: int = 32,
+                      step_minutes: float = 40.0, names=LUNAR_FEATURES) -> list[dict]:
+    """Para cada formação, o primeiro instante (após ``start``) com o Sol
+    rasante sobre ela **e** a Lua a mais de 20° no céu escuro do observador.
+
+    Uma única série lunar vetorizada serve a todas as formações (a parte
+    cara é a posição da Lua e do Sol). Devolve ``[{feature, when, sun_alt,
+    morning, moon_alt}]`` em ordem de data; formações sem noite boa no
+    período ficam de fora."""
+    from . import moon as moonlib
+
+    n = int(days * 24 * 60 / step_minutes) + 1
+    times = [start + dt.timedelta(minutes=step_minutes * i) for i in range(n)]
+    d = moonlib.series(engine, times)
+    obs = engine.site.at(d["t"])
+    moon_alt = obs.observe(engine.eph["moon"]).apparent().altaz()[0].degrees
+    sky_sun = obs.observe(engine.eph["sun"]).apparent().altaz()[0].degrees
+    sky_ok = (moon_alt >= 20.0) & (sky_sun <= -8.0)
+    out = []
+    for name in names:
+        f = moonlib.find_feature(name)
+        if f is None:
+            continue
+        nvec = f.vector
+        sun_alt = np.degrees(np.arcsin(np.clip(nvec @ d["sun_body"], -1, 1)))
+        view = nvec @ d["obs_body"]
+        lo, hi = TERMINATOR_SUN
+        good = sky_ok & (sun_alt >= lo) & (sun_alt <= hi) & (view > 0.12)
+        idx = np.nonzero(good)[0]
+        if not len(idx):
+            continue
+        # a primeira janela boa; dentro dela, o Sol mais perto do ideal
+        first = [int(idx[0])]
+        for k in idx[1:]:
+            if int(k) != first[-1] + 1:
+                break
+            first.append(int(k))
+        best = min(first, key=lambda k: abs(float(sun_alt[k]) - TERMINATOR_IDEAL))
+        morning = 0.0 < (float(d["sun_lon"][best]) - f.lon) % 360.0 < 180.0
+        out.append({"feature": f, "when": times[best], "sun_alt": float(sun_alt[best]),
+                    "morning": morning, "moon_alt": float(moon_alt[best])})
+    out.sort(key=lambda e: e["when"])
+    return out
+
+
+def lua_terminador(ctx: GenContext) -> Tour:
+    from .localtime import to_local
+
+    eng = ctx.engine
+    start = base_time(eng, "inicio_da_noite", ctx.now_utc) - dt.timedelta(hours=2)
+    nights = terminator_nights(eng, start)
+    steps = [Step(
+        title="A Lua: alvos do terminador", kind="intro", target="altaz:270,30", fov=100,
+        skip_if_below=-90,
+        text=(f"**{len(nights)} formações da Lua**, cada uma na próxima noite em que o Sol "
+              "nasce (ou se põe) sobre ela, com a Lua alta no céu escuro do seu local. É perto "
+              "do **terminador**, a linha entre o dia e a noite lunares, que o relevo aparece: "
+              "sombras compridas, paredes e picos acesos.\n\nEm cada passo o relógio vai à "
+              "noite certa, a vista aproxima a Lua e um anel marca a formação. Um binóculo "
+              "mostra os mares e as maiores crateras; o resto pede um telescópio pequeno."))]
+    for e in nights:
+        f, lw = e["feature"], to_local(e["when"])
+        sol = "nascendo" if e["morning"] else "se pondo"
+        name = f.pt or f.name
+        steps.append(Step(
+            title=f"{name} — {lw:%d/%m}", target="body:Lua", fov=0.6,
+            time=f"em:{lw:%Y-%m-%dT%H:%M}", skip_if_below=10, optional=True,
+            moon_feature=f.name,
+            text=(f"**{lw:%d/%m}, às {lw:%H:%M}**: o Sol está {sol} sobre **{name}**, a "
+                  f"{_num(e['sun_alt'], 0)}° do horizonte lunar, e a Lua fica a "
+                  f"{_num(e['moon_alt'], 0)}° de altura.\n\n"
+                  + texts().get(f"lua-feicao:{f.name}", f.summary()))))
+    steps.append(Step(
+        title="Para ir além", kind="fim", target="altaz:270,30", fov=100, skip_if_below=-90,
+        text=("A **Janela da Lua** (`Ctrl+Shift+M`) mostra qualquer noite com os nomes das "
+              "formações e diz as próximas boas datas para cada uma; a **Lunar 100**, em "
+              "*Planejar ▸ Programas de observação*, é a lista para ir riscando. Fora destas "
+              "datas, a mesma formação volta a ficar boa uma lunação depois — 29,5 dias.")))
+    return Tour("lua-terminador", "A Lua: alvos do terminador", "extra",
+                subtitle="Dezenove formações lunares, cada uma na sua noite de Sol rasante",
+                level=2, minutes=15, when="agora", generated=True, steps=steps)
+
+
+MARATHON_MIN_ALT = 8.0              # graus: abaixo disso, no horizonte real, não dá
+MARATHON_BLOCK_MIN = 60             # um passo por hora da noite…
+MARATHON_BLOCK_MAX = 8              # …com no máximo oito objetos
+
+
+def marathon_night(engine, now_utc: dt.datetime) -> dt.datetime:
+    """A Lua nova de março/começo de abril (a da maratona) da próxima
+    temporada: a deste ano, se ainda não passou, ou a do ano que vem."""
+    from skyfield import almanac
+
+    from .localtime import to_local
+
+    year = to_local(now_utc).year
+    for y in (year, year + 1):
+        t0 = engine.ts.utc(y, 3, 8)
+        t1 = engine.ts.utc(y, 4, 14)
+        times, phases = almanac.find_discrete(t0, t1, almanac.moon_phases(engine.eph))
+        news = [t.utc_datetime() for t, ph in zip(times, phases) if int(ph) == 0]
+        news = [n for n in news if n > now_utc - dt.timedelta(days=1)]
+        if news:
+            return news[0]
+    return now_utc
+
+
+def marathon_plan(engine, dso, night_ref: dt.datetime, step_min: float = 5.0) -> dict:
+    """Ordem de observação dos 110 objetos Messier numa noite.
+
+    Amostra a noite (Sol abaixo de −10°) a cada ``step_min`` e acha, para
+    cada objeto, a janela em que fica acima de ``MARATHON_MIN_ALT``. A hora
+    sugerida é a do meio da janela, mas nunca depois de 40 min antes de o
+    objeto se perder — os que se põem cedo vêm primeiro, os que nascem de
+    madrugada por último, como numa maratona de verdade."""
+    from .observing import _catalog_rows
+    from .twilight import night_info
+
+    info = night_info(engine, night_ref)
+    dusk = (info.nautical_dusk or night_ref) - dt.timedelta(minutes=15)
+    dawn = (info.nautical_dawn or night_ref + dt.timedelta(hours=10)) + dt.timedelta(minutes=15)
+    n = int((dawn - dusk).total_seconds() / 60 / step_min) + 1
+    times = [dusk + dt.timedelta(minutes=step_min * i) for i in range(n)]
+    rows = _catalog_rows(dso, "M")
+    vecs = np.array([[math.cos(r["dec"]) * math.cos(r["ra"]),
+                      math.cos(r["dec"]) * math.sin(r["ra"]), math.sin(r["dec"])]
+                     for r, _ in rows])
+    alts = np.empty((len(times), len(rows)))
+    for i, t in enumerate(times):
+        m = np.asarray(engine.horizontal_matrix(engine.ts.from_datetime(t)), np.float64)
+        alts[i] = np.degrees(np.arcsin(np.clip((vecs @ m.T)[:, 2], -1, 1)))
+    seen, missing = [], []
+    for k, (r, label) in enumerate(rows):
+        ok = np.nonzero(alts[:, k] >= MARATHON_MIN_ALT)[0]
+        if not len(ok):
+            missing.append((r, label, float(alts[:, k].max())))
+            continue
+        first, last = times[int(ok[0])], times[int(ok[-1])]
+        mid = first + (last - first) / 2
+        when = max(first, min(mid, last - dt.timedelta(minutes=40)))
+        i = min(range(len(times)), key=lambda j: abs((times[j] - when).total_seconds()))
+        seen.append({"row": r, "label": label, "when": when, "first": first, "last": last,
+                     "alt": float(alts[i, k])})
+    seen.sort(key=lambda e: e["when"])
+    return {"dusk": dusk, "dawn": dawn, "seen": seen, "missing": missing}
+
+
+def maratona_messier(ctx: GenContext) -> Tour:
+    from ..catalogs import names as _names
+    from .localtime import to_local
+
+    eng = ctx.engine
+    new = marathon_night(eng, ctx.now_utc)
+    lt = to_local(new)
+    # a noite da Lua nova (se ela cai de manhã, a noite anterior)
+    evening = lt.replace(hour=20, minute=0) - dt.timedelta(days=1 if lt.hour < 12 else 0)
+    plan = marathon_plan(eng, ctx.dso, evening.astimezone(UTC))
+    seen, missing = plan["seen"], plan["missing"]
+    lt_dusk, lt_dawn = to_local(plan["dusk"]), to_local(plan["dawn"])
+    lost = ", ".join(lab for _r, lab, _a in missing)
+    steps = [Step(
+        title="Maratona Messier", kind="intro", target="altaz:270,30", fov=100,
+        skip_if_below=-90, time=f"em:{lt_dusk:%Y-%m-%dT%H:%M}",
+        text=(f"Uma noite inteira para ver os 110 objetos do catálogo de Charles Messier. "
+              f"A data é a da **Lua nova de {lt:%d/%m/%Y}**: em março, o Sol fica numa região "
+              "do céu sem objetos Messier, e todos (ou quase) cabem entre o anoitecer e o "
+              "amanhecer.\n\n"
+              f"Do seu local, **{len(seen)} dos 110** passam de {MARATHON_MIN_ALT:.0f}° de "
+              f"altura entre {lt_dusk:%H:%M} e {lt_dawn:%H:%M}"
+              + (f"; ficam de fora {lost}, baixos demais nesta latitude." if missing else ".")
+              + " Cada passo é uma hora da noite, na ordem em que os objetos devem ser "
+              "procurados: primeiro os que vão se pôr, por último os que nascem de madrugada."))]
+    blocks: list[list[dict]] = []
+    for e in seen:
+        span = (e["when"] - blocks[-1][0]["when"]).total_seconds() if blocks else 0.0
+        if blocks and len(blocks[-1]) < MARATHON_BLOCK_MAX and span < MARATHON_BLOCK_MIN * 60:
+            blocks[-1].append(e)
+        else:
+            blocks.append([e])
+    total = 0
+    for b in blocks:
+        total += len(b)
+        mid = max(b, key=lambda e: e["alt"])          # a vista vai ao mais alto do bloco
+        t0, t1 = to_local(b[0]["when"]), to_local(b[-1]["when"])
+        items = []
+        for e in b:
+            r = e["row"]
+            common = _names.common_label(r["common"]) if r["common"] else ""
+            items.append(f"**{e['label']}**" + (f" ({common})" if common else "")
+                         + f", {_const_name(r['con'])}, a {_num(e['alt'], 0)}°")
+        consts = sorted({_const_name(e["row"]["con"]) for e in b})
+        steps.append(Step(
+            title=f"{t0:%H:%M} — {', '.join(e['label'] for e in b[:3])}"
+                  + ("…" if len(b) > 3 else ""),
+            target=f"dso:{mid['row']['name']}", fov=60.0,
+            time=f"em:{to_local(mid['when']):%Y-%m-%dT%H:%M}", optional=False,
+            skip_if_below=-90,
+            highlight=[f"const:{c}" for c in sorted({{"Se1": "Ser", "Se2": "Ser"}.get(
+                e["row"]["con"], e["row"]["con"]) for e in b})][:3],
+            text=(f"De **{t0:%H:%M}** a **{t1:%H:%M}**, {len(b)} objeto(s) em "
+                  f"{', '.join(consts)} — {total} de {len(seen)} até aqui:\n\n"
+                  + "\n".join(f"- {it}" for it in items))))
+    steps.append(Step(
+        title="Depois da maratona", kind="fim", target="altaz:90,30", fov=100,
+        skip_if_below=-90, time=f"em:{lt_dawn:%Y-%m-%dT%H:%M}",
+        text=("A ordem é uma sugestão: o céu de cada um tem prédios, árvores e luzes. Para "
+              "ensaiar, guarde a lista no fim do tour e abra os objetos no **Planejamento**, "
+              "que mostra a melhor hora de cada um; o programa **Messier**, em *Planejar ▸ "
+              "Programas de observação*, guarda o que você já viu. Para o céu do sul, há a "
+              "**Maratona Lacaille**, na categoria Extras.")))
+    return Tour("maratona-messier", "Maratona Messier", "intermediario",
+                subtitle="Os 110 objetos de Messier numa noite, na ordem certa para o seu local",
+                level=3, minutes=20, when="agora", generated=True, steps=steps)
+
+
 def planetas_ano(ctx: GenContext) -> Tour:
     from .localtime import to_local
     from .planets import INNER, apparitions
@@ -1112,6 +1340,12 @@ GENERATORS: dict[str, GenMeta] = {m.key: m for m in (
     GenMeta("lua-10-noites", "Um mês de Lua em dez noites",
             "A lunação atual, da Lua fina do anoitecer à da madrugada",
             "extra", 1, 10, lua_10_noites),
+    GenMeta("maratona-messier", "Maratona Messier",
+            "Os 110 objetos de Messier numa noite, na ordem certa para o seu local",
+            "intermediario", 3, 20, maratona_messier),
+    GenMeta("lua-terminador", "A Lua: alvos do terminador",
+            "Dezenove formações lunares, cada uma na sua noite de Sol rasante",
+            "extra", 2, 15, lua_terminador),
     GenMeta("planetas-ano", "Os planetas este ano",
             "Cada planeta na sua próxima boa ocasião, nos próximos doze meses",
             "extra", 2, 10, planetas_ano),

@@ -62,6 +62,7 @@ DEFAULT_LAYERS = {
 
 COL_ASTERISM = (0.98, 0.72, 0.38, 0.80)
 COL_ASTERISM_HL = (1.00, 0.86, 0.45, 1.00)
+COL_ALIGNMENT_HL = (0.45, 0.88, 1.00, 0.95)     # v0.23: setas dos tours
 
 COL_GROUND_NIGHT = np.array([0.050, 0.078, 0.055])
 COL_GROUND_DAY = np.array([0.165, 0.210, 0.150])
@@ -258,6 +259,9 @@ class SkyWidget(QOpenGLWidget):
         self.const_lines = skygeometry.load_constellation_lines(data_dir)
         self.const_bounds = skygeometry.load_constellation_bounds(data_dir)
         self.asterism_info, self.asterism_lines = self._load_asterisms(data_dir)
+        self.alignment_info, self.alignment_lines = self._load_alignments(data_dir)
+        self.moon_marker: str = ""          # v0.23: formação lunar marcada num tour
+        self.hide_highlight_names = False    # v0.23: quiz — asterismo aceso sem o nome
         self.milkyway = skygeometry.load_milkyway_points(data_dir)
         self.grid = skygeometry.build_grid()
         self.horizon = skygeometry.build_horizon()
@@ -2336,6 +2340,83 @@ class SkyWidget(QOpenGLWidget):
             out.append((feats[i], float(x), float(y), float(diam_px[i]) / 2.0))
         return out
 
+    def _draw_alignment_labels(self, painter: QPainter, dpr: float, placer, keys: set,
+                               ground_on: bool) -> None:
+        from PySide6.QtGui import QFontMetrics, QPen
+
+        m = self._frame_m
+        font = self._lf(9, QFont.Bold)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        col = QColor(115, 225, 255)
+        for a in self.alignment_info:
+            if a["key"] not in keys:
+                continue
+            for lab in a.get("labels", []):
+                v = (np.asarray(lab["xyz"], np.float32) @ m.T)[np.newaxis, :]
+                x, y, vis = self.camera.project(v, margin=20.0)
+                if not vis[0]:
+                    continue
+                px, py = x[0] / dpr, y[0] / dpr
+                painter.setPen(QPen(col, 1.6))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawEllipse(QPointF(px, py), 7.0, 7.0)
+                text = lab["text"]
+                w_t, h_t = fm.horizontalAdvance(text), fm.height()
+                tx, ty = int(px) + 10, int(py) + h_t // 3
+                if placer.place(tx, ty, w_t, h_t, force=True):
+                    painter.setPen(QColor(10, 20, 30))
+                    painter.drawText(tx + 1, ty + 1, text)
+                    painter.setPen(col)
+                    painter.drawText(tx, ty, text)
+
+    def moon_feature_position(self, name: str):
+        """Posição (x, y, raio) em pixels do dispositivo de uma formação lunar,
+        se a Lua estiver desenhada e a formação na face voltada para nós."""
+        view = getattr(self, "_moon_view", None)
+        if not view or not name:
+            return None
+        from ..core import moon as moonlib
+
+        f = next((f for f in moonlib.features() if f.name.lower() == name.lower()
+                  or (f.pt and f.pt.lower() == name.lower())), None)
+        if f is None:
+            return None
+        vb = f.vector
+        vi = view["rot"].T @ vb
+        if float(view["w"] @ vi) <= 0.0:
+            return None
+        r = view["r"]
+        a, b = float(view["e_t"] @ vi), float(view["n_t"] @ vi)
+        x = view["cx"] + r * (a * view["e_scr"][0] + b * view["n_scr"][0])
+        y = view["cy"] + r * (a * view["e_scr"][1] + b * view["n_scr"][1])
+        rad = max(6.0, f.diam * r / moonlib.MOON_RADIUS_KM / 2.0)
+        return f, float(x), float(y), float(rad)
+
+    def _draw_moon_marker(self, painter: QPainter, dpr: float, placer) -> None:
+        """Anel e nome da formação lunar de que fala o passo do tour (v0.23)."""
+        pos = self.moon_feature_position(self.moon_marker)
+        if pos is None:
+            return
+        from PySide6.QtGui import QFontMetrics, QPen
+
+        f, x, y, rad = pos
+        px, py, pr = x / dpr, y / dpr, max(8.0, rad / dpr + 4.0)
+        col = QColor(115, 225, 255)
+        painter.setPen(QPen(col, 2.4))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawEllipse(QPointF(px, py), pr, pr)
+        font = self._lf(10, QFont.Bold)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        text = f.pt or f.name
+        tx, ty = int(px + pr + 6), int(py + fm.ascent() / 2)
+        placer.place(tx, ty, fm.horizontalAdvance(text), fm.height(), force=True)
+        painter.setPen(QColor(10, 20, 30))
+        painter.drawText(tx + 1, ty + 1, text)
+        painter.setPen(col)
+        painter.drawText(tx, ty, text)
+
     def _draw_moon_labels(self, painter: QPainter, dpr: float, placer) -> None:
         """Nomes das formações lunares quando a Lua ocupa boa parte da tela."""
         view = getattr(self, "_moon_view", None)
@@ -2566,6 +2647,8 @@ class SkyWidget(QOpenGLWidget):
             for a in self.asterism_info:
                 if not self.layers.get("asterisms") and a["key"] not in hl_ast:
                     continue
+                if self.hide_highlight_names and a["key"] in hl_ast:
+                    continue
                 v = (np.asarray(a["center"], np.float32) @ m_ast.T)[np.newaxis, :]
                 ax, ay, avis = self.camera.project(v, margin=20.0)
                 if not avis[0] or (ground_on and self._below_mask(v)[0]):
@@ -2580,8 +2663,14 @@ class SkyWidget(QOpenGLWidget):
                                    else QColor(235, 175, 105))
                     painter.drawText(tx, ty, text)
 
+        # pontas dos alinhamentos em destaque (v0.23): um anel e o nome
+        hl_al = {k for kind, k in self.active_highlights() if kind == "alignment"}
+        if hl_al and self.alignment_info:
+            self._draw_alignment_labels(painter, dpr, placer, hl_al, ground_on)
+
         # formações da Lua (v0.17) antes dos nomes dos corpos
         if self.layers["planets"] and not self.chart_mode:
+            self._draw_moon_marker(painter, dpr, placer)
             self._draw_moon_labels(painter, dpr, placer)
 
         # trilha de satélite (v0.19)
@@ -3690,6 +3779,7 @@ class SkyWidget(QOpenGLWidget):
         """Apaga todos os destaques (troca de passo de tour, saída)."""
         self._highlights.clear()
         self._highlight_const = None
+        self.moon_marker = ""
         self.update()
 
     def active_highlights(self) -> list[tuple[str, str]]:
@@ -3746,6 +3836,27 @@ class SkyWidget(QOpenGLWidget):
         return keep, skygeometry.PolylineSet.from_arrays(
             np.asarray(verts, np.float32), np.asarray(counts, np.int32), np.asarray(ids))
 
+    def _load_alignments(self, data_dir):
+        """``alignments.json`` (v0.23) → (metadados com rótulos, arcos por chave)."""
+        from ..core.tours import load_alignments
+
+        info = load_alignments(data_dir / "alignments.json")
+        verts, counts, ids = [], [], []
+        for a in info:
+            for line in a.get("lines", []):
+                if len(line) >= 2:
+                    verts.extend(line)
+                    counts.append(len(line))
+                    ids.append(a["key"])
+        if not counts:
+            return info, skygeometry.PolylineSet.from_arrays(np.zeros((0, 3), np.float32),
+                                                             np.zeros(0, np.int32))
+        return info, skygeometry.PolylineSet.from_arrays(
+            np.asarray(verts, np.float32), np.asarray(counts, np.int32), np.asarray(ids))
+
+    def highlight_alignment(self, key: str, seconds: float = 8.0) -> None:
+        self._highlight("alignment", key, seconds)
+
     def _const_subset(self, pset, cid: str):
         key = (id(pset), cid)
         if key not in self._const_subsets:
@@ -3772,6 +3883,9 @@ class SkyWidget(QOpenGLWidget):
             elif kind == "asterism":
                 r.draw_lines(self._segments(self._const_subset(self.asterism_lines, key), m,
                                             COL_ASTERISM_HL))
+            elif kind == "alignment":
+                r.draw_lines(self._segments(self._const_subset(self.alignment_lines, key), m,
+                                            COL_ALIGNMENT_HL))
 
     def describe_selection(self, selection) -> str:
         """Nome curto do objeto, para menus e títulos."""

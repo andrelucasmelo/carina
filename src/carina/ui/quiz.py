@@ -38,6 +38,7 @@ class QuizDialog(QDialog):
         self.mode = QComboBox()
         self.mode.addItem(self.tr("Qual constelação é esta?"), "const")
         self.mode.addItem(self.tr("Encontre a estrela"), "star")
+        self.mode.addItem(self.tr("Qual asterismo é este?"), "asterism")
         self.mode.currentIndexChanged.connect(lambda *_: self.next_question())
         top.addWidget(self.mode, 1)
         self.lbl_score = QLabel()
@@ -84,7 +85,12 @@ class QuizDialog(QDialog):
         self.feedback.setText("")
         mode = self.mode.currentData()
         when = self._when()
-        if mode == "const":
+        sky.hide_highlight_names = mode == "asterism"
+        if mode == "asterism":
+            self._asterism_question(when)
+            if self.question is None:
+                return
+        elif mode == "const":
             sky.set_layer("const_lines", True)
             sky.set_const_label_mode("none")
             cids = Q.visible_constellations(self.main.engine, sky.const_info, when)
@@ -119,8 +125,33 @@ class QuizDialog(QDialog):
         self.recent.append(self.question.answer)
         self._update_score()
 
+    def _asterism_question(self, when) -> None:
+        import numpy as np
+
+        sky = self.sky
+        sky.set_layer("asterisms", False)
+        names = {a["key"]: a["name"] for a in sky.asterism_info}
+        keys = Q.visible_asterisms(self.main.engine, sky.asterism_info, when)
+        self.question = Q.asterism_question(keys, names, self.rng, self.recent[-5:])
+        for b in self.buttons:
+            b.show()
+        if self.question is None:
+            self.prompt.setText(self.tr("Nenhum asterismo alto agora — tente à noite ou "
+                                        "mude a hora."))
+            return
+        for b, (_key, label) in zip(self.buttons, self.question.options):
+            b.setText(label)
+            b.setEnabled(True)
+        self.prompt.setText(self.tr("Qual é o asterismo desenhado no céu?"))
+        a = next(a for a in sky.asterism_info if a["key"] == self.question.answer)
+        m = self.main.engine.horizontal_matrix(self.main.engine.ts.from_datetime(when))
+        center = np.asarray(m, float) @ np.asarray(a["center"], float)
+        sky.fly_to(center, 70.0, 700)
+        sky.highlight_asterism(self.question.answer, 3600)
+
     def _choose(self, k: int) -> None:
-        if self.question is None or self.answered or self.question.kind != "const":
+        if self.question is None or self.answered or \
+                self.question.kind not in ("const", "asterism"):
             return
         key = self.question.options[k][0]
         self._answer(self.question.check(key))
@@ -161,5 +192,6 @@ class QuizDialog(QDialog):
             self.sky.selectionChanged.disconnect(self._sky_clicked)
         except (RuntimeError, TypeError):
             pass
+        self.sky.hide_highlight_names = False
         self.state.restore(self.sky, self.main.engine)
         super().closeEvent(e)

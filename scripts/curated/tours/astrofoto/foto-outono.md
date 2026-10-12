@@ -34,6 +34,8 @@ Alta logo ao escurecer, a **Nebulosa de Carina** é o grande alvo da estação. 
 
 Ao lado, NGC 3532 e IC 2602 compõem um campo largo inesquecível.
 
+**Ponto de partida:** 200 a 400 mm para o conjunto, 1000 mm para os detalhes. Filtro dual-band (H-alfa/OIII) em céu de cidade; banda larga se quiser a cor natural das estrelas. Faça HDR: uns 40 subs de 10 s para o núcleo e Eta Carinae e 60 de 120 s — 2 horas — para o gás e a poeira das bordas. Smart telescope: 10 a 20 s.
+
 ## O Galo Correndo
 @target: dso:IC 2944
 @time: data:04-15 hora:21:30
@@ -70,6 +72,8 @@ O maior globular da Galáxia rende em qualquer focal. O cuidado é não estourar
 
 Uma galáxia elíptica cortada por uma faixa de poeira: **Centaurus A** (NGC 5128), a 12 milhões de anos-luz, resultado da fusão de duas galáxias. É uma das galáxias mais brilhantes do céu e um alvo excelente para focais de 800 mm ou mais.
 
+**Ponto de partida:** 600 a 1000 mm. Galáxia é luz de estrelas: use banda larga, com anti-poluição leve ou só o UV/IR-cut — o dual-band corta quase todo o sinal. Típico: 40 subs de 30 s para proteger o núcleo e 80 de 120 s (cerca de 2 h 40 min) para o halo e os nós da faixa de poeira. Num smart telescope, centenas de subs de 10 s.
+
 ## O Catavento do Sul
 @target: dso:M 83
 @time: data:04-15 hora:00:30
@@ -79,6 +83,8 @@ Uma galáxia elíptica cortada por uma faixa de poeira: **Centaurus A** (NGC 512
 @image: dss:M 83
 
 Na Hidra, **M 83** é uma espiral barrada vista de frente, com braços cheios de regiões rosadas de formação de estrelas. Passa alta perto da meia-noite em abril; pede focal longa e boa integração — 6 horas ou mais fazem diferença.
+
+**Ponto de partida:** 600 a 1000 mm, banda larga ou UV/IR-cut; o dual-band só serve como camada extra para os nós de hidrogênio dos braços. Uma primeira noite: 40 subs de 30 s para o núcleo e a barra e 90 de 120 s — 3 horas — para os braços. Smart telescope: 10 a 20 s, com drizzle se houver muitos quadros.
 
 ## Bom outono de fotos
 @kind: fim

@@ -32,7 +32,9 @@ O retângulo no céu é o campo do seu **setup ativo** (Planejar ▸ Campo de vi
 
 O alvo mais fácil e mais compensador do céu: **M 42** é tão brilhante que o núcleo, o Trapézio, satura em segundos. A técnica clássica é juntar subs curtas (para o núcleo) e longas (para a nebulosidade externa) — o chamado HDR.
 
-Com focais de 300 a 600 mm, M 42, M 43 e o Homem Correndo (NGC 1977) cabem no mesmo quadro.
+Com focais de 300 a 600 mm, M 42, M 43 e o Homem Correndo (NGC 1977) cabem no mesmo quadro; com 1000 mm, o quadro fecha em M 42 e M 43.
+
+**Ponto de partida:** câmera colorida sem filtro (ou com anti-poluição suave) para o núcleo e as estrelas; filtro dual-band H-alfa/OIII para a nebulosidade fraca sob céu urbano ou com Lua. Uma sessão típica: uns 40 subs curtos (5, 15 e 30 s) para o HDR e 60 de 120 s — 2 horas — para o sinal profundo. Num smart telescope, duas sessões: 10 s para o núcleo, 30 a 60 s para o resto.
 
 ## A Cabeça de Cavalo
 @target: dso:B 33
@@ -84,6 +86,8 @@ Uma focal média mostra a Tarântula; uma lente de 135 mm, a Nuvem inteira.
 @image: dss:NGC 3372
 
 Para quem fica acordado, a **Nebulosa de Carina** passa alta de madrugada em janeiro — em abril ela já estará alta no começo da noite. Maior e mais brilhante que a de Órion, tem detalhes para qualquer focal: o Buraco da Fechadura, a Montanha Mística, Eta Carinae.
+
+**Ponto de partida:** de 200 a 400 mm a nebulosa inteira cabe no quadro; com 1000 mm, escolha um detalhe ou faça mosaico. O dual-band é o filtro recomendado em céu urbano, mas a banda larga também rende, pelo brilho do alvo. Típico: 40 subs de 10 s, para Eta Carinae não saturar, e 60 de 120 s (2 horas) guiados. Num smart telescope, 10 a 20 s por sub.
 
 ## Bom verão de fotos
 @kind: fim

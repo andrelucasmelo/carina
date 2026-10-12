@@ -1,0 +1,186 @@
+---
+key: constelacoes-primavera
+title: As 88 constelações — 4ª noite: primavera
+subtitle: O céu de setembro a novembro, constelação por constelação — de Fomalhaut e do Grande Quadrado ao polo sul
+category: intermediario
+level: 2
+minutes: 25
+when: data:10-15 hora:21:00
+lat_range: -40, 5
+tags: constelações, 88, primavera
+author: Carina / Astronomia no Quintal
+---
+
+## A quarta noite
+@kind: intro
+@target: altaz:180,60
+@fov: 130
+@layers: const_lines=1, const_names=1, asterisms=1, dso=0, grid_altaz=0
+@skip_if_below: -90
+
+Esta é a **4ª e última noite** da série *As 88 constelações em quatro noites*: o céu de **setembro a novembro**, a primavera no Brasil. Faltam 21 constelações para fechar as 88.
+
+É um céu diferente: a Via Láctea se deita no horizonte e sobra uma grande região de estrelas mais fracas — o "mar celeste" dos babilônios, com Aquário, os Peixes e a Baleia. Duas referências organizam tudo: **Fomalhaut**, solitária no alto, e o **Grande Quadrado de Pégaso**, ao norte. Ao sul, um bando de aves dos navegadores cerca o polo.
+
+## O Peixe Austral e Fomalhaut
+@target: const:PsA
+@time: data:10-15 hora:21:00
+@fov: 39
+@highlight: const:PsA, alignment:pegaso-fomalhaut
+
+Quase no zênite, uma estrela brilhante sem nenhuma vizinha à altura: **Fomalhaut**, a "boca do peixe" em árabe. {lore:find:PsA} Se tiver dúvida, use a seta: o lado oeste do Grande Quadrado de Pégaso, prolongado três vezes e meia, cai nela.
+
+O resto do **Peixe Austral** é um arco de estrelas fracas, o peixe que bebe a água despejada por Aquário — constelação de **Ptolomeu**. Fomalhaut está a uns 25 anos-luz e é cercada por um anel de poeira que o telescópio Hubble fotografou: um sistema planetário em formação.
+
+## Aquário
+@target: const:Aqr
+@time: data:10-15 hora:21:00
+@fov: 66
+@highlight: const:Aqr, const:PsA
+
+Ao norte de Fomalhaut, uma constelação grande e apagada: **Aquário**, o homem que derrama água de um jarro. {lore:find:Aqr} O Jarro fica quase sobre o equador celeste; a corrente de estrelas fracas desce em zigue-zague até a boca do Peixe Austral.
+
+É de **Ptolomeu**, mas a figura é muito mais antiga, da Babilônia. Ao binóculo, procure **M 2**, um globular brilhante ao norte da constelação. Mais ao sul, a **Nebulosa da Hélice** (NGC 7293) é uma das nebulosas planetárias mais próximas: grande no céu, mas tão difusa que pede céu escuro.
+
+## Capricórnio
+@target: const:Cap
+@time: data:09-20 hora:21:00
+@fov: 47
+@highlight: const:Cap
+
+A oeste de Aquário, um triângulo largo de estrelas modestas, parecido com um sorriso torto ou um barco: **Capricórnio**. {lore:find:Cap} A cabra com cauda de peixe já existia na Babilônia; os gregos a herdaram e **Ptolomeu** a registrou.
+
+Comece pela ponta oeste: **Algedi** é uma dupla que se separa a olho nu em céu limpo, e logo abaixo dela **Dabih** também se desdobra ao binóculo. O nome do **Trópico de Capricórnio**, que corta São Paulo, o Paraná e o Mato Grosso do Sul, vem da época em que o Sol estava ali no solstício de dezembro.
+
+## As pequenas entre a Águia e o Cisne
+@target: const:Del
+@time: data:09-15 hora:21:00
+@fov: 50
+@highlight: const:Del, const:Vul, const:Equ, const:Sge, alignment:vega-altair-cabide
+
+Baixas no norte, entre Altair e o Cisne, cabem quatro constelações miúdas. A mais bonita é o **Golfinho**, um losango de estrelas com uma cauda. {lore:find:Del} Suas estrelas **Sualocin** e **Rotanev** escondem, de trás para a frente, o nome de Nicolaus Venator, assistente do Observatório de Palermo. Constelação de **Ptolomeu**.
+
+Logo a leste, o **Cavalo Menor**, a segunda menor do céu, também de Ptolomeu. Acima da **Flecha**, a **Raposa**, de **Hevelius**, quase sem estrelas. {lore:find:Vul} Aproveite-a pelo **Cabide**, na linha de Altair a Vega, e pela **Nebulosa do Haltere** (M 27).
+
+## O Cisne
+@target: star:Albireo
+@time: data:09-01 hora:21:00
+@fov: 62
+@highlight: const:Cyg, asterism:cruz-norte
+
+Rente ao horizonte norte, a constelação do **Cisne** voa ao longo da Via Láctea. {lore:find:Cyg} Do Brasil a cruz aparece deitada ou de cabeça para baixo, e quanto mais ao sul, mais baixa: **Deneb**, a cauda, pouco passa de 20° de altura no Rio e não chega a 15° em Porto Alegre.
+
+O bico do cisne é **Albireo**, a joia da constelação: num telescópio pequeno, ela se divide numa estrela dourada e outra azul. O Cisne é de **Ptolomeu** — Zeus disfarçado de cisne. Ali foi identificado, em 1971, o primeiro buraco negro, Cygnus X-1.
+
+## Pégaso e o Grande Quadrado
+@target: asterism:quadrado-pegaso
+@time: data:10-15 hora:22:00
+@fov: 68
+@highlight: const:Peg, asterism:quadrado-pegaso
+
+Ao norte, quatro estrelas de segunda magnitude formam um quadrado enorme, com quase nada dentro: o **Grande Quadrado de Pégaso**. {lore:find:Peg} Do Brasil, o cavalo alado de **Ptolomeu** voa de cabeça para baixo; o pescoço segue a partir de **Markab** até **Enif**, o focinho.
+
+Perto de Enif, um binóculo mostra **M 15**, um globular denso. E foi em torno da estrela **51 Pegasi**, perto do lado oeste do Quadrado, que se descobriu em 1995 o primeiro planeta de uma estrela parecida com o Sol — o começo da caça aos exoplanetas.
+
+## Andrômeda e a sua galáxia
+@target: const:And
+@time: data:11-15 hora:21:00
+@fov: 58
+@highlight: const:And, alignment:quadrado-andromeda
+@image: dss:M 31
+
+O canto nordeste do Quadrado, **Alpheratz**, já é de **Andrômeda**. {lore:find:And} Siga a seta: de Alpheratz a **Mirach**, e de Mirach suba por Mu e Nu de Andrômeda até uma mancha alongada.
+
+Essa mancha é **M 31**, a **Galáxia de Andrômeda**, a 2,5 milhões de anos-luz — o objeto mais distante que se vê a olho nu. A constelação é de **Ptolomeu**: a princesa acorrentada ao rochedo e salva por Perseu. No outro extremo, **Almach** é uma dupla de cores lindas ao telescópio: laranja e azul.
+
+## O extremo norte: Cassiopeia, Cefeu e o Lagarto
+@target: altaz:0,15
+@time: data:11-15 hora:22:00
+@fov: 90
+@highlight: const:Cas, const:Cep, const:Lac, asterism:w-cassiopeia
+
+Olhe rente ao horizonte norte. A família de Andrômeda está ali: o **W** de **Cassiopeia**, a rainha, e o rei **Cefeu**, os dois de **Ptolomeu**. {lore:find:Cas} {lore:find:Cep} Entre o Cisne e Andrômeda, o pequeno **Lagarto**, que **Hevelius** criou para tapar um buraco no mapa, sobe um pouco mais.
+
+Quanto mais ao norte do país, melhor: em Fortaleza ou Belém o W aparece inteiro; no Rio, raspa o horizonte; no Sul, não nasce. Em 1572 **Tycho Brahe** viu uma supernova em Cassiopeia, e **Delta Cephei** deu nome às cefeidas, as "réguas" do universo.
+
+## Peixes
+@target: const:Psc
+@time: data:11-15 hora:21:00
+@fov: 72
+@highlight: const:Psc, asterism:circulo-peixes, asterism:quadrado-pegaso
+
+Sob o Grande Quadrado, ao sul, há uma volta de estrelas bem fracas: o **Anel de Peixes**, a cabeça de um dos peixes. {lore:find:Psc} Do Anel sai uma fita de estrelas para leste até **Alrescha**, o "nó" da corda que une os dois peixes — Afrodite e Eros fugindo do monstro Tífon, na lenda que **Ptolomeu** herdou.
+
+É uma constelação para céu escuro. A sua fama vem de outra coisa: o **ponto do equinócio de março**, onde o Sol cruza o equador celeste, já esteve em Áries e hoje fica em Peixes, por causa da lenta precessão do eixo da Terra.
+
+## A Baleia
+@target: const:Cet
+@time: data:12-01 hora:21:00
+@fov: 74
+@highlight: const:Cet, alignment:pegaso-fomalhaut
+
+Ao sul de Peixes e a leste de Aquário, a **Baleia** ocupa um pedaço enorme do céu. {lore:find:Cet} O lado leste do Grande Quadrado aponta para **Diphda**, a cauda, e a cabeça, com **Menkar**, fica perto do Touro. É o monstro marinho que ia devorar Andrômeda — constelação de **Ptolomeu**.
+
+No pescoço mora **Mira**, "a maravilhosa": em alguns meses ela brilha a olho nu e, noutros, some até para o binóculo. Foi a primeira variável periódica descoberta. Ali também fica **Tau Ceti**, uma estrela parecida com o Sol, a uns 12 anos-luz.
+
+## O Escultor e o Microscópio
+@target: const:Scl
+@time: data:11-10 hora:21:00
+@fov: 53
+@highlight: const:Scl, const:Mic, const:PsA
+@image: dss:NGC 253
+
+Dos dois lados de Fomalhaut estão duas invenções de **Lacaille**, sem nenhuma estrela brilhante. A leste, o **Escultor**. {lore:find:Scl} Nele fica o **polo sul da Galáxia**: olhando para lá, olhamos para fora do disco da Via Láctea. Por isso há tantas galáxias, como **NGC 253**, a Galáxia do Escultor, quase de perfil e visível ao binóculo.
+
+A oeste, o **Microscópio**, talvez o mais discreto de todos. {lore:find:Mic} É um quadrilátero de estrelas de magnitude 4 a 5, que some em céu de cidade.
+
+## As aves do sul: Grou, Índio e Pavão
+@target: const:Gru
+@time: data:10-15 hora:21:00
+@fov: 60
+@highlight: const:Gru, const:Ind, const:Pav
+
+Ao sul de Fomalhaut, uma fileira de estrelas forma o pescoço comprido de uma ave pernalta: o **Grou**, com **Alnair**, de magnitude 1,7, na asa. {lore:find:Gru} Repare em **Delta Gruis**: duas estrelas lado a lado, uma amarela e outra avermelhada.
+
+A oeste do Grou fica o **Índio**, um fiapo de estrelas fracas — a sua **Épsilon Indi**, a uns 12 anos-luz, é uma das vizinhas do Sol. Mais além, o **Pavão**, que vimos na noite de inverno, ainda está alto. As três foram desenhadas pelos **navegadores holandeses** no fim do século XVI.
+
+## O Tucano e a Pequena Nuvem
+@target: const:Tuc
+@time: data:11-01 hora:21:00
+@fov: 44
+@highlight: const:Tuc
+@image: dss:NGC 104
+
+Mais perto do polo, uma ave do Brasil: o **Tucano**, outra figura dos **navegadores holandeses**. {lore:find:Tuc} A olho nu, a **Pequena Nuvem de Magalhães** parece um pedaço solto da Via Láctea — é uma galáxia satélite da nossa, a uns 200 mil anos-luz.
+
+Bem ao lado dela, uma "estrela" difusa: **47 Tucanae**, o segundo aglomerado globular mais brilhante do céu, depois de Ômega Centauri. Ao binóculo é uma bola de luz com centro denso; num telescópio pequeno, explode em estrelas.
+
+## O Oitante e o polo sul
+@target: alignment:polo-canopus-achernar
+@time: data:10-15 hora:21:00
+@fov: 70
+@highlight: const:Oct, star:sig Oct
+
+No sul, à altura igual à sua latitude, está o **polo sul celeste**, em volta do qual todo o céu gira. {lore:find:Oct} Na primavera o Cruzeiro está baixo; quem mostra o polo são **Achernar** e **Canopus**, que formam com ele um triângulo quase equilátero.
+
+O **Oitante** é de **Lacaille**, que homenageou o octante, instrumento de navegação de 1730. A estrela mais perto do polo, **Sigma Octantis**, tem magnitude 5,4 e pede céu escuro — e no Norte e no Nordeste ela fica quase no horizonte. Pequena, mas importante: na **bandeira do Brasil**, ela representa o Distrito Federal.
+
+## A Fênix
+@target: const:Phe
+@time: data:11-20 hora:21:00
+@fov: 46
+@highlight: const:Phe, const:Gru, const:Tuc
+
+Entre o Grou e **Achernar**, a ponta do rio Erídano, abre as asas a **Fênix**, a ave que renasce das próprias cinzas. {lore:find:Phe} A estrela mais brilhante, **Ankaa**, tem magnitude 2,4; o resto da figura é um conjunto de estrelas de terceira e quarta magnitude.
+
+É mais uma constelação dos **navegadores holandeses**, publicada por Bayer em 1603. A olho nu não há muito o que ver, mas lá longe, fora do alcance de qualquer amador, fica **El Gordo**, um dos maiores aglomerados de galáxias conhecidos.
+
+## Você viu as 88
+@kind: fim
+@target: altaz:180,60
+@fov: 130
+@skip_if_below: -90
+
+Com Peixe Austral, Aquário, Capricórnio, Golfinho, Raposa, Cavalo Menor, Cisne, Pégaso, Andrômeda, Cassiopeia, Cefeu, Lagarto, Peixes, Baleia, Escultor, Microscópio, Grou, Índio, Tucano, Oitante e Fênix, a série termina: em quatro noites, você passou pelas **88 constelações** oficiais do céu.
+
+Agora é a sua vez. Teste o que ficou na memória em **Tours ▸ Quiz do céu…**, e saia para o quintal: comece pelas fáceis desta noite, Fomalhaut e o Grande Quadrado, e vá de vizinha em vizinha. Os objetos citados ficam no botão **★ Guardar os objetos deste tour numa lista**.

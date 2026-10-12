@@ -21,6 +21,51 @@ Este é o céu de **15 de julho às 20h**, o meio do inverno no Brasil. É a mel
 
 Num céu escuro, a Via Láctea de inverno projeta sombra — e é cheia de nebulosas e aglomerados para o binóculo.
 
+## Olhando para o leste
+@kind: intro
+@target: altaz:90,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+@highlight: alignment:escorpiao-centro
+
+Primeiro, uma volta completa no lugar. De frente para o **leste**, levante bem o queixo: **Antares**, vermelha, está a uns 78° de altura, quase sobre a cabeça, e a cauda do Escorpião desce para o sudeste até o ferrão, a uns 62°.
+
+Logo abaixo, entre 45° e 55°, o **Bule de Sagitário**, mergulhado na parte mais densa da Via Láctea. À esquerda, mais baixa (uns 21°), a branca **Altair**, da Águia. Rente ao horizonte, no meio, **Capricórnio** começa a subir; Fomalhaut ainda não nasceu.
+
+## Olhando para o norte
+@kind: intro
+@target: altaz:0,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Vire para a esquerda, até o **norte** — um céu mais calmo, de estrelas médias. Quase no norte exato, a uns 40°, o pequeno arco da **Coroa Boreal**; à direita dela, a uns 30°, o quadrilátero da **Chave de Hércules**, e mais à direita e mais alta, a uns 45°, **Rasalhague**, a cabeça de Ofiúco.
+
+À esquerda, a uns 43°, a alaranjada **Arcturus**, a mais brilhante deste lado. No nordeste, baixa (uns 16°), a branca **Vega**, da Lira. Rente ao horizonte, à esquerda, aparece só a ponta do cabo do Grande Carro; Deneb e o Cisne ainda não nasceram.
+
+## Olhando para o oeste
+@kind: intro
+@target: altaz:270,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Agora o **oeste**, onde o outono se despede. **Spica**, branco-azulada, ainda está alta, a uns 56°, um pouco à direita do oeste; à esquerda dela e mais baixo, o quadrilátero do **Corvo**, a uns 40°.
+
+Bem no alto, à direita, quase no zênite (uns 76°), as duas estrelas de **Libra**. Mais baixa, à direita, **Denebola**, a cauda do Leão, a uns 22°; Regulus está se pondo. À esquerda, no sudoeste, **Menkent**, do Centauro, a uns 65°. Arcturus fica no noroeste, já vista do lado norte.
+
+## Olhando para o sul
+@kind: intro
+@target: altaz:180,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Por fim, o **sul**. Um pouco à direita do sul, as duas estrelas mais brilhantes deste lado: **Alfa Centauri** e **Hadar**, os Guardiões, a uns 50°. Mais à direita, a uns 38° a 42°, o **Cruzeiro do Sul**, inclinado e deitando-se para o oeste.
+
+Quase no sul exato, a uns 43°, a alaranjada **Atria**, no **Triângulo Austral**; à esquerda, a uns 29°, **Peacock**, do Pavão. Embaixo, o **polo sul celeste**, a uns 23°. Rente ao horizonte, à direita, a Quilha (Miaplacidus a uns 19°); Canopus e as Nuvens de Magalhães estão baixas ou abaixo do horizonte — não é a estação delas.
+
 ## O Escorpião
 @target: const:Sco
 @fov: 55
@@ -50,9 +95,11 @@ Perto do ferrão, dois aglomerados abertos lado a lado: **M 7**, que Ptolomeu j�
 @target: const:Sgr
 @time: +1h
 @fov: 50
-@highlight: asterism:bule
+@highlight: asterism:bule, alignment:escorpiao-centro
 
 Uma hora depois, a leste do Escorpião, o **Bule de Sagitário** já está alto. Do bico sai o "vapor": a parte mais densa da Via Láctea, na direção do centro da Galáxia.
+
+Para chegar lá, vá do coração do Escorpião, Antares, ao ferrão, e do ferrão ao Bule: entre os dois, a uns 26 mil anos-luz, está o centro da nossa galáxia.
 
 {lore:short:Sgr}
 
@@ -107,9 +154,11 @@ Ao sul da cauda do Escorpião, o **Altar**; a leste dele, sob Sagitário, o pequ
 @target: asterism:triangulo-inverno
 @time: +2h
 @fov: 70
-@highlight: asterism:triangulo-inverno
+@highlight: asterism:triangulo-inverno, alignment:vega-altair-cabide
 
 Duas horas depois, a nordeste, três estrelas brilhantes formam um triângulo grande: **Vega**, **Deneb** e **Altair** — o "Triângulo de Verão" de quem mora no hemisfério norte. Deneb fica baixa ou não nasce no Sul do Brasil.
+
+Na linha de Altair a Vega, a um terço do caminho a partir de Altair, o binóculo mostra o **Cabide**, um pequeno asterismo em forma de cabide de roupa.
 
 ## Arcturus e o Boieiro
 @target: star:Arcturus

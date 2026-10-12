@@ -28,6 +28,9 @@ Cada arquivo ``scripts/curated/tours/<categoria>/<chave>.md`` é um tour:
     @fov_circle: 6                 (campo de binóculo desenhado)
     @setup_fov: sim                (campo do setup ativo desenhado no alvo)
     @finder: sim                   (acrescenta a rota a partir das estrelas)
+    @fov_rect: 1.29x0.73 Seestar S50  (quadro fixo desenhado no alvo, v0.23)
+    @moon_feature: Tycho           (formação lunar marcada; alvo body:Lua, v0.23)
+    @target: alignment:cruzeiro-polo  (a "seta" do céu, desenhada; v0.23)
 
     Texto do passo em Markdown. {lore:Ori} insere a história da constelação.
 

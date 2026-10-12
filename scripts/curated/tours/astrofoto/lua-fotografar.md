@@ -35,6 +35,26 @@ Esta é a Lua na melhor hora desta noite. Perto do **terminador**, a linha entre
 - **Lua cheia**: os mares escuros e os raios claros; ótima para a Lua **nascendo sobre a paisagem**.
 - **Lua fina (até 3 dias)**: a **luz cinérea**, a parte escura iluminada pela Terra — uma exposição mais longa, com a parte iluminada estourada.
 
+## Cada formação tem o seu dia
+@kind: pause
+@target: altaz:270,30
+@fov: 100
+@skip_if_below: -90
+
+O terminador anda uns 12° por dia: cada cratera fica dramática só uma ou duas noites por mês. Pela idade da Lua (dias depois da nova; erro de cerca de 1 dia), o que está amanhecendo:
+
+- **2–3 dias**: Mar da Crise, Langrenus
+- **4–5**: Mar da Tranquilidade, Mar do Néctar
+- **6**: Mar da Serenidade
+- **7–8**: Ptolemaeus, Apeninos, Muralha Reta
+- **8–9**: Platão, Tycho, Clavius
+- **9–10**: Copernicus
+- **10–12**: Kepler, Aristarchus
+- **13**: Grimaldi
+- **14–16** (cheia): os raios de Tycho e de Copernicus
+
+Na minguante, uns 15 dias depois, os mesmos alvos voltam com a sombra do outro lado.
+
 ## Exposição e foco
 @kind: pause
 @target: altaz:270,30

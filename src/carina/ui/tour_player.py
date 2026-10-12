@@ -319,11 +319,17 @@ class TourPlayer(QDockWidget):
         if not hls and cur.target is not None and cur.target.kind in ("const", "asterism") \
                 and s.kind in ("goto", "highlight"):
             hls = [cur.target]
+        if cur.target is not None and cur.target.kind == "alignment" \
+                and cur.target.spec not in [h.spec for h in hls]:
+            hls.append(cur.target)                  # a seta sempre aparece
         for h in hls:
             if h.kind == "const":
                 sky.highlight_constellation(h.key, 3600)
             elif h.kind == "asterism":
                 sky.highlight_asterism(h.key, 3600)
+            elif h.kind == "alignment":
+                sky.highlight_alignment(h.key, 3600)
+        sky.moon_marker = s.moon_feature or ""
         if cur.target is not None and cur.target.selection is not None:
             sky.selection = cur.target.selection        # sem abrir a ficha
         elif sky.selection is not None and s.kind != "intro":
@@ -399,6 +405,11 @@ class TourPlayer(QDockWidget):
             d = math.radians(float(s.fov_circle))
             shapes = [FovShape("circle", d, d, self.tr("Binóculo — {f}°").format(
                 f=f"{float(s.fov_circle):g}".replace(".", ",")))]
+        elif s.fov_rect and T.parse_fov_rect(s.fov_rect) is not None:
+            w, h, label = T.parse_fov_rect(s.fov_rect)
+            shapes = [FovShape("rect", math.radians(w), math.radians(h), label or
+                               self.tr("Campo {w}° × {h}°").format(
+                                   w=f"{w:g}".replace(".", ","), h=f"{h:g}".replace(".", ",")))]
         elif s.setup_fov:
             setup = self.main.active_setup() if hasattr(self.main, "active_setup") else None
             if setup is not None:

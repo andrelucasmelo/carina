@@ -15,6 +15,50 @@
    "text": "Este é o céu de **15 de outubro às 21h**, o meio da primavera no Brasil. É uma época de poucas estrelas brilhantes: o Escorpião e Sagitário se despedem a oeste, e o alto do céu é ocupado por constelações apagadas ligadas à água — Aquário, Capricórnio, Peixes, a Baleia, o Peixe Austral.\n\nOs babilônios chamavam essa região de **\"o mar celeste\"**: o Sol passava por ela na estação das chuvas. O tour vai do oeste ao norte, depois ao sul e, no fim, ao leste, onde já nasce o céu de verão."
   },
   {
+   "title": "Olhando para o leste",
+   "kind": "intro",
+   "target": "altaz:90,30",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "layers": {
+    "const_names": true
+   },
+   "text": "Antes, uma volta completa no lugar. De frente para o **leste**, o quadrante mais vazio de estrelas brilhantes. Quase no leste exato, alta, a uns 62°, a laranja-clara **Diphda**, a cauda da **Baleia**; a cabeça do monstro, com Menkar, ainda está baixa, a uns 22°.\n\nÀ esquerda, também a uns 22°, **Hamal**, de Áries, e acima dela **Peixes**. À direita sobe o **Erídano**, o rio de estrelas fracas, com o Forno. Repare no que falta: Aldebaran, Órion e Sirius ainda estão abaixo do horizonte — as Plêiades, rente ao chão, são as primeiras a chegar."
+  },
+  {
+   "title": "Olhando para o norte",
+   "kind": "intro",
+   "target": "altaz:0,30",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "layers": {
+    "const_names": true
+   },
+   "text": "Vire para a esquerda, até o **norte**: aqui está o **Grande Quadrado de Pégaso**, um losango largo de estrelas médias com o meio vazio. **Markab** fica a uns 51°, **Algenib** a uns 46°, **Scheat** a uns 39° e **Alpheratz**, o canto mais baixo, a uns 34°.\n\nDe Alpheratz sai, para a direita, a fileira de **Andrômeda** (Mirach a uns 22°). À esquerda, baixos, o **Cisne** — Deneb e Sadr entre 16° e 19° — e, quase no horizonte do noroeste, **Vega**. Bem no alto, perto do zênite, as estrelas fracas de Aquário."
+  },
+  {
+   "title": "Olhando para o oeste",
+   "kind": "intro",
+   "target": "altaz:270,30",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "layers": {
+    "const_names": true
+   },
+   "text": "Agora o **oeste**: a parte mais vistosa do céu de primavera, mas de saída. À esquerda, no sudoeste, o **Escorpião** mergulha: **Antares** já está a uns 7°, e o ferrão a uns 23°. Logo acima, entre 33° e 38°, o **Bule de Sagitário**, ainda sobre o trecho mais brilhante da Via Láctea.\n\nÀ direita, no noroeste, **Altair**, da Águia, a uns 37°, e Vega quase no chão: o Triângulo de Inverno se despedindo. Bem no alto, a uns 75°, as estrelas de **Capricórnio**. Ofiúco, no meio, já está rente ao horizonte."
+  },
+  {
+   "title": "Olhando para o sul",
+   "kind": "intro",
+   "target": "altaz:180,30",
+   "fov": 100.0,
+   "skip_if_below": -90.0,
+   "layers": {
+    "const_names": true
+   },
+   "text": "Por fim, o **sul**, o reino das aves. Bem no alto, a uns 65°, **Alnair** e **Tiaki**, do **Grou**; à direita, a uns 48°, **Peacock**, do Pavão. À esquerda, a azulada **Achernar**, a uns 44°, e a **Pequena Nuvem de Magalhães**, a uns 37°; a **Grande Nuvem** sobe mais baixa, a uns 18°.\n\nO **Cruzeiro do Sul** está abaixo do horizonte nesta hora; os Guardiões, à direita, estão se pondo, a menos de 10°. E, no sudeste, **Canopus** acaba de nascer, rente ao chão: o verão está a caminho."
+  },
+  {
    "title": "A despedida do inverno",
    "target": "const:Sgr",
    "fov": 60.0,
@@ -41,9 +85,10 @@
    "target": "star:Fomalhaut",
    "fov": 40.0,
    "highlight": [
-    "const:PsA"
+    "const:PsA",
+    "alignment:pegaso-fomalhaut"
    ],
-   "text": "A única estrela de primeira grandeza nessa parte do céu, alta e isolada: **Fomalhaut**, a \"boca do peixe\" do Peixe Austral. Quando você vê uma estrela brilhante sozinha no alto numa noite de primavera, é ela.\n\n{lore:short:PsA}"
+   "text": "A única estrela de primeira grandeza nessa parte do céu, alta e isolada: **Fomalhaut**, a \"boca do peixe\" do Peixe Austral. Quando você vê uma estrela brilhante sozinha no alto numa noite de primavera, é ela.\n\nO Grande Quadrado de Pégaso também leva até ela: prolongue o lado oeste do Quadrado, de Scheat para Markab, umas três vezes e meia.\n\n{lore:short:PsA}"
   },
   {
    "title": "As aves do sul",
@@ -91,7 +136,8 @@
    "time": "+2h",
    "fov": 12.0,
    "highlight": [
-    "const:And"
+    "const:And",
+    "alignment:quadrado-andromeda"
    ],
    "text": "De Alpheratz, o canto do Quadrado, duas fileiras de estrelas se abrem para o leste: **Andrômeda**. Suba duas estrelas pela fileira de cima e desvie para o lado — ali está **M 31**, a Galáxia de Andrômeda. Do Brasil ela fica baixa, então escolha uma noite limpa e um horizonte norte sem prédios.\n\n{lore:short:And}"
   },

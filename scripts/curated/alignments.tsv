@@ -1,0 +1,25 @@
+# Alinhamentos (v0.23): as "setas" do céu para achar uma estrela ou um ponto a
+# partir de outras. Fonte: cartas da série "Identificação do céu" do Astronomia
+# no Quintal (charts-ceu/alinhamento-*.json), conferidas pelo build.
+# Colunas: chave · nome · segmentos · texto
+# Segmentos separados por "|". Cada um: "A>B", com
+#   A, B   estrela (nome, Bayer ou "HIP n"), "dso:M 31", "radec:RA,Dec" (graus),
+#          "polo_sul", "polo_norte" ou "meio:A+B" (ponto médio de duas estrelas);
+#   *k     depois de B: prolonga a reta A→B além de B, por k vezes a distância A-B;
+#   @texto depois de tudo: rótulo no fim do segmento;
+#   "mediatriz:A+B>alvo": a perpendicular ao meio de A-B, até o ponto mais
+#          perto do alvo (o método dos Apontadores para o polo sul).
+cruzeiro-polo	Do Cruzeiro ao polo sul	Gacrux>Acrux*4.5@Polo Sul Celeste|mediatriz:Rigil Kentaurus+Hadar>polo_sul	Prolongue o braço maior do Cruzeiro, de Gacrux para Acrux, quatro vezes e meia: você chega perto do polo sul celeste. A perpendicular ao meio dos Guardiões cai no mesmo lugar — onde as duas linhas se cruzam está o polo.
+polo-canopus-achernar	O polo entre Canopus e Achernar	Canopus>Achernar|Canopus>polo_sul@Polo Sul Celeste|Achernar>polo_sul	Canopus e Achernar, as duas estrelas brilhantes mais perto do polo sul, formam com ele um triângulo quase equilátero. Quando o Cruzeiro está baixo (primavera), são elas que mostram o polo.
+cruzeiro-corvo	Do Cruzeiro ao Corvo e a Spica	Acrux>Gacrux*6.5@Corvo|gam Crv>Spica@Spica|Spica>Arcturus@Arcturus	O braço maior do Cruzeiro, agora no sentido contrário (de Acrux para Gacrux), prolongado umas seis vezes e meia, chega ao Corvo. Do Corvo, a linha de Gienah segue para Spica; de Spica, para Arcturus.
+orion-sirius-aldebaran	Das Três Marias a Sirius e Aldebaran	Alnitak>Sirius@Sirius|Mintaka>Aldebaran@Aldebaran	As Três Marias apontam para os dois lados: para o sudeste, Sirius, a estrela mais brilhante do céu; para o noroeste, Aldebaran, o olho alaranjado do Touro.
+orion-pleiades	De Órion às Plêiades	Mintaka>Aldebaran|Aldebaran>dso:M 45@Plêiades	Siga as Três Marias até Aldebaran e continue na mesma direção, um pouco mais: o grupinho de estrelas azuladas são as Plêiades.
+pegaso-fomalhaut	Do Quadrado de Pégaso a Fomalhaut	Scheat>Markab*3.5@Fomalhaut|Alpheratz>Algenib*2.4@Diphda	O lado oeste do Grande Quadrado, de Scheat para Markab, prolongado três vezes e meia, chega a Fomalhaut, solitária no céu das águas. O lado leste, de Alpheratz para Algenib, aponta para Diphda, na Baleia.
+quadrado-andromeda	Do Quadrado à Galáxia de Andrômeda	Alpheratz>Mirach|Mirach>nu And|nu And>dso:M 31@M 31	De Alpheratz, o canto do Quadrado, vá a Mirach; de Mirach, suba por Mu até Nu de Andrômeda. Um pouco além fica a mancha alongada da Galáxia de Andrômeda, visível a olho nu longe das luzes.
+escorpiao-centro	Do Escorpião ao centro da Galáxia	Antares>Shaula|Shaula>Kaus Australis|Antares>radec:266.417,-29.008@Centro da Via Láctea	Do coração do Escorpião ao ferrão, e do ferrão ao Bule: entre os dois, na parte mais densa da Via Láctea, está a direção do centro da nossa galáxia, a 26 mil anos-luz.
+carro-arcturus-spica	Do Grande Carro a Arcturus e Spica	Alioth>Alkaid|Alkaid>Arcturus@Arcturus|Arcturus>Spica@Spica	Siga a curva do cabo do Grande Carro e continue o arco até a primeira estrela brilhante, Arcturus; mantenha a curva e chegue a Spica. "Siga o arco até Arcturus e acelere até Spica."
+carro-polaris	Do Grande Carro a Polaris	Merak>Dubhe|Dubhe>Polaris@Polaris	As duas estrelas da frente da concha do Grande Carro, Merak e Dubhe, apontam para Polaris: cerca de cinco vezes a distância entre elas. Do Brasil, Polaris fica abaixo do horizonte — salvo no extremo norte.
+cassiopeia-polaris	De Cassiopeia a Polaris	gam Cas>Polaris@Polaris	Do meio do W de Cassiopeia sai uma linha para Polaris. Quando o Grande Carro está baixo, Cassiopeia está alta, e vice-versa: um dos dois sempre mostra o norte.
+leao-trio	Da Foice do Leão ao Trio do Leão	Regulus>Denebola|Theta Leo>radec:170.0,13.1@Trio do Leão	De Regulus, o pé da Foice, até Denebola, a cauda. Logo ao sul de Chertan, no meio do caminho, ficam três galáxias juntas: o Trio do Leão, M 65, M 66 e NGC 3628.
+vega-altair-cabide	De Altair a Vega, pelo Cabide	Altair>Vega@Vega	Na linha de Altair a Vega, a um terço do caminho a partir de Altair, fica o Cabide — um asterismo de binóculo.
+arcturus-spica-corvo	De Arcturus a Spica e ao Corvo	Arcturus>Spica@Spica|Spica>del Crv@Corvo	De Arcturus desça a Spica; de Spica, continue para sudoeste até o pequeno quadrilátero do Corvo.

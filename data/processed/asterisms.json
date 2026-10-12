@@ -346,5 +346,174 @@
    ]
   ],
   "text": "Cinco estrelas em forma de pentágono, com Capella num dos vértices; Elnath, no vértice de baixo, é emprestada do Touro. Baixo no norte nas noites de verão."
+ },
+ {
+  "key": "espada-orion",
+  "name": "Espada de Órion",
+  "const": [
+   "Ori"
+  ],
+  "lines": [
+   [
+    26237,
+    26220,
+    26241
+   ]
+  ],
+  "text": "A linha curta de estrelas que pende das Três Marias. A \"estrela\" do meio parece borrada mesmo a olho nu: é a Nebulosa de Órion, M 42. No Brasil, com Órion de cabeça para baixo, a Espada aponta para cima das Três Marias."
+ },
+ {
+  "key": "cruz-norte",
+  "name": "Cruz do Norte",
+  "const": [
+   "Cyg"
+  ],
+  "lines": [
+   [
+    102098,
+    100453,
+    95947
+   ],
+   [
+    97165,
+    100453,
+    102488
+   ]
+  ],
+  "text": "A grande cruz do Cisne, deitada sobre a Via Láctea: o braço maior vai de Deneb, a cauda, até Albireo, o bico. Do Brasil aparece baixa no norte nas noites de inverno e primavera, de cabeça para baixo."
+ },
+ {
+  "key": "chave-hercules",
+  "name": "Chave de Hércules",
+  "const": [
+   "Her"
+  ],
+  "lines": [
+   [
+    81833,
+    84380,
+    83207,
+    81693,
+    81833
+   ]
+  ],
+  "text": "Um trapézio de quatro estrelas medianas no meio de Hércules, entre Vega e a Coroa Boreal. Num dos lados fica M 13, o aglomerado globular mais famoso do céu do norte — do Brasil, baixo no norte no inverno."
+ },
+ {
+  "key": "cabide",
+  "name": "Cabide",
+  "const": [
+   "Vul"
+  ],
+  "lines": [
+   [
+    95291,
+    95340,
+    95487,
+    95584,
+    95700,
+    95818
+   ],
+   [
+    95584,
+    95560,
+    95582,
+    95498,
+    95432
+   ]
+  ],
+  "text": "Uma fileira de seis estrelas com um gancho no meio, entre Vega e Altair, mais perto de Altair: o Cabide (Collinder 399). É um alvo de binóculo; do Brasil, aparece de cabeça para baixo. As estrelas não formam um aglomerado de verdade."
+ },
+ {
+  "key": "circulo-peixes",
+  "name": "Círculo de Peixes",
+  "const": [
+   "Psc"
+  ],
+  "lines": [
+   [
+    115227,
+    115830,
+    116771,
+    116928,
+    115738,
+    114971,
+    115227
+   ]
+  ],
+  "text": "Um anel de seis estrelas fracas logo ao sul do Grande Quadrado de Pégaso, a cabeça de um dos peixes. Só aparece com céu razoavelmente escuro, nas noites de primavera."
+ },
+ {
+  "key": "cabritinhas",
+  "name": "Cabritinhas",
+  "const": [
+   "Aur"
+  ],
+  "lines": [
+   [
+    23416,
+    23453,
+    23767,
+    23416
+   ]
+  ],
+  "text": "Um triângulo pequeno de estrelas fracas ao lado de Capella. Para os gregos, eram os cabritos que o Cocheiro carrega no braço. Almaaz, a ponta do triângulo, é uma estrela que é eclipsada a cada 27 anos."
+ },
+ {
+  "key": "corvo",
+  "name": "Quadrilátero do Corvo",
+  "const": [
+   "Crv"
+  ],
+  "lines": [
+   [
+    59803,
+    60965,
+    61359,
+    59316,
+    59803
+   ]
+  ],
+  "text": "Quatro estrelas num quadrilátero pequeno e isolado, a oeste de Spica, nas noites de outono. É fácil de achar e serve de ponte: a linha de Gienah a Algorab aponta para Spica."
+ },
+ {
+  "key": "y-virgem",
+  "name": "Y da Virgem",
+  "const": [
+   "Vir"
+  ],
+  "lines": [
+   [
+    65474,
+    61941,
+    57757
+   ],
+   [
+    61941,
+    63090,
+    63608
+   ]
+  ],
+  "text": "Spica, Porrima, Zavijava e Vindemiatrix desenham um Y deitado: o tronco vai de Spica a Porrima e os braços se abrem para Zavijava e Vindemiatrix. Entre os braços fica o coração do aglomerado de galáxias de Virgem."
+ },
+ {
+  "key": "pequeno-carro",
+  "name": "Pequeno Carro",
+  "const": [
+   "UMi"
+  ],
+  "lines": [
+   [
+    11767,
+    85822,
+    82080,
+    77055,
+    79822,
+    75097,
+    72607,
+    77055
+   ]
+  ],
+  "text": "As sete estrelas da Ursa Menor, com Polaris, a estrela do norte, na ponta do cabo. Do Brasil, Polaris fica abaixo do horizonte (salvo no extremo norte do país); só Kochab e Pherkad chegam a aparecer, baixas, nas noites de outono no Norte e no Nordeste."
  }
 ]

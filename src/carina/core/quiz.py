@@ -3,7 +3,9 @@
 - **Qual constelação é esta?** — uma constelação de destaque acima de 25°
   é acesa no céu (sem o nome) e há quatro opções;
 - **Encontre a estrela** — uma estrela brilhante acima de 20° é pedida pelo
-  nome; o usuário clica nela no céu (os nomes ficam escondidos).
+  nome; o usuário clica nela no céu (os nomes ficam escondidos);
+- **Qual asterismo é este?** (v0.23) — um asterismo acima de 25° é desenhado
+  (sem o nome) e há quatro opções.
 
 Sem Qt: a interface (``ui/quiz.py``) só desenha e repassa as respostas.
 """
@@ -19,7 +21,7 @@ import numpy as np
 
 @dataclass
 class Question:
-    kind: str                       # "const" | "star"
+    kind: str                       # "const" | "star" | "asterism"
     answer: object                  # sigla da constelação | índice da estrela
     label: str                      # nome da resposta
     options: list = field(default_factory=list)   # [(chave, rótulo)] — só "const"
@@ -104,3 +106,35 @@ def star_question(idxs: list[int], stars, rng: random.Random,
         return None
     i = rng.choice(choices)
     return Question("star", int(i), stars.proper.get(int(i), f"HIP {int(stars.hip[i])}"))
+
+
+# --- asterismos (v0.23) -------------------------------------------------------
+
+def visible_asterisms(engine, asterism_info: list[dict], when,
+                      min_alt: float = 25.0) -> list[str]:
+    """Chaves dos asterismos cujo centro está acima de ``min_alt``.
+
+    ``asterism_info`` é a lista do céu (``SkyWidget.asterism_info``), em que
+    cada item tem ``center`` (vetor ICRS unitário)."""
+    items = [a for a in asterism_info if a.get("center") is not None]
+    if not items:
+        return []
+    alts = _altitudes(engine, np.array([a["center"] for a in items], np.float64), when)
+    return [a["key"] for a, alt in zip(items, alts) if alt >= min_alt]
+
+
+def asterism_question(keys: list[str], names: dict[str, str], rng: random.Random,
+                      recent: list | None = None) -> Question | None:
+    """Pergunta sobre um asterismo visível; distratores do mesmo céu ou, se o
+    céu tiver poucos, de todos os asterismos."""
+    choices = [k for k in keys if k not in (recent or [])] or list(keys)
+    if not choices:
+        return None
+    answer = rng.choice(choices)
+    pool = keys if len(keys) >= 4 else list(names)
+    others = [k for k in pool if k != answer and k in names]
+    distract = rng.sample(others, min(3, len(others)))
+    opts = [answer] + distract
+    rng.shuffle(opts)
+    return Question("asterism", answer, names.get(answer, answer),
+                    [(k, names.get(k, k)) for k in opts])

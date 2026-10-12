@@ -21,6 +21,51 @@ Este é o céu de **15 de janeiro às 21h30**, o meio do verão no Brasil — o 
 
 A Via Láctea atravessa o céu de norte a sul passando por Órion, Gêmeos e a antiga Argo. O tour começa no alto, em Órion, desce para o sul até as Nuvens de Magalhães e termina com o Cruzeiro do Sul nascendo.
 
+## Olhando para o leste
+@kind: intro
+@target: altaz:90,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Antes dos detalhes, uma volta completa no lugar, como quem gira devagar. De frente para o **leste**, o destaque está bem no alto: **Sirius**, a estrela mais brilhante do céu, a uns 70° de altura — sete punhos acima do horizonte, com o braço esticado. Em volta dela, o **Cão Maior**.
+
+À esquerda, mais baixa (uns 45°), brilha **Procyon**, do Cão Menor. No meio da vista, a uns 30°, a alaranjada **Alphard**, da Hidra; rente ao horizonte, à esquerda, **Regulus** começa a nascer, trazendo o Leão. À direita, para o sudeste, a Via Láctea desce pela Popa e pela Vela.
+
+## Olhando para o norte
+@kind: intro
+@target: altaz:0,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Vire para a esquerda, até o **norte** — o quadrante mais rico do verão. Órion domina o alto: as **Três Marias** a uns 68° e **Rigel**, o pé do caçador, ainda mais alta, a uns 75°. **Betelgeuse**, o ombro, fica abaixo delas, a uns 58°: o caçador está de ponta-cabeça.
+
+Um pouco à esquerda do norte, a uns 50°, a alaranjada **Aldebaran**, do Touro, e mais abaixo as **Plêiades** (uns 38°). Baixa, quase no norte exato, a amarela **Capella**, a uns 20°; à direita, **Castor** e **Pollux**, de Gêmeos, a uns 27°. À esquerda, perto do horizonte, Perseu e Áries.
+
+## Olhando para o oeste
+@kind: intro
+@target: altaz:270,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+
+Agora o **oeste**, onde o céu da primavera vai embora. É o quadrante menos vistoso, de constelações grandes e apagadas: a **Baleia**, com Menkar a uns 47° (à direita, no noroeste) e **Diphda** a uns 26°, quase no oeste exato; **Peixes**; e **Áries**, com Hamal a uns 24°.
+
+À esquerda, quase no chão (uns 7°), **Fomalhaut**, a solitária do Peixe Austral, prestes a se pôr. Andrômeda e o Quadrado de Pégaso já sumiram. Da cidade, quase nada disso aparece — e tudo bem: as estrelas brilhantes do verão estão do outro lado.
+
+## Olhando para o sul
+@kind: intro
+@target: altaz:180,30
+@fov: 100
+@skip_if_below: -90
+@layers: const_names=1
+@highlight: alignment:polo-canopus-achernar
+
+Por fim, o **sul**. As estrelas giram em volta do **polo sul celeste**, a uns 23° do horizonte, num trecho sem nenhuma estrela brilhante. Um pouco à esquerda, alta, **Canopus**, a uns 58°; à direita, **Achernar**, a uns 38°. As duas formam com o polo um triângulo quase equilátero — é ele que mostra o sul quando o Cruzeiro está baixo.
+
+E o **Cruzeiro** está baixo: deitado no sudeste, a uns 10° a 13°, nascendo. Quase no sul exato, a uns 43°, fica a **Grande Nuvem de Magalhães**; a **Pequena**, à direita, a uns 29°.
+
 ## Órion, o caçador
 @target: const:Ori
 @fov: 45
@@ -42,9 +87,9 @@ Logo ao lado, a nebulosa menor **M 43** e, mais acima, a Nebulosa do Homem Corre
 ## Sirius e o Cão Maior
 @target: star:Sirius
 @fov: 40
-@highlight: const:CMa
+@highlight: const:CMa, alignment:orion-sirius-aldebaran
 
-Siga as Três Marias para o lado oposto a Aldebaran e você chega a **Sirius**, a estrela mais brilhante do céu. Perto do horizonte ela cintila em todas as cores; alta, brilha branca e firme.
+Siga as Três Marias para o lado oposto a Aldebaran — uns dois punhos — e você chega a **Sirius**, a estrela mais brilhante do céu. Perto do horizonte ela cintila em todas as cores; alta, brilha branca e firme.
 
 {lore:short:CMa}
 
@@ -60,9 +105,9 @@ Ao sul de Sirius, a segunda estrela mais brilhante do céu: **Canopus**, na Quil
 ## O Touro e as Plêiades
 @target: const:Tau
 @fov: 45
-@highlight: const:Tau, asterism:hiades
+@highlight: const:Tau, asterism:hiades, alignment:orion-pleiades
 
-A noroeste, o **V** das Híades com Aldebaran forma a cara do Touro, e um pouco adiante aparecem as **Plêiades**, o aglomerado mais famoso do céu. Ao binóculo, as Plêiades mostram dezenas de estrelas azuladas.
+As Três Marias apontam também para o outro lado: siga-as para longe de Sirius e você chega a **Aldebaran**. A noroeste, o **V** das Híades com Aldebaran forma a cara do Touro, e um pouco adiante aparecem as **Plêiades**, o aglomerado mais famoso do céu. Ao binóculo, as Plêiades mostram dezenas de estrelas azuladas.
 
 {lore:short:Tau}
 

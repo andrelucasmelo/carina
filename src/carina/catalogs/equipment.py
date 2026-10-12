@@ -125,6 +125,11 @@ DEFAULT_DATA = {
         {"name": "Seestar S30 (30/150)", "aperture_mm": 30, "focal_mm": 150},
         {"name": "Seestar S30 Pro (30/150)", "aperture_mm": 30,
          "focal_mm": 150},
+        {"name": "Seestar S50 Pro (50/260)", "aperture_mm": 50, "focal_mm": 260},
+        {"name": "Vespera II (50/250)", "aperture_mm": 50, "focal_mm": 250},
+        {"name": "Vespera Pro (50/250)", "aperture_mm": 50, "focal_mm": 250},
+        {"name": "Dwarf 3 (30/150)", "aperture_mm": 30, "focal_mm": 150},
+        {"name": "Celestron Origin (152/335)", "aperture_mm": 152, "focal_mm": 335},
         # --- outros modelos populares ---
         {"name": "Evostar 72ED (72/420)", "aperture_mm": 72, "focal_mm": 420},
         {"name": "Askar FRA400 (72/400)", "aperture_mm": 72, "focal_mm": 400},
@@ -174,6 +179,16 @@ DEFAULT_DATA = {
         {"name": "Seestar S30 Pro — IMX585", "width_mm": 11.14,
          "height_mm": 6.26, "pixel_um": 2.9, "width_px": 3840,
          "height_px": 2160},
+        {"name": "Seestar S50 Pro — OS08B10", "width_mm": 11.14, "height_mm": 6.26,
+         "pixel_um": 2.9, "width_px": 3840, "height_px": 2160},
+        {"name": "Vespera II — IMX585", "width_mm": 11.14, "height_mm": 6.26,
+         "pixel_um": 2.9, "width_px": 3840, "height_px": 2160},
+        {"name": "Vespera Pro — IMX676", "width_mm": 7.07, "height_mm": 7.07,
+         "pixel_um": 2.0, "width_px": 3536, "height_px": 3536},
+        {"name": "Dwarf 3 — IMX678", "width_mm": 7.68, "height_mm": 4.32,
+         "pixel_um": 2.0, "width_px": 3840, "height_px": 2160},
+        {"name": "Celestron Origin — IMX178", "width_mm": 7.43, "height_mm": 4.99,
+         "pixel_um": 2.4, "width_px": 3096, "height_px": 2080},
         # --- câmeras planetárias e de céu profundo populares ---
         {"name": "ZWO ASI224MC (1/3\")", "width_mm": 4.9, "height_mm": 3.7,
          "pixel_um": 3.75, "width_px": 1304, "height_px": 976},
@@ -235,7 +250,7 @@ DEFAULT_DATA = {
 # mesclados no JSON de quem já usava o aplicativo (sem duplicar por nome e
 # sem ressuscitar itens que o usuário apagou de versões anteriores — a
 # mescla acontece uma única vez por versão).
-DATA_VERSION = 3
+DATA_VERSION = 4
 
 _SECTIONS = {
     "telescopes": Telescope, "cameras": Camera, "eyepieces": Eyepiece,
