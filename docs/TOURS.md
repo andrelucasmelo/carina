@@ -1,20 +1,26 @@
 # Tours guiados
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
 
 Um **tour** leva o céu, passo a passo, às estrelas, constelações e objetos
 de que fala: o relógio vai à hora certa, a vista voa até o alvo, a figura
 se acende e um texto curto explica o que se está vendo. Ao sair, o céu
 volta **exatamente** como estava.
 
-Há quatro categorias, com 27 tours:
+Há quatro categorias, com 46 tours:
 
 - **Iniciantes — Primeiro céu**: para quem ainda não conhece o céu;
-- **Intermediário — Lendo o céu**: as quatro estações, o céu de cada mês,
-  o binóculo, a cidade grande, as histórias do céu e da astronomia;
-- **Astrofotografia — Planejando a captura**: o que fotografar e quando;
-- **Extras**: o céu austral, a Lua, os planetas e o ano no céu, e o céu de
-  uma data especial.
+- **Intermediário — Lendo o céu**: as quatro estações, as 88 constelações
+  em quatro noites, o céu de cada mês, o binóculo, duplas e variáveis,
+  aglomerados, galáxias, o Caldwell, a Maratona Messier, a cidade grande, as
+  histórias do céu e da astronomia;
+- **Astrofotografia — Planejando a captura**: o que fotografar e quando,
+  por dificuldade e para smart telescopes;
+- **Extras**: o céu austral, a Maratona Lacaille, a Lua, os planetas e o
+  ano no céu, e o céu de uma data especial.
+
+Boa parte dos textos vem dos artigos do site **Astronomia no Quintal**,
+do mesmo autor, condensados para caber no painel.
 
 ---
 
@@ -127,6 +133,11 @@ fora da faixa de latitude para a qual foram pensados.
 | **Constelações que todo mundo reconhece** | Cruzeiro do Sul e os Guardiões, Órion e as Três Marias, o Escorpião, o Touro e as Plêiades, o Leão, Sagitário e o Bule — cada uma na melhor hora desta noite | 12 min |
 | **Os famosos do céu profundo** | Nebulosa de Órion, Plêiades, Caixinha de Joias, Ômega Centauri, 47 Tucanae, Nuvens de Magalhães, Andrômeda e a Lagoa, com foto de cada um | 15 min |
 | **A Lua e os planetas desta noite** *(montado para a data)* | A Lua e cada planeta visível, na melhor hora de cada um | 6 min |
+| **O Cruzeiro do Sul e o polo sul** | As cinco estrelas do Cruzeiro, os Guardiões, a Falsa Cruz, a Caixinha de Joias e o Saco de Carvão; o polo sul pelos dois métodos e por Canopus e Achernar, **com as setas desenhadas**; o Cruzeiro girando em volta do polo | 8 min |
+| **Os asterismos do céu do sul** | As figuras que o brasileiro usa para se orientar, ao longo do ano, e como ir de uma à outra: Cruzeiro, Três Marias e a Espada, o V do Touro, o Hexágono, a Foice, o Y da Virgem e o Corvo, o ferrão e o Bule, o Cabide, o Quadrado de Pégaso | 10 min |
+| **Órion e a família** | Órion de cabeça para baixo, a Espada e M 42, Órion como bússola, o Touro, Gêmeos, os dois Cães, a Lebre e o Hexágono de Verão | 10 min |
+| **Escorpião e Sagitário: rumo ao centro da Galáxia** | Antares e M 4, o falso cometa, M 6 e M 7, o Bule, a Lagoa e a Trífida, M 24, M 22, a direção do centro da Galáxia e a nebulosa escura do Cachimbo | 10 min |
+| **Só com os olhos** | Tudo o que se vê sem instrumento: as Nuvens de Magalhães, Ômega Centauri, a Nebulosa de Carina, as Plêiades, o Presépio, M 7, o Saco de Carvão, 47 Tucanae e a Galáxia de Andrômeda | 10 min |
 | **Conhecendo o Carina** | O essencial do programa em oito passos: camadas, relógio, busca, ficha, botão direito, planejamento | 6 min |
 
 A ordem da tabela é a ordem sugerida.
@@ -144,6 +155,13 @@ A ordem da tabela é a ordem sugerida.
 | **O céu de primavera** | As noites de outubro: o "céu das águas" (Capricórnio, Aquário, Peixe Austral), as aves do sul e a Pequena Nuvem, o Escultor, o Grande Quadrado e Andrômeda, o Triângulo de Inverno se pondo e as Plêiades nascendo | 18 min |
 | **O céu ao binóculo** *(montado para a data)* | Até 14 alvos de binóculo bem altos no começo da noite da estação, com o campo de 6° desenhado | 15 min |
 | **Astronomia na cidade grande** | O céu simulado em Bortle 9, o brilho do céu no seu local, o que resiste à luz em cada estação, o que é a poluição luminosa e como melhorar o seu céu, e dez alvos de binóculo para a cidade | 20 min |
+| **As 88 constelações** (quatro noites) | Todas as constelações, em quatro tours — verão, outono, inverno e primavera —, cada uma com como achar, a estrela ou o objeto marcante e a origem; as do extremo norte, que mal nascem no Brasil, num passo à parte | 25 min cada |
+| **Estrelas duplas de vitrine** | Acrux e Alfa Centauri, o Trapézio, Castor, Gama Velorum, Mizar e Alcor, Zubenelgenubi, Épsilon Lyrae e Albireo, Beta Tucanae, Almach: separação, cores e o instrumento que separa | 10 min |
+| **Estrelas que mudam de brilho** | Betelgeuse, Beta Doradus, Eta Carinae, Antares, R Scuti, Mira e Algol, e como estimar o brilho de uma variável | 10 min |
+| **Aglomerados abertos do sul** | IC 2602, NGC 3532, NGC 2516, NGC 3293, a Caixinha de Joias, NGC 6231, M 6 e M 7, M 41, M 46 e M 47, e o Cabide, o aglomerado que não é | 15 min |
+| **Passeio de galáxias** | Do Sombrero e de Virgem (M 87, a Cadeia de Markarian) a M 83, Centaurus A, NGC 4945, o Trio do Leão e as galáxias do Escultor | 18 min |
+| **Caldwell do sul** | Os melhores objetos do catálogo de Patrick Moore que o Messier não tem | 18 min |
+| **Maratona Messier** *(montado para a data)* | Ver abaixo | 20 min |
 | **Histórias do céu** | De onde vêm as 88 constelações: o zodíaco babilônico, as 48 de Ptolomeu, os mitos de Órion e o Escorpião, da família de Andrômeda, do navio Argo, de Hércules e das Ursas, os navegadores, Lacaille, Hevelius e outros céus | 20 min |
 | **A história da astronomia no céu** | De Hiparco ao buraco negro de Sagitário: doze descobertas, cada uma presa a um objeto que você pode ver | 20 min |
 
@@ -152,6 +170,16 @@ A ordem da tabela é a ordem sugerida.
 > estação, o tour avisa; ao sair, o relógio volta ao que era. Foram
 > escritos para o céu do Brasil (latitudes de 35° S a 5° N). As histórias
 > fazem o mesmo: cada passo vai à noite do ano em que a figura aparece bem.
+
+### Maratona Messier
+
+Montada para a **Lua nova de março** (a deste ano, se ainda não passou, ou a
+do ano que vem) no seu local: o Carina calcula, para cada um dos 110 objetos,
+quando ele fica acima de 8° com o céu escuro e sugere a hora de procurá-lo —
+primeiro os que vão se pôr no oeste, por último os que nascem de madrugada.
+Cada passo é um bloco de até uma hora (no máximo oito objetos), com a altura
+de cada um. No Rio de Janeiro, 98 dos 110 cabem na noite; o tour diz quais
+ficam de fora na sua latitude.
 
 ### O céu deste mês
 
@@ -175,6 +203,8 @@ crepúsculo náutico):
 |---|---|---|
 | **Objetos do mês para fotografar** *(montado para a data)* | Ver abaixo | 25 min |
 | **O céu de verão / outono / inverno / primavera para fotografar** | Seis ou sete alvos de cada estação na melhor hora de captura de uma noite típica, com o campo do seu setup ativo desenhado e a rota a partir das estrelas | 15 min cada |
+| **Alvos de astrofoto por dificuldade** | Do fácil ao difícil, em três blocos: por que cada alvo está no seu nível (brilho, tamanho, filtro), a distância focal e o tempo de integração típicos, com o campo do seu setup | 15 min |
+| **O que o smart telescope alcança** | Seestar, Dwarf, Vespera e Origin: em cada alvo, o quadro do aparelho desenhado — o que cabe, o que pede mosaico e o que fica pequeno demais | 12 min |
 | **Mosaicos e grandes campos** | A Grande Nuvem, a região de Órion, Carina, Rho Ophiuchi, o centro da Galáxia e a Pequena Nuvem, com o seu mosaico desenhado, e dicas de mosaico | 12 min |
 | **A Lua para fotografar** | Que fase escolher para cada tema, exposição e foco, mosaicos da Lua e o planejador | 7 min |
 
@@ -228,6 +258,8 @@ painéis de mosaico pede) e como achá-lo pelas estrelas.
 | Tour | O que mostra | Duração |
 |---|---|---|
 | **O céu austral profundo** | O que o hemisfério norte não vê: as Nuvens de Magalhães, Eta Carinae, Ômega Centauri, 47 Tucanae, a Caixinha de Joias, Centaurus A e NGC 253 | 12 min |
+| **Maratona Lacaille** | Os objetos que Lacaille catalogou no Cabo da Boa Esperança em 1751–1752, numa noite de maio, em blocos do anoitecer à madrugada | 20 min |
+| **A Lua: alvos do terminador** *(montado para a data)* | Dezenove formações — o Mar das Crises, Petavius, Theophilus, os Apeninos, o Muro Reto, Plato, Tycho, Clavius, Copérnico, a Baía do Arco-Íris, Aristarco… —, cada uma na próxima noite de Sol rasante, com **um anel marcando a formação** na Lua | 15 min |
 | **Um mês de Lua em dez noites** *(montado para a data)* | A lunação atual em dez noites — da Lua fina do anoitecer à da madrugada —, com o que observar no terminador em cada uma | 10 min |
 | **Os planetas este ano** *(montado para a data)* | Cada planeta na próxima oposição ou maior elongação dos próximos doze meses | 10 min |
 | **O ano no céu** *(montado para a data)* | Eclipses, chuvas de meteoros, oposições e encontros dos próximos doze meses visíveis do seu local | 12 min |
@@ -244,7 +276,9 @@ com o céu do momento no seu local:
   sem o nome, e há quatro opções;
 - **Encontre a estrela** — o quiz pede uma estrela brilhante pelo nome e
   você clica nela no céu (os nomes ficam escondidos); se errar, o céu
-  mostra onde ela está.
+  mostra onde ela está;
+- **Qual asterismo é este?** — um asterismo alto no céu é desenhado, sem o
+  nome, e há quatro opções.
 
 O placar conta os acertos; ao fechar, o céu volta ao que era. De dia ou com
 poucas constelações no alto, mude a hora para a noite.
@@ -256,13 +290,25 @@ poucas constelações no alto, mude a hora para a noite.
 **Asterismos** são figuras conhecidas que não são constelações oficiais: as
 Três Marias, o Cruzeiro (com os Guardiões e a Falsa Cruz), o Bule de
 Sagitário, a cauda do Escorpião, o Hexágono de Verão, o Grande Quadrado de
-Pégaso, o Grande Carro, o V das Híades e outros — 18 ao todo.
+Pégaso, o Grande Carro, o V das Híades, a Espada de Órion, o Cabide, o Y da
+Virgem, o Quadrilátero do Corvo e outros — 27 ao todo.
 
 - *Exibir ▸ Linhas e grades ▸ Asterismos* (`Shift+A`) desenha todos, em
   laranja, com o nome; o menu **Tours** tem o mesmo atalho;
 - **Buscar** (`Ctrl+F`) encontra um asterismo pelo nome ("três marias",
   "bule") e o destaca no céu;
 - os tours acendem os asterismos de que falam.
+
+### Alinhamentos
+
+Alguns tours desenham **setas no céu**, em azul-claro, com o nome do ponto
+de chegada: o braço do Cruzeiro prolongado quatro vezes e meia e a
+perpendicular dos Guardiões até o **polo sul celeste**; as Três Marias até
+Sirius e Aldebaran; o Quadrado de Pégaso até Fomalhaut e até a Galáxia de
+Andrômeda; o Escorpião até o centro da Galáxia; o arco do Grande Carro até
+Arcturus e Spica — catorze ao todo. São as "réguas" de quem aprende o céu
+sem instrumento: o tour mostra o caminho, e no quintal você refaz com a
+mão.
 
 ---
 

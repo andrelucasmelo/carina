@@ -1,6 +1,6 @@
 # Funcionalidades
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
 
 O que o programa faz, recurso por recurso, e o que esperar de cada um.
 
@@ -299,7 +299,7 @@ Detalhes em [ASTROFOTOGRAFIA.md](ASTROFOTOGRAFIA.md).
 - **Pôster do céu** de uma data, A3/A4 (*Arquivo*). Ver
   [IMPRESSAO.md](IMPRESSAO.md#pôster-do-céu).
 - **Planisfério** interativo (*Planejar*).
-- **Quiz do céu** (*Tours*).
+- **Quiz do céu** (*Tours*), com constelações, estrelas e (0.23) asterismos.
 - **Listas** importadas e exportadas em CSV, Telescopius e SkySafari.
 - **Lembretes** viram notificação do Windows uma hora antes.
 - **Caminho do Sol e analema** (*Sistema Solar*), com a tabela de nascer e
@@ -373,7 +373,7 @@ Detalhes em [IMPRESSAO.md](IMPRESSAO.md).
 
 ## O que ainda não existe
 
-Para não criar expectativa errada, na versão 0.22.0 **não há**:
+Para não criar expectativa errada, na versão 0.23.0 **não há**:
 
 - cometas e asteroides;
 - atualização automática dos elementos orbitais de satélites e previsão do

@@ -1,6 +1,6 @@
 # Observação e astrofotografia
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
 
 As ferramentas para quem observa com instrumento e para quem fotografa: o
 equipamento e o campo, a sessão da noite, a exposição, as horas de

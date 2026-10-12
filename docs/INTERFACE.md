@@ -1,6 +1,6 @@
 # Referência da interface
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
 
 Cada menu, botão e painel, com o que faz e o atalho correspondente.
 
@@ -253,7 +253,7 @@ na barra lateral** e a exibição dos painéis.
 |---|---|---|
 | Galeria de tours… | `Ctrl+Shift+T` | Os tours por categoria, com a data do céu ([TOURS.md](TOURS.md)) |
 | Iniciantes ▸ · Intermediário ▸ · Astrofotografia ▸ · Extras ▸ | | Começa um tour direto |
-| Quiz do céu… | | "Qual constelação é esta?" e "Encontre a estrela" ([TOURS.md](TOURS.md#quiz-do-céu)) |
+| Quiz do céu… | | "Qual constelação é esta?", "Encontre a estrela" e "Qual asterismo é este?" ([TOURS.md](TOURS.md#quiz-do-céu)) |
 | Asterismos | `Shift+A` | Mostra os asterismos no céu (o mesmo item de *Exibir ▸ Linhas e grades*) |
 | Como funcionam os tours | | Abre a ajuda dos tours |
 

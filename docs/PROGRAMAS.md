@@ -1,6 +1,6 @@
 # Programas de observação
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
 
 Um **programa de observação** é uma lista fechada de alvos para ir riscando
 ao longo dos meses — o jeito clássico de aprender o céu com método. O

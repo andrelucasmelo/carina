@@ -11,7 +11,7 @@ de observação: o que olhar hoje, a que horas, com qual instrumento e como
 encontrar cada objeto.
 
 [![status](https://img.shields.io/badge/status-em%20desenvolvimento-orange)](#estado-do-projeto)
-[![versao](https://img.shields.io/badge/vers%C3%A3o-0.22.0-blue)](#estado-do-projeto)
+[![versao](https://img.shields.io/badge/vers%C3%A3o-0.23.0-blue)](#estado-do-projeto)
 [![testes](https://img.shields.io/badge/testes-306%20passando-brightgreen)](#qualidade)
 [![licenca](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey)](#licença)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](#requisitos)
@@ -22,7 +22,7 @@ encontrar cada objeto.
 
 ## Estado do projeto
 
-> ### Versão 0.22.0 — **em desenvolvimento**
+> ### Versão 0.23.0 — **em desenvolvimento**
 >
 > **Este produto ainda está em desenvolvimento e não teve uma versão
 > estável (1.0) lançada.** Ele já é plenamente usável para observação
@@ -60,7 +60,7 @@ Um planetário mostra o céu. O Carina também **planeja a sua noite**.
 | 📓 | **Diário e listas** | Listas de alvos com a nota da noite e diário de observação com condições, guardados no seu computador |
 | 🗺️ | **Cartas de campo** | PDF com a carta geral da noite, checklist e uma carta de localização por objeto, em tema claro, escuro ou vermelho |
 | 📷 | **Astrofotografia** | Sessão da noite com blocos de integração (meridiano e zênite), exposição sugerida, imageabilidade no ano, setups salvos, mosaico, "cabe no meu campo?" e minha foto no mapa |
-| 🧭 | **Tours guiados** | 27 tours: orientação, constelações, céu profundo, as quatro estações, o céu do mês, binóculo, cidade grande, histórias do céu e da astronomia, astrofotografia por estação, mosaicos, Lua, planetas e o ano no céu; modo apresentação; asterismos e as histórias das 88 constelações |
+| 🧭 | **Tours guiados** | 46 tours: orientação, constelações, as 88 em quatro noites, asterismos, céu profundo, as quatro estações, o céu do mês, binóculo, duplas e variáveis, aglomerados e galáxias, maratonas Messier e Lacaille, cidade grande, histórias do céu e da astronomia, astrofotografia por estação, por dificuldade e para smart telescopes, mosaicos, a Lua e as formações do terminador, planetas e o ano no céu; setas que ensinam a achar o polo e as estrelas; modo apresentação; quiz |
 | 🏆 | **Programas e a noite registrada** | Messier, Caldwell, Herschel 400, Lunar 100 e outros com certificado em PDF; relatório da noite e cartão para compartilhar; pôster do céu de uma data; planisfério; quiz |
 | 📱 | **Companheiro no celular** | O roteiro em vermelho no celular pelo QR code; o "observado" vai para o diário |
 | 🛰️ | **ISS e satélites** | Passagens visíveis a partir de elementos orbitais importados, com trilha no céu |

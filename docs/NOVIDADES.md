@@ -1,6 +1,31 @@
 # O que há de novo
 
-> Carina 0.22.0 — produto em desenvolvimento.
+> Carina 0.23.0 — produto em desenvolvimento.
+
+## 0.23 — Tours a partir do Astronomia no Quintal
+
+Os artigos do site **Astronomia no Quintal**, do mesmo autor, viraram
+tours — agora são 46. Veja [Tours guiados](TOURS.md).
+
+- **Para começar**: o Cruzeiro do Sul e o polo sul, os asterismos do céu do
+  sul, Órion e a família, Escorpião e Sagitário, e tudo o que se vê só com
+  os olhos.
+- **As 88 constelações em quatro noites**, uma por estação.
+- **Duplas, variáveis, aglomerados do sul, galáxias e o Caldwell do sul**.
+- **Maratona Messier**, montada para a Lua nova de março no seu local, e a
+  **Maratona Lacaille**, o desafio do céu austral.
+- **A Lua: alvos do terminador** — dezenove formações, cada uma na noite
+  certa, com um anel marcando a formação.
+- Para astrofotografia: **alvos por dificuldade** e **o que o smart
+  telescope alcança**, com o quadro do aparelho desenhado.
+- **Setas no céu**: o braço do Cruzeiro até o polo, as Três Marias até
+  Sirius, o Quadrado de Pégaso até Fomalhaut — o caminho desenhado.
+- Os tours de estação começam com um **panorama** das quatro direções.
+- **Quiz**: "Qual asterismo é este?". E mais nove asterismos.
+- Seestar S50 Pro, Vespera II e Pro, Dwarf 3 e Celestron Origin no
+  *Campo de visão*.
+- Corrigida a rota "como achar": a estrela de referência aparecia do lado
+  errado do alvo.
 
 ## 0.22 — Programas, a noite registrada e o céu na parede
 
