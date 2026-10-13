@@ -2,163 +2,72 @@
 
 > Carina 0.23.0 — produto em desenvolvimento.
 
-Há dois caminhos: usar o **executável pronto** (recomendado para
-observar) ou rodar **a partir do código** (para acompanhar o
-desenvolvimento e modificar o programa).
+## Windows
 
----
+O Carina vem pronto para usar: uma pasta com tudo dentro — o programa, os
+catálogos de estrelas e objetos, as imagens e as efemérides. Não instala
+nada no sistema, não exige Python e **funciona sem internet**.
 
-## 1. Windows — executável pronto
-
-O jeito mais simples. O executável é **autocontido**: traz o Python, as
-bibliotecas, os catálogos, as efemérides e as imagens dos objetos.
-
-1. Copie a pasta `Carina` inteira para onde quiser — por exemplo
+1. Baixe o arquivo **`Carina-…-windows-x64.zip`** da página
+   [Releases](https://github.com/andrelucasmelo/carina/releases) do projeto.
+2. Extraia a pasta `Carina` para onde quiser — por exemplo
    `C:\Programas\Carina`.
-2. Execute **`Carina.exe`**.
+3. Abra **`Carina.exe`**.
 
-Pronto. Não instala nada no sistema, não exige Python e **funciona sem
-internet**.
+Na primeira vez, um assistente pede a sua cidade e a qualidade do seu céu.
+Daí em diante, o céu na tela é o do seu quintal. O passeio completo está em
+[Primeiros passos](PRIMEIROS_PASSOS.md).
 
-### O que fica onde
+### Requisitos
 
-O programa nunca escreve dentro da própria pasta. Seus dados pessoais vão
-para o perfil do usuário:
-
-| O quê | Onde |
-|---|---|
-| Preferências (camadas, local, configurações) | Registro do Windows, em `HKCU\Software\Carina\Carina` |
-| Seu catálogo de objetos, com as edições | `%LOCALAPPDATA%\Carina\Carina\dso.sqlite` |
-| Seus equipamentos | `%LOCALAPPDATA%\Carina\Carina\equipamentos.json` |
-| Imagens baixadas em uso | `%LOCALAPPDATA%\Carina\Carina\Cache\images\` |
-
-Para **desinstalar**, apague a pasta do programa. Para apagar também os
-dados pessoais, remova a pasta `%LOCALAPPDATA%\Carina`.
+| | Mínimo | Recomendado |
+|---|---|---|
+| **Sistema** | Windows 10 | Windows 11 |
+| **Gráficos** | OpenGL 3.3 (qualquer placa dos últimos quinze anos) | placa dedicada |
+| **Memória** | 4 GB | 8 GB |
+| **Disco** | 400 MB | 500 MB |
 
 ### Aviso do Windows ao abrir
 
 Como o executável não é assinado digitalmente, o SmartScreen pode exibir
-"O Windows protegeu o computador". Clique em **Mais informações →
+"O Windows protegeu o computador". Clique em **Mais informações ▸
 Executar assim mesmo**. Isso acontece com qualquer programa sem
 certificado de assinatura, que custa caro para um projeto pessoal.
 
----
+### Atualizar
 
-## 2. A partir do código
+Baixe a versão nova e substitua a pasta antiga. As suas listas, o diário, o
+horizonte do quintal, os equipamentos e as preferências ficam no seu perfil
+do Windows e são mantidos.
 
-Necessário para desenvolver, e a forma de usar em Linux e macOS.
+### O que fica onde
 
-### Requisitos
+O programa nunca escreve dentro da própria pasta. Os seus dados vão para o
+seu perfil:
 
-- **Python 3.12 ou mais novo** (desenvolvido em 3.14)
-- **OpenGL 3.3+** — qualquer GPU dos últimos quinze anos atende
-- ~2 GB livres em disco para o ambiente e os dados
+| O quê | Onde |
+|---|---|
+| Preferências (camadas, local, configurações) | Registro do Windows, em `HKCU\Software\Carina\Carina` |
+| Listas, diário, horizontes e progresso | `%LOCALAPPDATA%\Carina\Carina\carina.sqlite` |
+| O seu catálogo de objetos, com as edições | `%LOCALAPPDATA%\Carina\Carina\dso.sqlite` |
+| Os seus equipamentos | `%LOCALAPPDATA%\Carina\Carina\equipamentos.json` |
+| Imagens baixadas em uso | `%LOCALAPPDATA%\Carina\Carina\Cache\images\` |
 
-### Passo a passo
+### Desinstalar
 
-```bash
-git clone <url-do-repositorio> AstroPlanetary
-cd AstroPlanetary
-python -m venv .venv
-```
-
-Ative o ambiente e instale:
-
-```bash
-.venv/Scripts/python -m pip install -e ".[dev]"
-```
-
-No Linux e no macOS o interpretador fica em `.venv/bin/python`.
-
-Execute:
-
-```bash
-.venv/Scripts/python -m carina
-```
-
-### As efemérides
-
-Os cálculos do Sistema Solar usam o arquivo **DE440s** do JPL
-(`de440s.bsp`, cerca de 32 MB), que cobre de 1849 a 2150.
-
-- No **executável**, ele já vem embarcado.
-- Rodando **do código**, coloque-o em `data/ephemeris/de440s.bsp`. Se não
-  estiver lá, o Skyfield baixa automaticamente para a pasta do usuário na
-  primeira execução — o que exige internet uma única vez.
-
-### Os catálogos
-
-Os dados processados ficam em `data/processed/` e **acompanham o
-repositório**, com uma exceção: as imagens dos objetos, que somam quase
-100 MB e são geradas localmente.
-
-Para regenerar tudo a partir das fontes originais:
-
-```bash
-.venv/Scripts/python scripts/build_data.py
-```
-
-```bash
-.venv/Scripts/python scripts/build_dso.py
-```
-
-```bash
-.venv/Scripts/python scripts/build_images.py
-```
-
-Os scripts baixam dos servidores públicos (HYG, OpenNGC, VizieR, SIMBAD,
-CDS) e convertem para os formatos internos. São demorados — o de imagens
-pode levar mais de uma hora — mas só precisam rodar uma vez. Detalhes em
-[CATALOGOS.md](CATALOGOS.md).
+Apague a pasta do programa. Para apagar também os seus dados, remova a pasta
+`%LOCALAPPDATA%\Carina`.
 
 ---
 
-## 3. Compilar o próprio executável
+## Linux e macOS
 
-```bash
-.venv/Scripts/python scripts/build_icon.py
-```
-
-```bash
-.venv/Scripts/python -m PyInstaller Carina.spec --noconfirm
-```
-
-O primeiro comando gera os ícones a partir de `assets/`; o segundo
-empacota tudo. O resultado sai em `dist/Carina/`, com cerca de 320 MB —
-a maior parte são as imagens dos objetos e as efemérides.
+Ainda não há pacote pronto: nesses sistemas o Carina roda a partir do código,
+com o Python. O passo a passo está em
+[Ambiente de desenvolvimento](desenvolvimento/AMBIENTE.md). Ele deve
+funcionar, mas ainda não passou por testes sistemáticos fora do Windows —
+relatos de uso são muito bem-vindos.
 
 ---
 
-## 4. Linux e macOS
-
-O Carina é escrito em Python com Qt e **deve funcionar**, mas ainda não
-passou por testes sistemáticos fora do Windows. Siga o caminho "a partir
-do código". Duas observações:
-
-- **Linux**: pode ser necessário instalar as bibliotecas de sistema do
-  Qt (`libxcb`, `libgl1`) pelo gerenciador de pacotes.
-- **macOS**: a Apple depreciou o OpenGL, mas ele continua funcionando; o
-  desempenho pode ser inferior ao do Windows com GPU dedicada.
-
-Relatos de uso nesses sistemas são muito bem-vindos.
-
----
-
-## Verificando a instalação
-
-Rode a suíte de testes — 130 testes que conferem desde a projeção
-matemática até a geração dos roteiros:
-
-```bash
-.venv/Scripts/python -m pytest tests -q
-```
-
-Para conferir a renderização sem abrir a janela:
-
-```bash
-.venv/Scripts/python -m carina --screenshot teste.png --at "2026-08-24T22:00"
-```
-
-Se o PNG sair com o céu desenhado, está tudo certo.
-
-Problemas? Veja [SOLUCAO_DE_PROBLEMAS.md](SOLUCAO_DE_PROBLEMAS.md).
+Problemas? Veja [Solução de problemas](SOLUCAO_DE_PROBLEMAS.md).

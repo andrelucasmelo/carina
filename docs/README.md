@@ -24,7 +24,7 @@ Se você **nunca abriu o programa**, siga esta ordem:
 
 | Documento | Conteúdo |
 |---|---|
-| [Instalação](INSTALACAO.md) | Executável no Windows, execução a partir do código, Linux e macOS, preparação de dados, build próprio |
+| [Instalação](INSTALACAO.md) | Baixar e abrir no Windows, requisitos, atualizar, onde ficam os seus dados; Linux e macOS |
 | [Primeiros passos](PRIMEIROS_PASSOS.md) | Passeio guiado: localização, navegação, seleção, primeira noite planejada |
 | [Funcionalidades](FUNCIONALIDADES.md) | Tudo o que o programa faz, recurso por recurso, com o que esperar de cada um |
 | [Interface](INTERFACE.md) | Referência completa: barra de menus, barra lateral, painéis, mouse |
@@ -64,6 +64,18 @@ Se você **nunca abriu o programa**, siga esta ordem:
 
 ## Documentação de desenvolvimento
 
-Decisões de arquitetura, histórico técnico de versões, registro de bugs e
-pendências ficam em `dev-docs/`, que é **interna ao repositório local** e
-não faz parte da documentação do produto.
+Para rodar a partir do código, entender a arquitetura, gerar os dados,
+escrever tours, testar e empacotar uma versão:
+**[Documentação de desenvolvimento](desenvolvimento/README.md)**.
+
+| Página | Conteúdo |
+|---|---|
+| [Ambiente](desenvolvimento/AMBIENTE.md) | Requisitos, instalar e rodar do código, estrutura, linha de comando de testes |
+| [Arquitetura](desenvolvimento/ARQUITETURA.md) | Camadas, mapa dos módulos, o desenho de um quadro |
+| [Componentes e dados](desenvolvimento/COMPONENTES.md) | Bibliotecas, dados embarcados, fontes e licenças |
+| [Pipeline de dados](desenvolvimento/DADOS.md) | Os scripts que geram `data/processed/` |
+| [Escrevendo tours](desenvolvimento/TOURS.md) | Formato, alvos, setas e verificação dos tours |
+| [Testes e qualidade](desenvolvimento/TESTES.md) | A suíte e as validações astronômicas |
+| [Build e release](desenvolvimento/BUILD.md) | Executável, pacote e publicação |
+| [Decisões de arquitetura](desenvolvimento/DECISOES.md) | Resumo das ADRs |
+| [Como contribuir](desenvolvimento/CONTRIBUINDO.md) | Convenções e como relatar problemas |

@@ -554,6 +554,11 @@ def main(argv=None) -> int:
                 dialog.list.setCurrentRow(keys.index(args.dialog_text))
         if args.dialog == "poster":
             dialog._preview()
+        if args.dialog == "quiz" and args.dialog_text:
+            # --dialog-text const|star|asterism: o modo do quiz (v0.23)
+            k = dialog.mode.findData(args.dialog_text)
+            if k >= 0:
+                dialog.mode.setCurrentIndex(k)
     elif args.dialog == "toursgallery":
         from .ui.tours_gallery import ToursGallery
 

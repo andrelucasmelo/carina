@@ -167,48 +167,11 @@ desabilitou ou criou. Se quiser recomeçar do zero, o gerenciador tem
 
 ## Regenerando os dados
 
-Só necessário para quem roda a partir do código e quer reconstruir tudo
-das fontes originais.
-
-```bash
-.venv/Scripts/python scripts/build_data.py
-```
-
-Baixa e processa estrelas, constelações e Via Láctea.
-
-```bash
-.venv/Scripts/python scripts/build_dso.py
-```
-
-Monta o banco de céu profundo a partir do OpenNGC, VizieR e SIMBAD.
-
-```bash
-.venv/Scripts/python scripts/build_images.py
-```
-
-Baixa as imagens Messier e Caldwell.
-
-```bash
-.venv/Scripts/python scripts/build_large_images.py
-```
-
-Baixa as imagens dos objetos grandes (>30′) e das galáxias (>8′). São
-787 alvos; o script é **incremental** — pode ser interrompido e retomado.
-
-```bash
-.venv/Scripts/python scripts/build_cities.py
-```
-
-Regenera a base de cidades a partir do GeoNames.
-
-```bash
-.venv/Scripts/python scripts/build_icon.py
-```
-
-Gera os ícones do aplicativo a partir de `assets/`.
-
-> Os scripts acessam servidores públicos e podem demorar bastante — o de
-> imagens grandes leva mais de uma hora. Rode-os só quando precisar.
+Os dados embarcados são gerados por scripts a partir das fontes originais.
+Isso só interessa a quem roda o Carina a partir do código: o passo a passo,
+script por script, está em
+[Pipeline de dados](desenvolvimento/DADOS.md), e as licenças de cada fonte em
+[Componentes e dados](desenvolvimento/COMPONENTES.md).
 
 ---
 
